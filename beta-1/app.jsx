@@ -240,25 +240,33 @@ const DISCOUNTS = [
     id: "d1", partner: "inFakt", badge: "-100 zł", category: "finanse",
     title: "Zleć księgowość",
     desc: "Zleć prowadzenie księgowości firmie inFakt, skorzystaj ze 100 zł zniżki na pierwszą płatność, a za każdą następną płać tylko 179 zł.",
+    fullDesc: "Skup się na leczeniu pacjentów, a księgowość zostaw specjalistom. inFakt to najpopularniejsza platforma do fakturowania i księgowości online w Polsce. Jako członek Klub Medyka otrzymujesz 100 zł zniżki na start oraz stałą cenę 179 zł/mies. za pełną obsługę księgową JDG.",
     hero: "znizki/hero-infakt.jpg", logo: "znizki/logo-infakt.png",
+    url: "https://www.infakt.pl",
   },
   {
     id: "d2", partner: "WeSub", badge: "-5 %", category: "sprzet",
     title: "Subskrybuj sprzęt",
     desc: "Wybierasz laptop, tablet, smartfon lub sprzęt peryferyjny – nowy lub odnowiony – i subskrybujesz na 12 miesięcy, 5% taniej.",
+    fullDesc: "WeSub to nowoczesny model finansowania sprzętu elektronicznego. Wybierasz laptop, tablet, smartfon lub sprzęt peryferyjny — nowy lub odnowiony — i subskrybujesz na 12 miesięcy. Jako członek Klub Medyka płacisz 5% mniej. Po zakończeniu subskrypcji możesz przedłużyć, wymienić na nowszy model lub wykupić sprzęt.",
     hero: "znizki/hero-wesub.jpg", logo: "znizki/logo-wesub.png",
+    url: "https://wesub.eu",
   },
   {
     id: "d3", partner: "Mooveno", badge: "-26%", category: "auto",
     title: "Obniż wydatki na samochód",
     desc: "Jedna aplikacja — oszczędność na paliwie, myjniach, ładowaniu, parkingach, czy opłatach za autostrady, a za wszystkie opłaty płacisz mniej.",
+    fullDesc: "Mooveno to aplikacja, która obniża koszty eksploatacji samochodu. Oszczędzasz na paliwie, myjniach, ładowaniu EV, parkingach i opłatach za autostrady. Jedna aplikacja zastępuje kilkanaście kart lojalnościowych. Członkowie Klub Medyka otrzymują dodatkowe 26% zniżki na wszystkie usługi w aplikacji.",
     hero: "znizki/hero-mooveno.jpg", logo: "znizki/logo-mooveno.png",
+    url: "https://mooveno.com",
   },
   {
     id: "d4", partner: "ESLT medical", badge: "-20 %", category: "medycyna",
     title: "Wyposaż swój gabinet w sprzęt laserowy",
     desc: "Wyposaż swój gabinet w sprzęt laserowy, który zwiększy precyzję i komfort zabiegów z zakresu medycyny estetycznej i nie tylko.",
+    fullDesc: "ESLT medical dostarcza profesjonalny sprzęt laserowy dla gabinetów medycznych i klinik medycyny estetycznej. Jako członek Klub Medyka otrzymujesz 20% zniżki na zakup urządzeń laserowych, które zwiększą precyzję i komfort zabiegów — od depilacji laserowej, przez odmładzanie skóry, po zabiegi naczyniowe.",
     hero: "znizki/hero-eslt.jpg", logo: "znizki/logo-eslt.png",
+    url: "https://eslt-medical.com",
   },
 ];
 
@@ -1376,8 +1384,119 @@ function ServicesView() {
 
 // ─── DISCOUNTS VIEW ───────────────────────────────────────────────────────────
 
+function TiltCard({ children, className, onClick }) {
+  const ref = React.useRef(null);
+  const handleMouseMove = (e) => {
+    const el = ref.current;
+    const rect = el.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    const centerX = rect.width / 2;
+    const centerY = rect.height / 2;
+    const rotateX = ((y - centerY) / centerY) * -3;
+    const rotateY = ((x - centerX) / centerX) * 3;
+    el.style.transform = `perspective(800px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale(1.01)`;
+  };
+  const handleMouseLeave = () => {
+    ref.current.style.transform = "";
+  };
+  return (
+    <div ref={ref} className={className} onClick={onClick}
+      onMouseMove={handleMouseMove} onMouseLeave={handleMouseLeave}>
+      {children}
+    </div>
+  );
+}
+
+function DiscountDrawer({ discount: d, onClose }) {
+  const [generatedCode, setGeneratedCode] = useState(null);
+  const [copied, setCopied] = useState(false);
+  const [showFullDesc, setShowFullDesc] = useState(false);
+  const generateCode = () => {
+    const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+    let code = "REMTD";
+    for (let i = 0; i < 7; i++) code += chars[Math.floor(Math.random() * chars.length)];
+    setGeneratedCode(code);
+    navigator.clipboard.writeText(code);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 3000);
+  };
+  const copyCode = () => {
+    navigator.clipboard.writeText(generatedCode);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 3000);
+  };
+  if (!d) return null;
+  return (
+    <React.Fragment>
+      <div className="drawer-overlay" onClick={onClose}></div>
+      <div className="drawer">
+        {/* Header: logo + badge + close */}
+        <div className="drawer__header">
+          <div className="drawer__header-left">
+            <img src={d.logo} alt={d.partner} className="drawer__logo" />
+            <span className="drawer__header-badge">{d.badge}</span>
+          </div>
+          <button className="drawer__close" onClick={onClose}>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </button>
+        </div>
+
+        <div className="drawer__content">
+          {/* Hero — mniejszy */}
+          <div className="drawer__hero drawer__hero--compact">
+            <img src={d.hero} alt={d.partner} className="drawer__hero-img" />
+          </div>
+
+          {/* Tytuł + krótki opis */}
+          <div className="drawer__title">{d.title}</div>
+          <p className="drawer__desc-short">{d.desc}</p>
+
+          {/* Sekcja kodu — widoczna od razu */}
+          <div className="drawer__code-box">
+            <div className="drawer__code-box-label">Kod zniżkowy</div>
+            {generatedCode ? (
+              <div>
+                <div className="drawer__code-row">
+                  <div className="drawer__code-value">{generatedCode}</div>
+                  <button className="drawer__code-copy" onClick={copyCode} title="Kopiuj">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                  </button>
+                  <button className="drawer__code-refresh" onClick={generateCode} title="Nowy kod">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/></svg>
+                  </button>
+                </div>
+                {copied && <div className="drawer__code-toast">Kod skopiowany do schowka</div>}
+              </div>
+            ) : (
+              <button className="drawer__btn-primary" onClick={generateCode}>
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M5.99479 6.0026H6.00146M9.99479 6.0026L5.99479 10.0026M9.99479 10.0026H10.0015M1.32812 6.0026C1.85856 6.0026 2.36727 6.21332 2.74234 6.58839C3.11741 6.96346 3.32813 7.47217 3.32813 8.0026C3.32813 8.53304 3.11741 9.04175 2.74234 9.41682C2.36727 9.79189 1.85856 10.0026 1.32812 10.0026L1.32812 11.3359C1.32812 11.6896 1.4686 12.0287 1.71865 12.2787C1.9687 12.5288 2.30784 12.6693 2.66146 12.6693L13.3281 12.6693C13.6817 12.6693 14.0209 12.5288 14.2709 12.2787C14.521 12.0287 14.6615 11.6896 14.6615 11.3359V10.0026C14.131 10.0026 13.6223 9.79189 13.2472 9.41682C12.8722 9.04175 12.6615 8.53304 12.6615 8.0026C12.6615 7.47217 12.8722 6.96346 13.2472 6.58839C13.6223 6.21332 14.131 6.0026 14.6615 6.0026V4.66927C14.6615 4.31565 14.521 3.97651 14.2709 3.72646C14.0209 3.47641 13.6817 3.33594 13.3281 3.33594L2.66146 3.33594C2.30784 3.33594 1.9687 3.47641 1.71865 3.72646C1.4686 3.97651 1.32813 4.31565 1.32812 4.66927L1.32812 6.0026Z" stroke="currentColor" strokeWidth="1.33" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                Wygeneruj kod zniżkowy
+              </button>
+            )}
+          </div>
+
+          {/* Szczegóły — rozwijane */}
+          <button className="drawer__details-toggle" onClick={() => setShowFullDesc(!showFullDesc)}>
+            Szczegóły oferty
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ transform: showFullDesc ? "rotate(180deg)" : "", transition: "transform 0.2s" }}><polyline points="6 9 12 15 18 9"/></svg>
+          </button>
+          {showFullDesc && <p className="drawer__desc-full">{d.fullDesc}</p>}
+
+          {/* Link do partnera */}
+          <a href={d.url} target="_blank" rel="noopener noreferrer" className="drawer__btn-outline">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+            Przejdź na stronę partnera
+          </a>
+        </div>
+      </div>
+    </React.Fragment>
+  );
+}
+
 function DiscountsView() {
   const [filter, setFilter] = useState("all");
+  const [selectedDiscount, setSelectedDiscount] = useState(null);
   const filtered = filter === "all" ? DISCOUNTS : DISCOUNTS.filter(d => d.category === filter);
 
   return (
@@ -1395,7 +1514,7 @@ function DiscountsView() {
       </div>
       <div className="discount-grid">
         {filtered.map(d => (
-          <div key={d.id} className="discount-card">
+          <TiltCard key={d.id} className="discount-card" onClick={() => setSelectedDiscount(d)}>
             <div className="discount-card__hero">
               <img src={d.hero} alt={d.partner} className="discount-card__hero-img" />
               <span className="discount-card__badge">{d.badge}</span>
@@ -1406,14 +1525,15 @@ function DiscountsView() {
               <p className="discount-card__desc">{d.desc}</p>
             </div>
             <div className="discount-card__footer">
-              <button className="discount-card__cta">
+              <button className="discount-card__cta" onClick={(e) => { e.stopPropagation(); setSelectedDiscount(d); }}>
                 <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M5.99479 6.0026H6.00146M9.99479 6.0026L5.99479 10.0026M9.99479 10.0026H10.0015M1.32812 6.0026C1.85856 6.0026 2.36727 6.21332 2.74234 6.58839C3.11741 6.96346 3.32813 7.47217 3.32813 8.0026C3.32813 8.53304 3.11741 9.04175 2.74234 9.41682C2.36727 9.79189 1.85856 10.0026 1.32812 10.0026L1.32812 11.3359C1.32812 11.6896 1.4686 12.0287 1.71865 12.2787C1.9687 12.5288 2.30784 12.6693 2.66146 12.6693L13.3281 12.6693C13.6817 12.6693 14.0209 12.5288 14.2709 12.2787C14.521 12.0287 14.6615 11.6896 14.6615 11.3359V10.0026C14.131 10.0026 13.6223 9.79189 13.2472 9.41682C12.8722 9.04175 12.6615 8.53304 12.6615 8.0026C12.6615 7.47217 12.8722 6.96346 13.2472 6.58839C13.6223 6.21332 14.131 6.0026 14.6615 6.0026V4.66927C14.6615 4.31565 14.521 3.97651 14.2709 3.72646C14.0209 3.47641 13.6817 3.33594 13.3281 3.33594L2.66146 3.33594C2.30784 3.33594 1.9687 3.47641 1.71865 3.72646C1.4686 3.97651 1.32813 4.31565 1.32812 4.66927L1.32812 6.0026Z" stroke="currentColor" strokeWidth="1.33" strokeLinecap="round" strokeLinejoin="round"/></svg>
                 Wykorzystaj
               </button>
             </div>
-          </div>
+          </TiltCard>
         ))}
       </div>
+      {selectedDiscount && <DiscountDrawer discount={selectedDiscount} onClose={() => setSelectedDiscount(null)} />}
     </div>
   );
 }
