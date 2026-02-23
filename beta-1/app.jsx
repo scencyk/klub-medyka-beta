@@ -255,23 +255,20 @@ const ICONS = {
   discounts: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="19" y1="5" x2="5" y2="19"/><circle cx="6.5" cy="6.5" r="2.5"/><circle cx="17.5" cy="17.5" r="2.5"/></svg>,
   insurance: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/></svg>,
   investments: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg>,
+  advisors: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>,
   profile: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="8" r="5"/><path d="M20 21a8 8 0 0 0-16 0"/></svg>,
 };
 
 const NAV_SECTIONS = [
   {
     items: [
-      { id: "overview",    label: "Panel główny", icon: "overview"  },
-      { id: "purchases",   label: "Zakupy",       icon: "purchases" },
-      { id: "packages",    label: "Usługi",       icon: "packages"  },
-      { id: "discounts",   label: "Zniżki",       icon: "discounts" },
-    ],
-  },
-  {
-    header: "Finanse",
-    items: [
-      { id: "insurance",   label: "Ubezpieczenia", icon: "insurance",   soon: true  },
-      { id: "investments", label: "Inwestycje",    icon: "investments", soon: true  },
+      { id: "overview",    label: "Panel główny",  icon: "overview"  },
+      { id: "purchases",   label: "Zakupy",        icon: "purchases" },
+      { id: "packages",    label: "Usługi",        icon: "packages"  },
+      { id: "discounts",   label: "Zniżki",        icon: "discounts" },
+      { id: "advisors",    label: "Twoi doradcy",  icon: "advisors"  },
+      { id: "insurance",   label: "Ubezpieczenia", icon: "insurance",   soon: true },
+      { id: "investments", label: "Inwestycje",    icon: "investments", soon: true },
     ],
   },
   {
@@ -1538,11 +1535,67 @@ function ProfileView() {
 
 // ─── APP ──────────────────────────────────────────────────────────────────────
 
+function AdvisorsView() {
+  const [contactDropdown, setContactDropdown] = useState(null);
+  const [contactBooked, setContactBooked] = useState({});
+  return (
+    <div>
+      <SectionHeader title="Twoi doradcy" />
+      <div className="advisor-grid">
+        {ALL_ADVISORS.map(a => {
+          const openId = contactDropdown === a.id;
+          const booked = contactBooked[a.id];
+          return (
+            <div key={a.id} className="advisor-tile">
+              <div className="advisor-tile__top">
+                <img src={a.photo} alt={a.name} className="advisor-tile__photo" />
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div className="text-sm font-semibold" style={{ lineHeight: 1.35 }}>{a.name}</div>
+                  <div className="text-xs text-muted">{a.role}</div>
+                </div>
+              </div>
+              <a href={`tel:${a.phone}`} className="advisor-tile__phone">{a.phone}</a>
+              <div style={{ position: "relative" }}>
+                {booked ? (
+                  <div className="contact-booked">
+                    <span className="text-green">✓</span> {booked}
+                    <button className="contact-booked__change" onClick={() => {
+                      setContactBooked(prev => { const n = { ...prev }; delete n[a.id]; return n; });
+                    }}>Zmień</button>
+                  </div>
+                ) : (
+                  <button className="btn btn--outline btn--sm contact-request-btn" onClick={() => setContactDropdown(openId ? null : a.id)}>
+                    Zamów kontakt
+                  </button>
+                )}
+                {openId && (
+                  <div className="contact-dropdown">
+                    <div className="contact-dropdown__label">Kiedy mamy zadzwonić?</div>
+                    {CONTACT_SLOTS.map(slot => (
+                      <button key={slot.id} className="contact-dropdown__item" onClick={() => {
+                        setContactBooked(prev => ({ ...prev, [a.id]: slot.label }));
+                        setContactDropdown(null);
+                      }}>
+                        {slot.label}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
 const VIEWS = {
   overview:    Overview,
   purchases:   PurchasesView,
   packages:    ServicesView,
   discounts:   DiscountsView,
+  advisors:    AdvisorsView,
   insurance:   InsuranceView,
   investments: InvestmentsView,
   profile:     ProfileView,
