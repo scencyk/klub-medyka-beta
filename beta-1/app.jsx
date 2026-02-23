@@ -1300,6 +1300,24 @@ function PurchasesView({ addToCart, cart, removeFromCart }) {
           </div>
         </div>
       ))}
+
+      {/* VEHIS Virtual Showroom */}
+      {(filter === "all" || filter === "cars") && (
+        <div className="product-section">
+          <div className="product-section__head">
+            <h3 className="font-bold" style={{ fontSize: 16 }}>Wirtualny salon samochodowy</h3>
+            <span className="text-sm text-muted">Powered by VEHIS</span>
+          </div>
+          <div className="vehis-embed">
+            <iframe
+              src="https://embed.vehis.pl/?embed_client_token=03e091d0-bb44-4339-bb83-b330f6149a0a"
+              title="VEHIS – Wirtualny salon samochodowy"
+              className="vehis-embed__iframe"
+              allow="fullscreen"
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -1683,6 +1701,23 @@ function InvestmentsView() {
 function ProfileView() {
   const [claimedIds, setClaimedIds] = useState({});
   const [copiedId,   setCopiedId]   = useState(null);
+  const [editing,    setEditing]    = useState(false);
+  const [profile,    setProfile]    = useState({
+    firstName: "Anna", lastName: "Kowalska", email: "anna.kowalska@gmail.com",
+    phone: "+48 600 123 456", pwz: "5678901",
+    role: "resident", work: ["nfz", "private"],
+  });
+  const [draft, setDraft] = useState(profile);
+
+  const setDraftField = (k, v) => setDraft(d => ({ ...d, [k]: v }));
+  const toggleDraftWork = (v) => setDraft(d => ({
+    ...d, work: d.work.includes(v) ? d.work.filter(x => x !== v) : [...d.work, v],
+  }));
+  const saveProfile = () => { setProfile(draft); setEditing(false); };
+  const cancelEdit = () => { setDraft(profile); setEditing(false); };
+
+  const roleLabel = OB_ROLES.find(r => r.id === profile.role)?.label || "";
+  const workLabels = profile.work.map(w => OB_WORK.find(o => o.id === w)?.label).filter(Boolean);
 
   const perks = [
     { id: "cinema",  title: "2× bilet do kina",  brand: "Cinema City", value: "2 × 35 zł", code: "MEDYK-CC-0224", expires: "11 dni" },
@@ -1692,11 +1727,115 @@ function ProfileView() {
   return (
     <div style={{ maxWidth: 560, display: "flex", flexDirection: "column", gap: 32 }}>
       <div className="flex items-center gap-4">
-        <img style={{ width: 48, height: 48, borderRadius: "50%", objectFit: "cover" }} src={USER_AVATAR} alt="Dr Anna Kowalska" />
+        <img style={{ width: 48, height: 48, borderRadius: "50%", objectFit: "cover" }} src={USER_AVATAR} alt={`Dr ${profile.firstName} ${profile.lastName}`} />
         <div>
-          <h2 style={{ fontSize: 18, fontWeight: 700, margin: 0 }}>Dr Anna Kowalska</h2>
-          <p className="text-sm text-muted" style={{ margin: "3px 0 0" }}>Rezydent · Kardiologia · Warszawa</p>
+          <h2 style={{ fontSize: 18, fontWeight: 700, margin: 0 }}>Dr {profile.firstName} {profile.lastName}</h2>
+          <p className="text-sm text-muted" style={{ margin: "3px 0 0" }}>{roleLabel}{workLabels.length > 0 ? ` · ${workLabels.join(", ")}` : ""}</p>
         </div>
+      </div>
+
+      {/* Dane z onboardingu */}
+      <div>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
+          <SectionHeader title="Dane profilu" />
+          {!editing && (
+            <button className="section-header__action" onClick={() => setEditing(true)}>Edytuj</button>
+          )}
+        </div>
+
+        {editing ? (
+          <div className="card" style={{ padding: 20 }}>
+            <div className="profile-form">
+              <div className="profile-form__row">
+                <div className="profile-form__field">
+                  <label className="profile-form__label">Imię</label>
+                  <input className="input" value={draft.firstName} onChange={e => setDraftField("firstName", e.target.value)} />
+                </div>
+                <div className="profile-form__field">
+                  <label className="profile-form__label">Nazwisko</label>
+                  <input className="input" value={draft.lastName} onChange={e => setDraftField("lastName", e.target.value)} />
+                </div>
+              </div>
+              <div className="profile-form__field">
+                <label className="profile-form__label">E-mail</label>
+                <input className="input" type="email" value={draft.email} onChange={e => setDraftField("email", e.target.value)} />
+              </div>
+              <div className="profile-form__field">
+                <label className="profile-form__label">Telefon</label>
+                <input className="input" type="tel" value={draft.phone} onChange={e => setDraftField("phone", e.target.value)} />
+              </div>
+              <div className="profile-form__field">
+                <label className="profile-form__label">Numer PWZ</label>
+                <div className="profile-form__locked">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                  <span>{draft.pwz}</span>
+                </div>
+                <span className="profile-form__hint">Numer PWZ nie podlega zmianie. Skontaktuj się z doradcą.</span>
+              </div>
+
+              <div style={{ marginTop: 8 }}>
+                <label className="profile-form__label">Kim jesteś?</label>
+                <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                  {OB_ROLES.map(r => (
+                    <button key={r.id} onClick={() => setDraftField("role", r.id)}
+                      className={`ob-option ob-option--compact${draft.role === r.id ? " ob-option--selected" : ""}`}>
+                      <span className="ob-option__label">{r.label}</span>
+                      <span className="ob-option__sub">{r.sub}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div style={{ marginTop: 12 }}>
+                <label className="profile-form__label">Jak pracujesz?</label>
+                <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                  {OB_WORK.map(w => (
+                    <button key={w.id} onClick={() => toggleDraftWork(w.id)}
+                      className={`ob-check ob-check--compact${draft.work.includes(w.id) ? " ob-check--selected" : ""}`}>
+                      <div className="ob-check__box">{draft.work.includes(w.id) && "✓"}</div>
+                      <span className="ob-check__label">{w.label}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="profile-form__actions">
+                <Btn variant="primary" onClick={saveProfile}>Zapisz zmiany</Btn>
+                <Btn variant="outline" onClick={cancelEdit}>Anuluj</Btn>
+              </div>
+            </div>
+          </div>
+        ) : (
+          <div className="card" style={{ padding: 0 }}>
+            <div className="profile-field">
+              <span className="profile-field__label">Imię i nazwisko</span>
+              <span className="profile-field__value">{profile.firstName} {profile.lastName}</span>
+            </div>
+            <div className="profile-field">
+              <span className="profile-field__label">E-mail</span>
+              <span className="profile-field__value">{profile.email}</span>
+            </div>
+            <div className="profile-field">
+              <span className="profile-field__label">Telefon</span>
+              <span className="profile-field__value">{profile.phone || "—"}</span>
+            </div>
+            <div className="profile-field">
+              <span className="profile-field__label">Numer PWZ</span>
+              <span className="profile-field__value">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--color-muted)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: 4 }}><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                {profile.pwz}
+              </span>
+            </div>
+            <div className="profile-field">
+              <span className="profile-field__label">Rola</span>
+              <span className="profile-field__value">{roleLabel}</span>
+            </div>
+            <div className="profile-field" style={{ borderBottom: "none" }}>
+              <span className="profile-field__label">Forma pracy</span>
+              <span className="profile-field__value">{workLabels.join(", ") || "—"}</span>
+            </div>
+          </div>
+        )}
       </div>
 
       <div>

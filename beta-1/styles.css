@@ -1275,6 +1275,21 @@ img { display: block; max-width: 100%; }
   color: #F43F5E;
 }
 
+/* VEHIS embed */
+.vehis-embed {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-xl);
+  overflow: hidden;
+  background: #fff;
+}
+
+.vehis-embed__iframe {
+  width: 100%;
+  height: 700px;
+  border: none;
+  display: block;
+}
+
 .product-card__body {
   padding: 12px 14px 14px;
   display: flex;
@@ -2766,4 +2781,90 @@ img { display: block; max-width: 100%; }
   font-size: 11px;
   color: var(--color-muted);
   text-align: center;
+}
+
+/* ─── PROFILE ────────────────────────────────────────────────────────────────── */
+
+.profile-field {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14px 20px;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.profile-field__label {
+  font-size: 13px;
+  color: var(--color-muted);
+}
+
+.profile-field__value {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-fg);
+  display: flex;
+  align-items: center;
+}
+
+/* Profile edit form */
+.profile-form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.profile-form__row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.profile-form__field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.profile-form__label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-fg);
+}
+
+.profile-form__locked {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  background: var(--color-secondary);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-muted);
+}
+
+.profile-form__hint {
+  font-size: 11px;
+  color: var(--color-muted);
+  margin-top: 2px;
+}
+
+.profile-form__actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.ob-option--compact,
+.ob-check--compact {
+  padding: 8px 12px;
+}
+
+.ob-option--compact .ob-option__label {
+  font-size: 13px;
+}
+
+.ob-option--compact .ob-option__sub {
+  font-size: 11px;
 }
