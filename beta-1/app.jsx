@@ -634,8 +634,9 @@ function Sidebar({ active, setActive }) {
 
 // ─── TOP BAR ──────────────────────────────────────────────────────────────────
 
-function TopBar({ active, setActive }) {
+function TopBar({ active, setActive, cart, onCartClick }) {
   const label = NAV_SECTIONS.flatMap(s => s.items).find(i => i.id === active)?.label || "";
+  const cartCount = cart ? cart.reduce((s, i) => s + i.qty, 0) : 0;
   return (
     <header className="topbar">
       <span className="topbar__title">{label}</span>
@@ -653,11 +654,12 @@ function TopBar({ active, setActive }) {
           </svg>
           <span className="topbar__notification-dot" />
         </button>
-        <button className="topbar__icon-btn" onClick={() => setActive("purchases")} title="Koszyk">
+        <button className="topbar__icon-btn topbar__cart-btn" onClick={onCartClick} title="Koszyk">
           <svg width="40" height="40" viewBox="0 0 40 40" fill="none">
             <rect width="40" height="40" rx="20" fill="#F4F4F5"/>
             <path d="M13.3667 13.3667H14.7L16.4734 21.6467C16.5384 21.9499 16.7071 22.221 16.9505 22.4133C17.1939 22.6055 17.4966 22.7069 17.8067 22.7H24.3267C24.6301 22.6995 24.9244 22.5956 25.1607 22.4053C25.3971 22.215 25.5615 21.9497 25.6267 21.6534L26.7267 16.7H15.4134M18.0002 26C18.0002 26.3682 17.7017 26.6667 17.3335 26.6667C16.9653 26.6667 16.6668 26.3682 16.6668 26C16.6668 25.6318 16.9653 25.3333 17.3335 25.3333C17.7017 25.3333 18.0002 25.6318 18.0002 26ZM25.3335 26C25.3335 26.3682 25.035 26.6667 24.6668 26.6667C24.2986 26.6667 24.0002 26.3682 24.0002 26C24.0002 25.6318 24.2986 25.3333 24.6668 25.3333C25.035 25.3333 25.3335 25.6318 25.3335 26Z" stroke="#18181B" strokeWidth="1.33" strokeLinecap="round" strokeLinejoin="round"/>
           </svg>
+          {cartCount > 0 && <span className="topbar__cart-badge">{cartCount}</span>}
         </button>
         <a href="https://remedium.md" target="_blank" rel="noopener noreferrer" className="topbar__remedium">
           <svg className="topbar__remedium-avatar" width="24" height="24" viewBox="0 0 24 24" fill="none">
@@ -874,7 +876,7 @@ function Overview({ setActive }) {
 
 // ─── PRODUCT DETAIL (sub-component) ──────────────────────────────────────────
 
-function ProductDetail({ product: p, cat, defaultSelections, onBack }) {
+function ProductDetail({ product: p, cat, defaultSelections, onBack, addToCart }) {
   const [variantSel, setVariantSel] = useState(defaultSelections);
   const [specsExpanded, setSpecsExpanded] = useState(false);
   const [activeImg, setActiveImg] = useState(0);
@@ -1038,7 +1040,7 @@ function ProductDetail({ product: p, cat, defaultSelections, onBack }) {
 
           {/* CTA buttons */}
           <div className="pdp__actions">
-            <button className="btn btn--accent pdp__btn-primary">
+            <button className="btn btn--accent pdp__btn-primary" onClick={() => addToCart && addToCart(p, { computedPrice, selections: variantSel })}>
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{marginRight:8}}><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
               Dodaj do koszyka
             </button>
@@ -1098,7 +1100,7 @@ function ProductDetail({ product: p, cat, defaultSelections, onBack }) {
 
 // ─── PURCHASES VIEW ───────────────────────────────────────────────────────────
 
-function PurchasesView() {
+function PurchasesView({ addToCart }) {
   const [filter, setFilter] = useState("all");
   const [view, setView] = useState("shop"); // "shop", "orders", or "detail"
   const [selectedProduct, setSelectedProduct] = useState(null);
@@ -1139,6 +1141,7 @@ function PurchasesView() {
       cat: cat,
       defaultSelections: defaultSelections,
       onBack: () => setView("shop"),
+      addToCart: addToCart,
     });
   }
 
@@ -1237,7 +1240,7 @@ function PurchasesView() {
                         </div>
                       )}
                     </div>
-                    <button className="product-card__cta" onClick={(e) => { e.stopPropagation(); }}>
+                    <button className="product-card__cta" onClick={(e) => { e.stopPropagation(); addToCart && addToCart(item); }}>
                       <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M1.36646 1.3667H2.69979L4.47312 9.6467C4.53817 9.94994 4.7069 10.221 4.95026 10.4133C5.19362 10.6055 5.49639 10.7069 5.80646 10.7H12.3265C12.6299 10.6995 12.9241 10.5956 13.1605 10.4053C13.3968 10.215 13.5612 9.94972 13.6265 9.65337L14.7265 4.70003H3.41312M5.99992 14C5.99992 14.3682 5.70144 14.6667 5.33325 14.6667C4.96506 14.6667 4.66659 14.3682 4.66659 14C4.66659 13.6318 4.96506 13.3333 5.33325 13.3333C5.70144 13.3333 5.99992 13.6318 5.99992 14ZM13.3333 14C13.3333 14.3682 13.0348 14.6667 12.6666 14.6667C12.2984 14.6667 11.9999 14.3682 11.9999 14C11.9999 13.6318 12.2984 13.3333 12.6666 13.3333C13.0348 13.3333 13.3333 13.6318 13.3333 14Z" stroke="currentColor" strokeWidth="1.33" strokeLinecap="round" strokeLinejoin="round"/></svg>
                       Do koszyka
                     </button>
@@ -1412,6 +1415,7 @@ function DiscountDrawer({ discount: d, onClose }) {
   const [generatedCode, setGeneratedCode] = useState(null);
   const [copied, setCopied] = useState(false);
   const [showFullDesc, setShowFullDesc] = useState(false);
+  const [closing, setClosing] = useState(false);
   const generateCode = () => {
     const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
     let code = "REMTD";
@@ -1426,18 +1430,19 @@ function DiscountDrawer({ discount: d, onClose }) {
     setCopied(true);
     setTimeout(() => setCopied(false), 3000);
   };
+  const handleClose = () => { setClosing(true); setTimeout(onClose, 250); };
   if (!d) return null;
   return (
     <React.Fragment>
-      <div className="drawer-overlay" onClick={onClose}></div>
-      <div className="drawer">
+      <div className={`drawer-overlay${closing ? " drawer-overlay--closing" : ""}`} onClick={handleClose}></div>
+      <div className={`drawer${closing ? " drawer--closing" : ""}`}>
         {/* Header: logo + badge + close */}
         <div className="drawer__header">
           <div className="drawer__header-left">
             <img src={d.logo} alt={d.partner} className="drawer__logo" />
             <span className="drawer__header-badge">{d.badge}</span>
           </div>
-          <button className="drawer__close" onClick={onClose}>
+          <button className="drawer__close" onClick={handleClose}>
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
           </button>
         </div>
@@ -1743,6 +1748,152 @@ function AdvisorsView() {
   );
 }
 
+// ─── CART DRAWER ──────────────────────────────────────────────────────────────
+
+function CartDrawer({ cart, onClose, removeFromCart, updateQty }) {
+  const [closing, setClosing] = useState(false);
+  const fmtPrice = (n) => n.toString().replace(/\B(?=(\d{3})+(?!\d))/g, " ") + " zł";
+  const total = cart.reduce((s, i) => s + i.price * i.qty, 0);
+  const totalItems = cart.reduce((s, i) => s + i.qty, 0);
+  const totalSavings = cart.reduce((s, i) => {
+    const oldPrice = i.variant && i.product.priceOldBase
+      ? i.product.priceOldBase + (i.variant.computedPrice - (i.product.basePrice || 0))
+      : i.product.priceOldBase || 0;
+    return s + (oldPrice > i.price ? (oldPrice - i.price) * i.qty : 0);
+  }, 0);
+
+  const handleClose = () => {
+    setClosing(true);
+    setTimeout(onClose, 250);
+  };
+
+  return (
+    <React.Fragment>
+      <div className={`drawer-overlay${closing ? " drawer-overlay--closing" : ""}`} onClick={handleClose}></div>
+      <div className={`drawer cart-drawer${closing ? " drawer--closing" : ""}`}>
+        {/* Header */}
+        <div className="drawer__header">
+          <div className="drawer__header-left">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
+            <span style={{ fontWeight: 700, fontSize: 16 }}>Koszyk</span>
+            {totalItems > 0 && <span className="drawer__header-badge" style={{ background: "var(--color-accent)", color: "#fff" }}>{totalItems}</span>}
+          </div>
+          <button className="drawer__close" onClick={handleClose}>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </button>
+        </div>
+
+        <div className="drawer__content">
+          {cart.length === 0 ? (
+            <div className="cart-empty">
+              <div className="cart-empty__icon">
+                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#E4E4E7" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
+              </div>
+              <div className="cart-empty__title">Koszyk jest pusty</div>
+              <div className="cart-empty__desc">Dodaj produkty z zakładki Zakupy</div>
+            </div>
+          ) : (
+            <React.Fragment>
+              {/* Items */}
+              <div className="cart-items">
+                {cart.map(item => {
+                  const oldPrice = item.variant && item.product.priceOldBase
+                    ? item.product.priceOldBase + (item.variant.computedPrice - (item.product.basePrice || 0))
+                    : item.product.priceOldBase || 0;
+                  const hasDicount = oldPrice > item.price;
+                  return (
+                  <div key={item.key} className="cart-item">
+                    <div className="cart-item__img" style={{ background: "#F4F4F5" }}>
+                      {item.product.photo
+                        ? <img src={item.product.photo} alt={item.product.brand} />
+                        : <span style={{ fontSize: 24 }}>{item.product.emoji}</span>
+                      }
+                    </div>
+                    <div className="cart-item__info">
+                      <div className="cart-item__name">{item.product.brand} {item.product.model}</div>
+                      {item.variant && (
+                        <div className="cart-item__variant">
+                          {Object.entries(item.variant.selections || {}).map(([k, v]) => v).join(" · ")}
+                        </div>
+                      )}
+                      <div className="cart-item__price-line">
+                        <span className="cart-item__price">{fmtPrice(item.price)}</span>
+                        {hasDicount && <span className="cart-item__price-old">{fmtPrice(oldPrice)}</span>}
+                      </div>
+                    </div>
+                    <div className="cart-item__actions">
+                      <div className="cart-item__qty">
+                        <button className="cart-item__qty-btn" onClick={() => updateQty(item.key, -1)}>−</button>
+                        <span className="cart-item__qty-val">{item.qty}</span>
+                        <button className="cart-item__qty-btn" onClick={() => updateQty(item.key, 1)}>+</button>
+                      </div>
+                      <button className="cart-item__remove" onClick={() => removeFromCart(item.key)} title="Usuń">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                      </button>
+                    </div>
+                  </div>
+                  );
+                })}
+              </div>
+
+              {/* Summary */}
+              <div className="cart-summary">
+                <div className="cart-summary__row">
+                  <span>Produkty ({totalItems})</span>
+                  <span className="font-semibold">{fmtPrice(total)}</span>
+                </div>
+                <div className="cart-summary__row">
+                  <span>Dostawa</span>
+                  <span style={{ color: "var(--color-green)", fontWeight: 600 }}>Gratis</span>
+                </div>
+                <div className="cart-summary__total">
+                  <span>Razem</span>
+                  <span>{fmtPrice(total)}</span>
+                </div>
+                {totalSavings > 0 && (
+                  <div className="cart-savings">
+                    <svg width="18" height="18" viewBox="0 0 23 23" fill="none"><path d="M19.9652 0H2.85217C1.27696 0 0 1.27696 0 2.85217V19.9652C0 21.5404 1.27696 22.8173 2.85217 22.8173H19.9652C21.5404 22.8173 22.8173 21.5404 22.8173 19.9652V2.85217C22.8173 1.27696 21.5404 0 19.9652 0Z" fill="#18181B"/><path d="M11.5447 11.0658L16.8498 7.54338L14.6465 3.75L5.96875 9.24042L5.99014 9.27607C5.99014 9.27607 5.97588 9.27607 5.96875 9.27607V13.6613C8.89222 13.6613 11.2667 16.0928 11.2667 19.0733H15.6519C15.6519 15.7719 14.0261 12.8484 11.5447 11.0729V11.0658Z" fill="#CEFF3E"/></svg>
+                    <span>Oszczędzasz z Klubem Medyka</span>
+                    <span className="cart-savings__amount">−{fmtPrice(totalSavings)}</span>
+                  </div>
+                )}
+                <button className="cart-checkout-btn">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+                  Przejdź do płatności
+                </button>
+                <button className="cart-continue-btn" onClick={handleClose}>
+                  ← Kontynuuj zakupy
+                </button>
+
+                {/* Financing options */}
+                <div className="cart-financing">
+                  <div className="cart-financing__header">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+                    <span>Dopasuj swoją płatność</span>
+                  </div>
+                  <div className="cart-financing__options">
+                    <div className="cart-financing__option">
+                      <div className="cart-financing__option-label">Raty 0%</div>
+                      <div className="cart-financing__option-value">od {fmtPrice(Math.ceil(total / 36))}/mies.</div>
+                      <div className="cart-financing__option-sub">na 36 miesięcy</div>
+                    </div>
+                    <div className="cart-financing__option">
+                      <div className="cart-financing__option-label">Leasing</div>
+                      <div className="cart-financing__option-value">od {fmtPrice(Math.ceil(total / 48))}/mies.</div>
+                      <div className="cart-financing__option-sub">na 48 miesięcy</div>
+                    </div>
+                  </div>
+                  <div className="cart-financing__note">Bez zaświadczeń · Decyzja w 15 min · Faktura VAT</div>
+                </div>
+              </div>
+            </React.Fragment>
+          )}
+        </div>
+      </div>
+    </React.Fragment>
+  );
+}
+
 const VIEWS = {
   overview:    Overview,
   purchases:   PurchasesView,
@@ -1758,8 +1909,28 @@ function App() {
   const [onboarded, setOnboarded] = useState(true); // TODO: zmień na false aby włączyć onboarding
   const [active,    setActive_]   = useState("overview");
   const [navKey,    setNavKey]    = useState(0);
+  const [cart,      setCart]      = useState([]);
+  const [cartOpen,  setCartOpen]  = useState(false);
 
   const setActive = (id) => { setActive_(id); setNavKey(k => k + 1); };
+
+  const addToCart = (product, variant) => {
+    setCart(prev => {
+      const key = product.id + (variant ? JSON.stringify(variant) : "");
+      const existing = prev.find(i => i.key === key);
+      if (existing) return prev.map(i => i.key === key ? { ...i, qty: i.qty + 1 } : i);
+      const price = variant ? variant.computedPrice : product.basePrice || parseInt(product.price.replace(/\s/g, ""));
+      return [...prev, { key, product, variant, qty: 1, price }];
+    });
+    setCartOpen(true);
+  };
+
+  const removeFromCart = (key) => setCart(prev => prev.filter(i => i.key !== key));
+  const updateQty = (key, delta) => setCart(prev => prev.map(i => {
+    if (i.key !== key) return i;
+    const newQty = i.qty + delta;
+    return newQty > 0 ? { ...i, qty: newQty } : i;
+  }).filter(i => i.qty > 0));
 
   if (!onboarded) return <Onboarding onComplete={() => setOnboarded(true)} />;
 
@@ -1769,11 +1940,12 @@ function App() {
     <div className="app-layout">
       <Sidebar active={active} setActive={setActive} />
       <div className="main">
-        <TopBar active={active} setActive={setActive} />
+        <TopBar active={active} setActive={setActive} cart={cart} onCartClick={() => setCartOpen(true)} />
         <main className="main__content">
-          <View key={navKey} setActive={setActive} />
+          <View key={navKey} setActive={setActive} addToCart={addToCart} />
         </main>
       </div>
+      {cartOpen && <CartDrawer cart={cart} onClose={() => setCartOpen(false)} removeFromCart={removeFromCart} updateQty={updateQty} />}
     </div>
   );
 }
