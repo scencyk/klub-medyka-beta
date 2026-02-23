@@ -1,16 +1,13 @@
 const { useState } = React;
 
+const USER_AVATAR = "https://images.unsplash.com/photo-1559839734-2b71ea197ec2?w=200&h=200&fit=crop&crop=face";
+
 // ─── DATA ─────────────────────────────────────────────────────────────────────
 
-const MY_ADVISOR = {
-  name: "Marta Kowalczyk", role: "Doradca ubezpieczeniowy",
-  phone: "+48 600 100 200", initials: "MK", available: true,
-};
-
 const ALL_ADVISORS = [
-  { id: "a1", name: "Marta Kowalczyk",      role: "Doradca ubezpieczeniowy", phone: "+48 600 100 200", initials: "MK", available: true  },
-  { id: "a2", name: "Tomasz Nowak",         role: "Doradca prawny",          phone: "+48 601 200 300", initials: "TN", available: true  },
-  { id: "a3", name: "Agnieszka Wiśniewska", role: "Doradca finansowy",       phone: "+48 602 300 400", initials: "AW", available: false },
+  { id: "a1", name: "Marta Kowalczyk",      role: "Doradca ubezpieczeniowy", phone: "+48 600 100 200", initials: "MK", available: true,  photo: "advisors/marta.jpg"  },
+  { id: "a2", name: "Tomasz Nowak",         role: "Doradca prawny",          phone: "+48 601 200 300", initials: "TN", available: true,  photo: "advisors/tomasz.jpg" },
+  { id: "a3", name: "Agnieszka Wiśniewska", role: "Doradca finansowy",       phone: "+48 602 300 400", initials: "AW", available: false, photo: "advisors/agnieszka.jpg" },
 ];
 
 const PACKAGES = [
@@ -53,23 +50,173 @@ const MY_SUBS = [
 
 const PURCHASE_CATALOG = [
   {
-    id: "devices", label: "Sprzęt i elektronika", color: "#EEF2FF",
+    id: "devices", label: "Sprzęt i elektronika", color: "#FFFFFF",
     items: [
-      { id: "iphone15", brand: "Apple",  model: "iPhone 15 Pro",      desc: "Smartfon · 256 GB · Tytan naturalny",     price: "5 299 zł", priceOld: "5 999 zł", priceNote: "Rata netto", emoji: "📱" },
-      { id: "ipad",     brand: "Apple",  model: "iPad Pro M4",        desc: "Tablet · 11\" · idealny do gabinetu",     price: "4 799 zł", priceOld: "5 299 zł", priceNote: "Rata netto", emoji: "📲" },
-      { id: "macbook",  brand: "Apple",  model: "MacBook Air M3",     desc: "Laptop · 15\" · 16 GB RAM",               price: "6 499 zł", priceOld: null,        priceNote: "Rata netto", emoji: "💻" },
-      { id: "sony",     brand: "Sony",   model: "WH-1000XM5",        desc: "Słuchawki · ANC · na dyżury i do nauki",  price: "1 099 zł", priceOld: "1 499 zł", priceNote: null,         emoji: "🎧" },
-      { id: "monitor",  brand: "Dell",   model: "UltraSharp U2724D", desc: "Monitor · 27\" · 4K IPS · USB-C",         price: "2 399 zł", priceOld: null,        priceNote: "Rata netto", emoji: "🖥️" },
+      { id: "iphone15", brand: "Apple",  model: "iPhone 15 Pro",      desc: "Smartfon · 256 GB · Tytan naturalny",     price: "5 299 zł", priceOld: "5 999 zł", priceNote: "Rata netto", emoji: "📱", basePrice: 5299, priceOldBase: 5999,
+        photo: "zdjecia-produktow/iphone15-nat-front.jpg",
+        images: [
+          { url: "zdjecia-produktow/iphone15-nat-front.jpg", label: "Przód" },
+          { url: "zdjecia-produktow/iphone15-nat-back.jpg", label: "Tył" },
+          { url: "zdjecia-produktow/iphone15-nat-side.jpg", label: "Bok" },
+        ],
+        fullDesc: "iPhone 15 Pro z chipem A17 Pro. Tytanowa konstrukcja, najlżejszy iPhone Pro w historii. Kamera 48 MP z 5-krotnym zoomem optycznym. Przycisk Czynność do szybkiego dostępu do ulubionych funkcji. USB-C z obsługą USB 3.",
+        variants: [
+          { group: "Przekątna ekranu", options: [
+            { label: '6,1"', diff: 0, default: true },
+            { label: '6,7"', diff: 350 },
+          ]},
+          { group: "Pamięć wbudowana", options: [
+            { label: "128 GB", diff: -400 },
+            { label: "256 GB", diff: 0, default: true },
+            { label: "512 GB", diff: 500 },
+            { label: "1 TB", diff: 1200 },
+          ]},
+          { group: "Kolor obudowy", isColor: true, options: [
+            { label: "Tytan naturalny", diff: 0, default: true, colorHex: "#F5F0EB" },
+            { label: "Tytan niebieski", diff: 0, colorHex: "#C8D4E3" },
+            { label: "Tytan biały", diff: 0, colorHex: "#F0F0F0" },
+            { label: "Tytan czarny", diff: 0, colorHex: "#3A3A3C" },
+          ]},
+        ],
+        specs: [
+          { label: "Wyświetlacz", value: '6,1" Super Retina XDR OLED, 2556×1179' },
+          { label: "Procesor", value: "Apple A17 Pro (3 nm)" },
+          { label: "Pamięć RAM", value: "8 GB" },
+          { label: "Pamięć wewnętrzna", value: "256 GB" },
+          { label: "Aparat główny", value: "48 MP + 12 MP + 12 MP" },
+          { label: "Aparat przedni", value: "12 MP TrueDepth" },
+          { label: "Bateria", value: "3274 mAh, MagSafe, Qi2" },
+          { label: "System", value: "iOS 17" },
+          { label: "5G", value: "Tak" },
+          { label: "Złącze", value: "USB-C (USB 3)" },
+          { label: "Waga", value: "187 g" },
+        ],
+        delivery: "Dostawa 1–2 dni robocze",
+      },
+      { id: "ipad",     brand: "Apple",  model: "iPad Pro M4",        desc: "Tablet · 11\" · idealny do gabinetu",     price: "4 799 zł", priceOld: "5 299 zł", priceNote: "Rata netto", emoji: "📲", basePrice: 4799, priceOldBase: 5299,
+        photo: "zdjecia-produktow/ipad-czarny-front.jpg",
+        images: [
+          { url: "zdjecia-produktow/ipad-czarny-front.jpg", label: "Przód" },
+          { url: "zdjecia-produktow/ipad-srebrny-front.jpg", label: "Srebrny" },
+        ],
+        fullDesc: "Najcieńszy produkt Apple w historii. Chip M4 zapewnia ogromną moc w ultrasmukłej obudowie. Ekran Ultra Retina XDR z technologią tandem OLED. Idealny do dokumentacji medycznej, notatek i wideokonferencji.",
+        variants: [
+          { group: "Przekątna ekranu", options: [
+            { label: '11"', diff: 0, default: true },
+            { label: '13"', diff: 600 },
+          ]},
+          { group: "Pamięć wbudowana", options: [
+            { label: "256 GB", diff: 0, default: true },
+            { label: "512 GB", diff: 400 },
+            { label: "1 TB", diff: 1000 },
+          ]},
+          { group: "Kolor", isColor: true, options: [
+            { label: "Gwiezdna czerń", diff: 0, default: true, colorHex: "#2C2C2E" },
+            { label: "Srebrny", diff: 0, colorHex: "#E8E8ED" },
+          ]},
+        ],
+        specs: [
+          { label: "Wyświetlacz", value: '11" Ultra Retina XDR, tandem OLED' },
+          { label: "Procesor", value: "Apple M4" },
+          { label: "Pamięć RAM", value: "8 GB" },
+          { label: "Pamięć wewnętrzna", value: "256 GB" },
+          { label: "Aparat", value: "12 MP szerokokątny" },
+          { label: "Face ID", value: "Tak" },
+          { label: "Złącze", value: "USB-C (Thunderbolt)" },
+          { label: "Waga", value: "444 g" },
+        ],
+        delivery: "Dostawa 1–2 dni robocze",
+      },
+      { id: "macbook",  brand: "Apple",  model: "MacBook Air M3",     desc: "Laptop · 15\" · 16 GB RAM",               price: "6 499 zł", priceOld: null,        priceNote: "Rata netto", emoji: "💻", basePrice: 6499, priceOldBase: null,
+        photo: "zdjecia-produktow/macbook-szary-front.jpg",
+        images: [
+          { url: "zdjecia-produktow/macbook-szary-front.jpg", label: "Północ" },
+          { url: "zdjecia-produktow/macbook-srebrny-front.jpg", label: "Srebrny" },
+          { url: "zdjecia-produktow/macbook-starlight-front.jpg", label: "Starlight" },
+        ],
+        fullDesc: "MacBook Air 15 cali z chipem M3. Niesamowicie cienki i lekki, z 18 godzinami pracy na baterii. 16 GB RAM i szybki dysk SSD. Idealny do pracy w gabinecie i na konferencjach.",
+        variants: [
+          { group: "Przekątna ekranu", options: [
+            { label: '13,6"', diff: -500 },
+            { label: '15,3"', diff: 0, default: true },
+          ]},
+          { group: "Pamięć RAM", options: [
+            { label: "16 GB", diff: 0, default: true },
+            { label: "24 GB", diff: 400 },
+          ]},
+          { group: "Dysk SSD", options: [
+            { label: "256 GB", diff: -300 },
+            { label: "512 GB", diff: 0, default: true },
+            { label: "1 TB", diff: 400 },
+          ]},
+          { group: "Kolor", isColor: true, options: [
+            { label: "Północ", diff: 0, default: true, colorHex: "#2C3E50" },
+            { label: "Księżycowa poświata", diff: 0, colorHex: "#F5F0EB" },
+            { label: "Galaktyczny szary", diff: 0, colorHex: "#8E8E93" },
+            { label: "Księżycowy błękit", diff: 0, colorHex: "#B8CCE0" },
+          ]},
+        ],
+        specs: [
+          { label: "Wyświetlacz", value: '15,3" Liquid Retina, 2880×1864' },
+          { label: "Procesor", value: "Apple M3 (8-core CPU, 10-core GPU)" },
+          { label: "Pamięć RAM", value: "16 GB" },
+          { label: "Dysk SSD", value: "512 GB" },
+          { label: "Bateria", value: "Do 18 godz." },
+          { label: "Kamera", value: "1080p FaceTime HD" },
+          { label: "Złącza", value: "2× USB-C, MagSafe, mini-jack" },
+          { label: "Waga", value: "1,51 kg" },
+        ],
+        delivery: "Dostawa 1–2 dni robocze",
+      },
+      { id: "sony",     brand: "Sony",   model: "WH-1000XM5",        desc: "Słuchawki · ANC · na dyżury i do nauki",  price: "1 099 zł", priceOld: "1 499 zł", priceNote: null,         emoji: "🎧",
+        photo: "zdjecia-produktow/sony-xm5-front.jpg",
+        images: [
+          { url: "zdjecia-produktow/sony-xm5-front.jpg", label: "Przód" },
+          { url: "zdjecia-produktow/sony-xm5-side.jpg", label: "Bok" },
+          { url: "zdjecia-produktow/sony-xm5-folded.jpg", label: "Złożone" },
+        ],
+        fullDesc: "Flagowe słuchawki z wiodącą redukcją szumów. 8 mikrofonów i 2 procesory sterujące ANC. 30 godzin pracy na baterii. Składana, ultralekka konstrukcja. Idealne na długie dyżury.",
+        specs: [
+          { label: "Typ", value: "Nauszne, bezprzewodowe" },
+          { label: "ANC", value: "Tak, adaptacyjne (8 mikrofonów)" },
+          { label: "Bateria", value: "30 godz. (ANC włączone)" },
+          { label: "Ładowanie", value: "USB-C, 3 min = 3 godz. muzyki" },
+          { label: "Bluetooth", value: "5.2, multipoint" },
+          { label: "Kodeki", value: "LDAC, AAC, SBC" },
+          { label: "Waga", value: "250 g" },
+        ],
+        delivery: "Dostawa 1–2 dni robocze",
+        installment: null,
+      },
+      { id: "monitor",  brand: "Dell",   model: "UltraSharp U2724D", desc: "Monitor · 27\" · 4K IPS · USB-C",         price: "2 399 zł", priceOld: null,        priceNote: "Rata netto", emoji: "🖥️",
+        photo: "zdjecia-produktow/dell-u2724d-front.jpg",
+        images: [
+          { url: "zdjecia-produktow/dell-u2724d-front.jpg", label: "Przód" },
+          { url: "zdjecia-produktow/dell-u2724d-side.jpg", label: "Bok" },
+        ],
+        fullDesc: "Monitor 4K UHD z matrycą IPS Black. 98% pokrycia DCI-P3. Wbudowany hub USB-C z 90W Power Delivery — jedno złącze do laptopa. Idealny do diagnostyki obrazowej i pracy z dokumentacją.",
+        specs: [
+          { label: "Przekątna", value: '27"' },
+          { label: "Rozdzielczość", value: "3840 × 2160 (4K UHD)" },
+          { label: "Matryca", value: "IPS Black" },
+          { label: "Pokrycie barw", value: "98% DCI-P3, 100% sRGB" },
+          { label: "USB-C PD", value: "90W" },
+          { label: "Złącza", value: "USB-C, HDMI, DP, 5× USB-A" },
+          { label: "Regulacja", value: "Wysokość, pochylenie, obrót, pivot" },
+        ],
+        delivery: "Dostawa 2–3 dni robocze",
+        installment: "12 × 199 zł netto",
+      },
     ],
   },
   {
-    id: "cars", label: "Samochody", color: "#F0FDF4",
+    id: "cars", label: "Samochody", color: "#FFFFFF",
     items: [
-      { id: "glc",      brand: "Mercedes-Benz", model: "GLC Coupe 220 d mHEV", desc: "SUV · diesel · wynajem długoterminowy",   price: "2 850 zł/mies.", priceOld: "3 120 zł/mies.", priceNote: "Rata netto", emoji: "🚗" },
-      { id: "bmw3",     brand: "BMW",            model: "320i M Sport",          desc: "Sedan · benzyna · leasing 36 mies.",     price: "2 450 zł/mies.", priceOld: null,              priceNote: "Rata netto", emoji: "🏎️" },
-      { id: "tesla3",   brand: "Tesla",          model: "Model 3 Long Range",   desc: "Elektryczny · 600 km zasięgu",           price: "2 100 zł/mies.", priceOld: "2 500 zł/mies.", priceNote: "Rata netto", emoji: "⚡" },
-      { id: "vehis",    brand: "VEHIS",          model: "Wirtualny salon",       desc: "Konfiguruj i zamów online bez wychodzenia", price: "wycena online",   priceOld: null,              priceNote: null,         emoji: "🛒" },
-      { id: "mooveno",  brand: "Mooveno",        model: "Elastyczny wynajem",    desc: "Od 1 miesiąca · różne marki",             price: "od 1 800 zł/mies.", priceOld: null,           priceNote: "Rata netto", emoji: "🔑" },
+      { id: "glc",      brand: "Mercedes-Benz", model: "GLC Coupe 220 d mHEV", desc: "SUV · diesel · wynajem długoterminowy",   price: "2 850 zł/mies.", priceOld: "3 120 zł/mies.", priceNote: "Rata netto", emoji: "🚗", photo: "https://images.unsplash.com/photo-1618843479313-40f8afb4b4d8?w=600&h=450&fit=crop" },
+      { id: "bmw3",     brand: "BMW",            model: "320i M Sport",          desc: "Sedan · benzyna · leasing 36 mies.",     price: "2 450 zł/mies.", priceOld: null,              priceNote: "Rata netto", emoji: "🏎️", photo: "https://images.unsplash.com/photo-1555215695-3004980ad54e?w=600&h=450&fit=crop" },
+      { id: "tesla3",   brand: "Tesla",          model: "Model 3 Long Range",   desc: "Elektryczny · 600 km zasięgu",           price: "2 100 zł/mies.", priceOld: "2 500 zł/mies.", priceNote: "Rata netto", emoji: "⚡", photo: "https://images.unsplash.com/photo-1560958089-b8a1929cea89?w=600&h=450&fit=crop" },
+      { id: "vehis",    brand: "VEHIS",          model: "Wirtualny salon",       desc: "Konfiguruj i zamów online bez wychodzenia", price: "wycena online",   priceOld: null,              priceNote: null,         emoji: "🛒", photo: "https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?w=600&h=450&fit=crop" },
+      { id: "mooveno",  brand: "Mooveno",        model: "Elastyczny wynajem",    desc: "Od 1 miesiąca · różne marki",             price: "od 1 800 zł/mies.", priceOld: null,           priceNote: "Rata netto", emoji: "🔑", photo: "https://images.unsplash.com/photo-1549317661-bd32c8ce0afa?w=600&h=450&fit=crop" },
     ],
   },
 ];
@@ -402,17 +549,13 @@ function Onboarding({ onComplete }) {
 // ─── SIDEBAR ──────────────────────────────────────────────────────────────────
 
 function Sidebar({ active, setActive }) {
-  const [calling, setCalling] = useState(false);
-
   return (
     <aside className="sidebar">
-      {/* Logo + user */}
+      {/* Logo */}
       <div className="sidebar__header">
         <div className="sidebar__logo" onClick={() => setActive("overview")} style={{ cursor: "pointer" }}>
           <img src="../brand assets/Logo.png" alt="Klub Medyka" />
         </div>
-        <div className="sidebar__user-name">Dr Anna Kowalska</div>
-        <div className="sidebar__user-role">Rezydent · Kardiologia</div>
       </div>
 
       {/* Nav */}
@@ -444,24 +587,13 @@ function Sidebar({ active, setActive }) {
         ))}
       </nav>
 
-      {/* Advisor widget */}
-      <div className="sidebar__advisor">
-        <div className="sidebar__advisor-label">Twój doradca</div>
-        <div className="sidebar__advisor-row">
-          <div className="sidebar__advisor-avatar">
-            <div className="sidebar__advisor-avatar-circle">{MY_ADVISOR.initials}</div>
-            <div className={`sidebar__advisor-status sidebar__advisor-status--${MY_ADVISOR.available ? "online" : "offline"}`} />
-          </div>
-          <div style={{ flex: 1, minWidth: 0 }}>
-            <div className="sidebar__advisor-name">{MY_ADVISOR.name}</div>
-            <div className="sidebar__advisor-spec">Ubezpieczenia</div>
-          </div>
+      {/* User profile */}
+      <div className="sidebar__profile" onClick={() => setActive("profile")}>
+        <img className="sidebar__profile-avatar" src={USER_AVATAR} alt="Dr Anna Kowalska" />
+        <div className="sidebar__profile-info">
+          <div className="sidebar__profile-name">Dr Anna Kowalska</div>
+          <div className="sidebar__profile-role">Rezydent · Kardiologia</div>
         </div>
-        <button
-          onClick={() => setCalling(c => !c)}
-          className={`sidebar__advisor-call${calling ? " sidebar__advisor-call--active" : ""}`}>
-          {calling ? "📞 Dzwonię…" : `📞 ${MY_ADVISOR.phone}`}
-        </button>
       </div>
     </aside>
   );
@@ -475,12 +607,33 @@ function TopBar({ active, setActive }) {
     <header className="topbar">
       <span className="topbar__title">{label}</span>
       <div className="topbar__actions">
-        <button className="topbar__icon-btn" onClick={() => setActive("profile")}>
-          🎁
+        <button className="topbar__icon-btn" onClick={() => setActive("profile")} title="Profil">
+          <svg width="40" height="40" viewBox="0 0 40 40" fill="none">
+            <rect width="40" height="40" rx="20" fill="#F4F4F5"/>
+            <path d="M24.6668 26V24.6667C24.6668 23.9594 24.3859 23.2811 23.8858 22.781C23.3857 22.281 22.7074 22 22.0002 22H18.0002C17.2929 22 16.6146 22.281 16.1145 22.781C15.6144 23.2811 15.3335 23.9594 15.3335 24.6667V26M22.6668 16.6667C22.6668 18.1394 21.4729 19.3333 20.0002 19.3333C18.5274 19.3333 17.3335 18.1394 17.3335 16.6667C17.3335 15.1939 18.5274 14 20.0002 14C21.4729 14 22.6668 15.1939 22.6668 16.6667Z" stroke="#18181B" strokeWidth="1.33" strokeLinecap="round" strokeLinejoin="round"/>
+          </svg>
+        </button>
+        <button className="topbar__icon-btn" title="Powiadomienia">
+          <svg width="40" height="40" viewBox="0 0 40 40" fill="none">
+            <rect width="40" height="40" rx="20" fill="#F4F4F5"/>
+            <path d="M18.8667 26.0002C18.9783 26.2031 19.1423 26.3724 19.3417 26.4903C19.5411 26.6082 19.7684 26.6704 20 26.6704C20.2316 26.6704 20.459 26.6082 20.6584 26.4903C20.8577 26.3724 21.0218 26.2031 21.1334 26.0002M16 17.3335C16 16.2726 16.4214 15.2552 17.1716 14.5051C17.9217 13.7549 18.9391 13.3335 20 13.3335C21.0609 13.3335 22.0783 13.7549 22.8284 14.5051C23.5786 15.2552 24 16.2726 24 17.3335C24 22.0002 26 23.3335 26 23.3335H14C14 23.3335 16 22.0002 16 17.3335Z" stroke="#18181B" strokeWidth="1.33" strokeLinecap="round" strokeLinejoin="round"/>
+          </svg>
           <span className="topbar__notification-dot" />
         </button>
-        <button className="topbar__icon-btn">🔔</button>
-        <div className="topbar__avatar" onClick={() => setActive("profile")}>AK</div>
+        <button className="topbar__icon-btn" onClick={() => setActive("purchases")} title="Koszyk">
+          <svg width="40" height="40" viewBox="0 0 40 40" fill="none">
+            <rect width="40" height="40" rx="20" fill="#F4F4F5"/>
+            <path d="M13.3667 13.3667H14.7L16.4734 21.6467C16.5384 21.9499 16.7071 22.221 16.9505 22.4133C17.1939 22.6055 17.4966 22.7069 17.8067 22.7H24.3267C24.6301 22.6995 24.9244 22.5956 25.1607 22.4053C25.3971 22.215 25.5615 21.9497 25.6267 21.6534L26.7267 16.7H15.4134M18.0002 26C18.0002 26.3682 17.7017 26.6667 17.3335 26.6667C16.9653 26.6667 16.6668 26.3682 16.6668 26C16.6668 25.6318 16.9653 25.3333 17.3335 25.3333C17.7017 25.3333 18.0002 25.6318 18.0002 26ZM25.3335 26C25.3335 26.3682 25.035 26.6667 24.6668 26.6667C24.2986 26.6667 24.0002 26.3682 24.0002 26C24.0002 25.6318 24.2986 25.3333 24.6668 25.3333C25.035 25.3333 25.3335 25.6318 25.3335 26Z" stroke="#18181B" strokeWidth="1.33" strokeLinecap="round" strokeLinejoin="round"/>
+          </svg>
+        </button>
+        <a href="https://remedium.md" target="_blank" rel="noopener noreferrer" className="topbar__remedium">
+          <svg className="topbar__remedium-avatar" width="24" height="24" viewBox="0 0 24 24" fill="none">
+            <rect width="24" height="24" rx="12" fill="white"/>
+            <path d="M19 10.8944C15.7495 10.8944 13.1056 8.25045 13.1056 5H10.8944C10.8944 8.25045 8.25045 10.8944 5 10.8944V13.1056C8.25045 13.1056 10.8944 15.7495 10.8944 19H13.1056C13.1056 15.7495 15.7495 13.1056 19 13.1056V10.8944ZM12 14.9219C11.2956 13.7153 10.2847 12.7044 9.07807 12C10.2847 11.2924 11.2924 10.2847 12 9.07807C12.7076 10.2847 13.7153 11.2924 14.9219 12C13.7153 12.7076 12.7076 13.7153 12 14.9219Z" fill="#2E35FF"/>
+          </svg>
+          <span>Remedium</span>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg>
+        </a>
       </div>
     </header>
   );
@@ -488,9 +641,18 @@ function TopBar({ active, setActive }) {
 
 // ─── OVERVIEW ─────────────────────────────────────────────────────────────────
 
+const CONTACT_SLOTS = [
+  { id: "now",       label: "Jak najszybciej" },
+  { id: "today",     label: "Dziś po 16:00" },
+  { id: "tomorrow",  label: "Jutro rano (9:00–12:00)" },
+  { id: "week",      label: "W tym tygodniu" },
+];
+
 function Overview({ setActive }) {
   const [ticketClaimed, setTicketClaimed] = useState(false);
   const [interests, setInterests] = useState([]);
+  const [contactDropdown, setContactDropdown] = useState(null);
+  const [contactBooked, setContactBooked] = useState({});
 
   const toggleInterest = (id) => {
     setInterests(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]);
@@ -553,29 +715,49 @@ function Overview({ setActive }) {
       <div>
         <SectionHeader title="Twoi doradcy" />
         <div className="advisor-grid">
-          {ALL_ADVISORS.map(a => (
-            <div key={a.id} className="advisor-tile">
-              <div className="flex items-center gap-2" style={{ marginBottom: 12 }}>
-                <div style={{
-                  width: 34, height: 34, borderRadius: "50%",
-                  background: a.available ? "var(--color-fg)" : "var(--color-secondary)",
-                  border: a.available ? "none" : "1px solid var(--color-border)",
-                  display: "flex", alignItems: "center", justifyContent: "center",
-                  fontSize: 11, fontWeight: 700,
-                  color: a.available ? "white" : "var(--color-muted)",
-                  flexShrink: 0,
-                }}>{a.initials}</div>
-                <div>
-                  <div className="text-sm font-semibold" style={{ color: a.available ? "var(--color-fg)" : "var(--color-muted)", lineHeight: 1.35 }}>{a.name}</div>
-                  <div className="text-xs text-muted">{a.role}</div>
+          {ALL_ADVISORS.map(a => {
+            const openId = contactDropdown === a.id;
+            const booked = contactBooked[a.id];
+            return (
+              <div key={a.id} className="advisor-tile">
+                <div className="advisor-tile__top">
+                  <img src={a.photo} alt={a.name} className="advisor-tile__photo" />
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div className="text-sm font-semibold" style={{ lineHeight: 1.35 }}>{a.name}</div>
+                    <div className="text-xs text-muted">{a.role}</div>
+                  </div>
+                </div>
+                <a href={`tel:${a.phone}`} className="advisor-tile__phone">{a.phone}</a>
+                <div style={{ position: "relative" }}>
+                  {booked ? (
+                    <div className="contact-booked">
+                      <span className="text-green">✓</span> {booked}
+                      <button className="contact-booked__change" onClick={() => {
+                        setContactBooked(prev => { const n = { ...prev }; delete n[a.id]; return n; });
+                      }}>Zmień</button>
+                    </div>
+                  ) : (
+                    <button className="btn btn--outline btn--sm contact-request-btn" onClick={() => setContactDropdown(openId ? null : a.id)}>
+                      Zamów kontakt
+                    </button>
+                  )}
+                  {openId && (
+                    <div className="contact-dropdown">
+                      <div className="contact-dropdown__label">Kiedy mamy zadzwonić?</div>
+                      {CONTACT_SLOTS.map(slot => (
+                        <button key={slot.id} className="contact-dropdown__item" onClick={() => {
+                          setContactBooked(prev => ({ ...prev, [a.id]: slot.label }));
+                          setContactDropdown(null);
+                        }}>
+                          {slot.label}
+                        </button>
+                      ))}
+                    </div>
+                  )}
                 </div>
               </div>
-              {a.available
-                ? <a href={`tel:${a.phone}`} className="text-sm font-semibold text-accent" style={{ textDecoration: "none" }}>{a.phone}</a>
-                : <span className="text-sm text-muted">Niedostępny teraz</span>
-              }
-            </div>
-          ))}
+            );
+          })}
         </div>
       </div>
 
@@ -657,11 +839,237 @@ function Overview({ setActive }) {
   );
 }
 
+// ─── PRODUCT DETAIL (sub-component) ──────────────────────────────────────────
+
+function ProductDetail({ product: p, cat, defaultSelections, onBack }) {
+  const [variantSel, setVariantSel] = useState(defaultSelections);
+  const [specsExpanded, setSpecsExpanded] = useState(false);
+  const [activeImg, setActiveImg] = useState(0);
+
+  const selectVariant = (group, label) => {
+    setVariantSel(prev => ({ ...prev, [group]: label }));
+  };
+
+  // ─── Price helpers ───
+  const fmtPrice = (n) => n.toString().replace(/\B(?=(\d{3})+(?!\d))/g, " ") + " zł";
+  const fmtDiff = (n) => n > 0 ? ("+" + fmtPrice(n)) : n < 0 ? ("−" + fmtPrice(Math.abs(n))) : null;
+
+  // ─── Computed price from variants ───
+  let totalDiff = 0;
+  if (p.variants) {
+    p.variants.forEach(v => {
+      const sel = variantSel[v.group];
+      const opt = v.options.find(o => o.label === sel);
+      if (opt) totalDiff += (opt.diff || 0);
+    });
+  }
+  const computedPrice = (p.basePrice || 0) + totalDiff;
+  const computedOld = p.priceOldBase ? p.priceOldBase + totalDiff : null;
+  const rataMonth = Math.ceil(computedPrice / 12);
+
+  // ─── Color from variant ───
+  let imageBg = cat.color;
+  if (p.variants) {
+    const colorGroup = p.variants.find(v => v.isColor);
+    if (colorGroup) {
+      const sel = variantSel[colorGroup.group];
+      const opt = colorGroup.options.find(o => o.label === sel);
+      if (opt && opt.colorHex) imageBg = opt.colorHex;
+    }
+  }
+
+  // ─── Dynamic subtitle from selected variants ───
+  const subtitle = p.variants
+    ? p.variants.map(v => variantSel[v.group]).filter(Boolean).join(" · ")
+    : p.desc;
+
+  return (
+    <div className="pdp">
+      {/* Breadcrumb */}
+      <div className="pdp__breadcrumb">
+        <button className="pdp__breadcrumb-link" onClick={onBack}>Zakupy</button>
+        <span className="pdp__breadcrumb-sep">/</span>
+        <button className="pdp__breadcrumb-link" onClick={onBack}>{cat.label}</button>
+        <span className="pdp__breadcrumb-sep">/</span>
+        <span className="pdp__breadcrumb-current">{p.brand} {p.model}</span>
+      </div>
+
+      {/* 2-column layout */}
+      <div className="pdp__layout">
+        {/* Left — image */}
+        <div className="pdp__gallery">
+          {(() => {
+            const imgs = p.images || [{ emoji: p.emoji, label: "Produkt" }];
+            const current = imgs[activeImg] || imgs[0];
+            return (
+              <>
+                <div className="pdp__image-main" style={{ background: current.url ? "#fff" : imageBg, transition: "background 0.3s ease" }}>
+                  {current.url
+                    ? <img src={current.url} alt={current.label} className="pdp__image-photo" />
+                    : <span>{current.emoji}</span>
+                  }
+                </div>
+                {imgs.length > 1 && (
+                  <div className="pdp__thumbs">
+                    {imgs.map((img, i) => (
+                      <button key={i}
+                        className={`pdp__thumb${i === activeImg ? " pdp__thumb--active" : ""}`}
+                        onClick={() => setActiveImg(i)}
+                        title={img.label}>
+                        {img.url
+                          ? <img src={img.url} alt={img.label} className="pdp__thumb-photo" />
+                          : <span>{img.emoji}</span>
+                        }
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </>
+            );
+          })()}
+          {p.specs && p.specs.length > 0 && (
+            <div className="pdp__specs-compact">
+              <h3 className="pdp__specs-compact-title">Specyfikacja</h3>
+              <div className="pdp__specs">
+                {(specsExpanded ? p.specs : p.specs.slice(0, 4)).map((s, i) => (
+                  <div key={i} className="pdp__spec-row">
+                    <span className="pdp__spec-label">{s.label}</span>
+                    <span className="pdp__spec-value">{s.value}</span>
+                  </div>
+                ))}
+              </div>
+              {p.specs.length > 4 && (
+                <button className="pdp__specs-toggle" onClick={() => setSpecsExpanded(!specsExpanded)}>
+                  {specsExpanded ? "Zwiń" : `Pokaż wszystkie (${p.specs.length})`}
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{transform: specsExpanded ? "rotate(180deg)" : "none", transition: "transform 0.2s ease"}}><polyline points="6 9 12 15 18 9"/></svg>
+                </button>
+              )}
+            </div>
+          )}
+        </div>
+
+        {/* Right — info */}
+        <div className="pdp__info">
+          <div className="pdp__brand">{p.brand}</div>
+          <h1 className="pdp__title">{p.brand} {p.model}</h1>
+          <div className="pdp__tags">
+            <span className="pdp__tag pdp__tag--lime">Raty 0%</span>
+          </div>
+          <p className="pdp__desc-short">{subtitle}</p>
+
+          {/* Variant configurator */}
+          {p.variants && p.variants.length > 0 && (
+            <div className="pdp__configurator">
+              <div className="pdp__configurator-title">Skonfiguruj:</div>
+              {p.variants.map(v => (
+                <div key={v.group} className="pdp__variant-group">
+                  <div className="pdp__variant-label">{v.group}:</div>
+                  <div className="pdp__variant-options">
+                    {v.options.map(opt => {
+                      const diffLabel = fmtDiff(opt.diff || 0);
+                      return (
+                        <button key={opt.label}
+                          className={`pdp__variant-btn${variantSel[v.group] === opt.label ? " pdp__variant-btn--active" : ""}`}
+                          onClick={() => selectVariant(v.group, opt.label)}>
+                          {v.isColor && opt.colorHex && (
+                            <span className="pdp__variant-color-dot" style={{ background: opt.colorHex }} />
+                          )}
+                          <span className="pdp__variant-btn-label">{opt.label}</span>
+                          {diffLabel && <span className="pdp__variant-btn-diff">{diffLabel}</span>}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* Price block */}
+          <div className="pdp__price-block">
+            <div className="pdp__club-badge">
+              <svg className="pdp__club-badge-icon" width="18" height="18" viewBox="0 0 23 23" fill="none">
+                <path d="M19.9652 0H2.85217C1.27696 0 0 1.27696 0 2.85217V19.9652C0 21.5404 1.27696 22.8173 2.85217 22.8173H19.9652C21.5404 22.8173 22.8173 21.5404 22.8173 19.9652V2.85217C22.8173 1.27696 21.5404 0 19.9652 0Z" fill="#18181B"/>
+                <path className="pdp__sygnet-draw" d="M11.5447 11.0658L16.8498 7.54338L14.6465 3.75L5.96875 9.24042L5.99014 9.27607C5.99014 9.27607 5.97588 9.27607 5.96875 9.27607V13.6613C8.89222 13.6613 11.2667 16.0928 11.2667 19.0733H15.6519C15.6519 15.7719 14.0261 12.8484 11.5447 11.0729V11.0658Z" stroke="#CEFF3E" strokeWidth="0.5"/>
+              </svg>
+              <span>Cena dla klubowiczów</span>
+            </div>
+            <div className="pdp__price-row">
+              <span className="pdp__price">{fmtPrice(computedPrice)}</span>
+              {computedOld && computedOld > computedPrice && <span className="pdp__price-old">{fmtPrice(computedOld)}</span>}
+              {computedOld && computedOld > computedPrice && (
+                <span className="pdp__tag pdp__tag--lime">−{Math.round((1 - computedPrice / computedOld) * 100)}%</span>
+              )}
+            </div>
+          </div>
+
+          {/* CTA buttons */}
+          <div className="pdp__actions">
+            <button className="btn btn--accent pdp__btn-primary">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{marginRight:8}}><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
+              Dodaj do koszyka
+            </button>
+            <button className="btn btn--outline pdp__btn-secondary">Zapytaj doradcę</button>
+          </div>
+
+          {/* Payment options */}
+          <div className="pdp__payment-info">
+            <div className="pdp__payment-item">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+              <div className="pdp__payment-item-text">
+                <span className="pdp__payment-item-title">Dopasuj swoją płatność</span>
+                <span className="pdp__payment-item-highlight">Rata już od {fmtPrice(rataMonth)}</span>
+                <span className="pdp__payment-item-sub">Sprawdź szczegóły rat i leasingu</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Delivery info */}
+          <div className="pdp__delivery-info">
+            <div className="pdp__delivery-item">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
+              <div className="pdp__delivery-item-text">
+                <span className="pdp__delivery-item-title">Wysyłka najczęściej w 1 dzień roboczy</span>
+                <span className="pdp__delivery-item-sub">Wysyłka realizowana bezpośrednio z magazynu.</span>
+              </div>
+            </div>
+            <div className="pdp__delivery-item">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
+              <div className="pdp__delivery-item-text">
+                <span className="pdp__delivery-item-title">Darmowa dostawa</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Benefits */}
+          <div className="pdp__benefits">
+            <div className="pdp__benefit"><span>✓</span> Gwarancja producenta</div>
+            <div className="pdp__benefit"><span>✓</span> Faktura VAT dla lekarza</div>
+            <div className="pdp__benefit"><span>✓</span> Raty 0% bez zaświadczeń</div>
+          </div>
+        </div>
+      </div>
+
+      {/* Description below */}
+      {p.fullDesc && (
+        <div className="pdp__details">
+          <div className="pdp__section">
+            <h3 className="pdp__section-title">Opis produktu</h3>
+            <p className="pdp__section-text">{p.fullDesc}</p>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ─── PURCHASES VIEW ───────────────────────────────────────────────────────────
 
 function PurchasesView() {
   const [filter, setFilter] = useState("all");
-  const [view, setView] = useState("shop"); // "shop" or "orders"
+  const [view, setView] = useState("shop"); // "shop", "orders", or "detail"
+  const [selectedProduct, setSelectedProduct] = useState(null);
+  const [selectedCat, setSelectedCat] = useState(null);
 
   const FILTERS = [
     { id: "all", label: "Wszystko" },
@@ -673,6 +1081,35 @@ function PurchasesView() {
     ? PURCHASE_CATALOG
     : PURCHASE_CATALOG.filter(cat => cat.id === filter);
 
+  const openProduct = (item, cat) => {
+    setSelectedProduct(item);
+    setSelectedCat(cat);
+    setView("detail");
+  };
+
+  // ─── PRODUCT DETAIL VIEW ──────────────────
+  if (view === "detail" && selectedProduct) {
+    const p = selectedProduct;
+    const cat = selectedCat;
+
+    // Build default variant selections
+    const defaultSelections = {};
+    if (p.variants) {
+      p.variants.forEach(v => {
+        const def = v.options.find(o => o.default);
+        defaultSelections[v.group] = def ? def.label : v.options[0].label;
+      });
+    }
+
+    return React.createElement(ProductDetail, {
+      product: p,
+      cat: cat,
+      defaultSelections: defaultSelections,
+      onBack: () => setView("shop"),
+    });
+  }
+
+  // ─── ORDERS VIEW ──────────────────────────
   if (view === "orders") {
     return (
       <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
@@ -710,6 +1147,7 @@ function PurchasesView() {
     );
   }
 
+  // ─── CATALOG VIEW (default) ───────────────
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
       {/* Header */}
@@ -740,22 +1178,39 @@ function PurchasesView() {
             <button className="section-header__action">Zobacz wszystko →</button>
           </div>
           <div className="product-grid">
-            {cat.items.map(item => (
-              <div key={item.id} className="product-card">
-                <div className="product-card__image" style={{ background: cat.color }}>
-                  <span>{item.emoji}</span>
-                </div>
-                <div className="product-card__body">
-                  <div className="product-card__brand">{item.brand} · {item.model}</div>
-                  <div className="product-card__desc">{item.desc}</div>
-                  <div className="product-card__prices">
-                    <span className="product-card__price">{item.price}</span>
-                    {item.priceOld && <span className="product-card__price-old">{item.priceOld}</span>}
+            {cat.items.map(item => {
+              const rataVal = item.basePrice ? Math.ceil(item.basePrice / 36) : null;
+              return (
+                <div key={item.id} className="product-card" onClick={() => item.specs && openProduct(item, cat)}>
+                  <div className="product-card__image" style={{ background: cat.color }}>
+                    {item.photo
+                      ? <img src={item.photo} alt={`${item.brand} ${item.model}`} className="product-card__photo" />
+                      : <span>{item.emoji}</span>
+                    }
                   </div>
-                  {item.priceNote && <div className="product-card__note">{item.priceNote}</div>}
+                  <div className="product-card__body">
+                    <div className="product-card__name">{item.brand} {item.model}</div>
+                    <div className="product-card__desc">{item.desc}</div>
+                    <div className="product-card__price-row">
+                      <div className="product-card__price-col">
+                        <span className="product-card__price">{item.price}</span>
+                        {item.priceOld && <span className="product-card__price-old">{item.priceOld}</span>}
+                      </div>
+                      {rataVal && (
+                        <div className="product-card__rata-col">
+                          <span className="product-card__rata-label">Rata już od:</span>
+                          <span className="product-card__rata-value">{rataVal} zł</span>
+                        </div>
+                      )}
+                    </div>
+                    <button className="product-card__cta" onClick={(e) => { e.stopPropagation(); }}>
+                      Do koszyka
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
+                    </button>
+                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       ))}
@@ -1032,11 +1487,7 @@ function ProfileView() {
   return (
     <div style={{ maxWidth: 560, display: "flex", flexDirection: "column", gap: 32 }}>
       <div className="flex items-center gap-4">
-        <div style={{
-          width: 48, height: 48, borderRadius: "50%",
-          background: "var(--color-fg)", display: "flex", alignItems: "center", justifyContent: "center",
-          fontSize: 16, fontWeight: 700, color: "white",
-        }}>AK</div>
+        <img style={{ width: 48, height: 48, borderRadius: "50%", objectFit: "cover" }} src={USER_AVATAR} alt="Dr Anna Kowalska" />
         <div>
           <h2 style={{ fontSize: 18, fontWeight: 700, margin: 0 }}>Dr Anna Kowalska</h2>
           <p className="text-sm text-muted" style={{ margin: "3px 0 0" }}>Rezydent · Kardiologia · Warszawa</p>
@@ -1098,7 +1549,10 @@ const VIEWS = {
 
 function App() {
   const [onboarded, setOnboarded] = useState(false);
-  const [active,    setActive]    = useState("overview");
+  const [active,    setActive_]   = useState("overview");
+  const [navKey,    setNavKey]    = useState(0);
+
+  const setActive = (id) => { setActive_(id); setNavKey(k => k + 1); };
 
   if (!onboarded) return <Onboarding onComplete={() => setOnboarded(true)} />;
 
@@ -1110,7 +1564,7 @@ function App() {
       <div className="main">
         <TopBar active={active} setActive={setActive} />
         <main className="main__content">
-          <View setActive={setActive} />
+          <View key={navKey} setActive={setActive} />
         </main>
       </div>
     </div>
