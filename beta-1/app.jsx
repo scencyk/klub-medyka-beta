@@ -52,7 +52,7 @@ const PURCHASE_CATALOG = [
   {
     id: "devices", label: "Sprzęt i elektronika", color: "#FFFFFF",
     items: [
-      { id: "iphone15", brand: "Apple",  model: "iPhone 15 Pro",      desc: "Smartfon · 256 GB · Tytan naturalny",     price: "5 299 zł", priceOld: "5 999 zł", priceNote: "Rata netto", emoji: "📱", basePrice: 5299, priceOldBase: 5999,
+      { id: "iphone15", brand: "Apple",  model: "iPhone 15 Pro",      desc: "Smartfon · 256 GB · Tytan naturalny",     price: "5 299 zł", priceOld: "5 999 zł", priceNote: "Rata netto", emoji: "📱", basePrice: 5299, priceOldBase: 5999, badge: "Nowość",
         photo: "zdjecia-produktow/iphone15-nat-front.jpg",
         images: [
           { url: "zdjecia-produktow/iphone15-nat-front.jpg", label: "Przód" },
@@ -93,7 +93,7 @@ const PURCHASE_CATALOG = [
         ],
         delivery: "Dostawa 1–2 dni robocze",
       },
-      { id: "ipad",     brand: "Apple",  model: "iPad Pro M4",        desc: "Tablet · 11\" · idealny do gabinetu",     price: "4 799 zł", priceOld: "5 299 zł", priceNote: "Rata netto", emoji: "📲", basePrice: 4799, priceOldBase: 5299,
+      { id: "ipad",     brand: "Apple",  model: "iPad Pro M4",        desc: "Tablet · 11\" · idealny do gabinetu",     price: "4 799 zł", priceOld: "5 299 zł", priceNote: "Rata netto", emoji: "📲", basePrice: 4799, priceOldBase: 5299, badge: "Nowość",
         photo: "zdjecia-produktow/ipad-czarny-front.jpg",
         images: [
           { url: "zdjecia-produktow/ipad-czarny-front.jpg", label: "Przód" },
@@ -270,7 +270,7 @@ const NAV_SECTIONS = [
   {
     header: "Finanse",
     items: [
-      { id: "insurance",   label: "Ubezpieczenia", icon: "insurance"               },
+      { id: "insurance",   label: "Ubezpieczenia", icon: "insurance",   soon: true  },
       { id: "investments", label: "Inwestycje",    icon: "investments", soon: true  },
     ],
   },
@@ -951,7 +951,7 @@ function ProductDetail({ product: p, cat, defaultSelections, onBack }) {
         {/* Right — info */}
         <div className="pdp__info">
           <div className="pdp__brand">{p.brand}</div>
-          <h1 className="pdp__title">{p.brand} {p.model}</h1>
+          <h1 className="pdp__title">{p.brand} {p.model}{p.badge && <span className="pdp__badge">{p.badge}</span>}</h1>
           <div className="pdp__tags">
             <span className="pdp__tag pdp__tag--lime">Raty 0%</span>
           </div>
@@ -1183,6 +1183,7 @@ function PurchasesView() {
               return (
                 <div key={item.id} className="product-card" onClick={() => item.specs && openProduct(item, cat)}>
                   <div className="product-card__image" style={{ background: cat.color }}>
+                    {item.badge && <span className="product-card__badge">{item.badge}</span>}
                     {item.photo
                       ? <img src={item.photo} alt={`${item.brand} ${item.model}`} className="product-card__photo" />
                       : <span>{item.emoji}</span>
@@ -1204,8 +1205,8 @@ function PurchasesView() {
                       )}
                     </div>
                     <button className="product-card__cta" onClick={(e) => { e.stopPropagation(); }}>
+                      <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M1.36646 1.3667H2.69979L4.47312 9.6467C4.53817 9.94994 4.7069 10.221 4.95026 10.4133C5.19362 10.6055 5.49639 10.7069 5.80646 10.7H12.3265C12.6299 10.6995 12.9241 10.5956 13.1605 10.4053C13.3968 10.215 13.5612 9.94972 13.6265 9.65337L14.7265 4.70003H3.41312M5.99992 14C5.99992 14.3682 5.70144 14.6667 5.33325 14.6667C4.96506 14.6667 4.66659 14.3682 4.66659 14C4.66659 13.6318 4.96506 13.3333 5.33325 13.3333C5.70144 13.3333 5.99992 13.6318 5.99992 14ZM13.3333 14C13.3333 14.3682 13.0348 14.6667 12.6666 14.6667C12.2984 14.6667 11.9999 14.3682 11.9999 14C11.9999 13.6318 12.2984 13.3333 12.6666 13.3333C13.0348 13.3333 13.3333 13.6318 13.3333 14Z" stroke="currentColor" strokeWidth="1.33" strokeLinecap="round" strokeLinejoin="round"/></svg>
                       Do koszyka
-                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
                     </button>
                   </div>
                 </div>
