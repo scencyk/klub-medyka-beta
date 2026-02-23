@@ -5,9 +5,11 @@ const USER_AVATAR = "https://images.unsplash.com/photo-1559839734-2b71ea197ec2?w
 // ─── DATA ─────────────────────────────────────────────────────────────────────
 
 const ALL_ADVISORS = [
-  { id: "a1", name: "Marta Kowalczyk",      role: "Doradca ubezpieczeniowy", phone: "+48 600 100 200", initials: "MK", available: true,  photo: "advisors/marta.jpg"  },
-  { id: "a2", name: "Tomasz Nowak",         role: "Doradca prawny",          phone: "+48 601 200 300", initials: "TN", available: true,  photo: "advisors/tomasz.jpg" },
-  { id: "a3", name: "Agnieszka Wiśniewska", role: "Doradca finansowy",       phone: "+48 602 300 400", initials: "AW", available: false, photo: "advisors/agnieszka.jpg" },
+  { id: "a1", name: "Marta Kowalczyk",      role: "Ubezpieczenia praktyki lekarskiej", phone: "+48 600 100 200", initials: "MK", available: true,  photo: "advisors/marta.jpg",     category: "insurance" },
+  { id: "a2", name: "Tomasz Nowak",         role: "Doradca prawny",                    phone: "+48 601 200 300", initials: "TN", available: true,  photo: "advisors/tomasz.jpg",    category: "legal"     },
+  { id: "a3", name: "Agnieszka Wiśniewska", role: "Doradca finansowy",                 phone: "+48 602 300 400", initials: "AW", available: false, photo: "advisors/agnieszka.jpg", category: "tax"       },
+  { id: "a4", name: "Karolina Zielińska",   role: "Ubezpieczenia na życie",            phone: "+48 603 400 500", initials: "KZ", available: true,  photo: "advisors/karolina.jpg",  category: "life"      },
+  { id: "a5", name: "Michał Wójcik",        role: "Doradca kredytowy",                 phone: "+48 604 500 600", initials: "MW", available: true,  photo: "advisors/michal.jpg",    category: "credit"    },
 ];
 
 const PACKAGES = [
@@ -225,13 +227,39 @@ const MY_PURCHASES = [
   { id: "p1", name: "MacBook Air M3",   cat: "Elektronika", date: "12 sty 2026", price: "6 499 zł", status: "delivered" },
 ];
 
+const DISCOUNT_CATEGORIES = [
+  { id: "all",        label: "Wszystko" },
+  { id: "finanse",    label: "Finanse" },
+  { id: "sprzet",     label: "Sprzęt" },
+  { id: "auto",       label: "Samochody" },
+  { id: "medycyna",   label: "Medycyna" },
+];
+
 const DISCOUNTS = [
-  { id: "d1", name: "Cinema City",      discount: "2 bilety/mies.", code: "MEDYK-CC-0224", monthly: true  },
-  { id: "d2", name: "Stacja BP",        discount: "−12 gr/l",       code: "BP-MEDYK",      monthly: false },
-  { id: "d3", name: "Belvedere Clinic", discount: "−20%",           code: "KLUB20",        monthly: false },
-  { id: "d4", name: "WeSub",            discount: "do −50%",        code: "WESUB-KM",      monthly: false },
-  { id: "d5", name: "The Collagen Co.", discount: "−100 zł",        code: "COLL100",       monthly: false },
-  { id: "d6", name: "Empik Premium",    discount: "−30%",           code: "EMPIK-KM",      monthly: false },
+  {
+    id: "d1", partner: "inFakt", badge: "-100 zł", category: "finanse",
+    title: "Zleć księgowość",
+    desc: "Zleć prowadzenie księgowości firmie inFakt, skorzystaj ze 100 zł zniżki na pierwszą płatność, a za każdą następną płać tylko 179 zł.",
+    hero: "znizki/hero-infakt.jpg", logo: "znizki/logo-infakt.png",
+  },
+  {
+    id: "d2", partner: "WeSub", badge: "-5 %", category: "sprzet",
+    title: "Subskrybuj sprzęt",
+    desc: "Wybierasz laptop, tablet, smartfon lub sprzęt peryferyjny – nowy lub odnowiony – i subskrybujesz na 12 miesięcy, 5% taniej.",
+    hero: "znizki/hero-wesub.jpg", logo: "znizki/logo-wesub.png",
+  },
+  {
+    id: "d3", partner: "Mooveno", badge: "-26%", category: "auto",
+    title: "Obniż wydatki na samochód",
+    desc: "Jedna aplikacja — oszczędność na paliwie, myjniach, ładowaniu, parkingach, czy opłatach za autostrady, a za wszystkie opłaty płacisz mniej.",
+    hero: "znizki/hero-mooveno.jpg", logo: "znizki/logo-mooveno.png",
+  },
+  {
+    id: "d4", partner: "ESLT medical", badge: "-20 %", category: "medycyna",
+    title: "Wyposaż swój gabinet w sprzęt laserowy",
+    desc: "Wyposaż swój gabinet w sprzęt laserowy, który zwiększy precyzję i komfort zabiegów z zakresu medycyny estetycznej i nie tylko.",
+    hero: "znizki/hero-eslt.jpg", logo: "znizki/logo-eslt.png",
+  },
 ];
 
 const ALERTS = [
@@ -264,8 +292,8 @@ const NAV_SECTIONS = [
     items: [
       { id: "overview",    label: "Panel główny",  icon: "overview"  },
       { id: "purchases",   label: "Zakupy",        icon: "purchases" },
-      { id: "packages",    label: "Usługi",        icon: "packages"  },
       { id: "discounts",   label: "Zniżki",        icon: "discounts" },
+      { id: "packages",    label: "Usługi",        icon: "packages",    soon: true },
       { id: "advisors",    label: "Twoi doradcy",  icon: "advisors"  },
       { id: "insurance",   label: "Ubezpieczenia", icon: "insurance",   soon: true },
       { id: "investments", label: "Inwestycje",    icon: "investments", soon: true },
@@ -1349,33 +1377,38 @@ function ServicesView() {
 // ─── DISCOUNTS VIEW ───────────────────────────────────────────────────────────
 
 function DiscountsView() {
-  const [copied, setCopied] = useState(null);
+  const [filter, setFilter] = useState("all");
+  const filtered = filter === "all" ? DISCOUNTS : DISCOUNTS.filter(d => d.category === filter);
 
   return (
-    <div style={{ maxWidth: 680, display: "flex", flexDirection: "column", gap: 24 }}>
-      <div>
+    <div>
+      <div style={{ marginBottom: 20 }}>
         <h2 style={{ fontSize: 20, fontWeight: 700, marginBottom: 4 }}>Zniżki</h2>
-        <p className="text-sm text-muted">Kody i rabaty dla członków Klub Medyka — do użycia natychmiast.</p>
+        <p className="text-sm text-muted">Oferty i rabaty od partnerów Klub Medyka.</p>
       </div>
-      <div className="card">
-        <div className="table-header" style={{ gridTemplateColumns: "1fr 140px 200px" }}>
-          {["Partner", "Zniżka", "Kod"].map(h => <span key={h}>{h}</span>)}
-        </div>
-        {DISCOUNTS.map(d => (
-          <div key={d.id} className="card__row" style={{ display: "grid", gridTemplateColumns: "1fr 140px 200px" }}>
-            <div className="flex items-center gap-2">
-              <span className="font-semibold" style={{ fontSize: 13 }}>{d.name}</span>
-              {d.monthly && <Pill variant="accent">co miesiąc</Pill>}
+      <div className="filter-bar">
+        {DISCOUNT_CATEGORIES.map(c => (
+          <button key={c.id} className={`filter-pill${filter === c.id ? " filter-pill--active" : ""}`} onClick={() => setFilter(c.id)}>
+            {c.label}
+          </button>
+        ))}
+      </div>
+      <div className="discount-grid">
+        {filtered.map(d => (
+          <div key={d.id} className="discount-card">
+            <div className="discount-card__hero">
+              <img src={d.hero} alt={d.partner} className="discount-card__hero-img" />
+              <span className="discount-card__badge">{d.badge}</span>
             </div>
-            <span className="font-semibold" style={{ fontSize: 13 }}>{d.discount}</span>
-            <div className="flex items-center" style={{ gap: 10 }}>
-              <span className="font-mono text-sm text-muted" style={{
-                background: "var(--color-bg-subtle)", border: "1px dashed var(--color-border)",
-                padding: "4px 10px", borderRadius: 6,
-              }}>{d.code}</span>
-              <button onClick={() => { setCopied(d.id); setTimeout(() => setCopied(null), 2000); }}
-                className="section-header__action" style={{ fontSize: 12, fontWeight: 600, color: copied === d.id ? "var(--color-green)" : undefined }}>
-                {copied === d.id ? "✓ Skopiowano" : "Kopiuj"}
+            <div className="discount-card__body">
+              <img src={d.logo} alt={d.partner} className="discount-card__logo" />
+              <div className="discount-card__title">{d.title}</div>
+              <p className="discount-card__desc">{d.desc}</p>
+            </div>
+            <div className="discount-card__footer">
+              <button className="discount-card__cta">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M5.99479 6.0026H6.00146M9.99479 6.0026L5.99479 10.0026M9.99479 10.0026H10.0015M1.32812 6.0026C1.85856 6.0026 2.36727 6.21332 2.74234 6.58839C3.11741 6.96346 3.32813 7.47217 3.32813 8.0026C3.32813 8.53304 3.11741 9.04175 2.74234 9.41682C2.36727 9.79189 1.85856 10.0026 1.32812 10.0026L1.32812 11.3359C1.32812 11.6896 1.4686 12.0287 1.71865 12.2787C1.9687 12.5288 2.30784 12.6693 2.66146 12.6693L13.3281 12.6693C13.6817 12.6693 14.0209 12.5288 14.2709 12.2787C14.521 12.0287 14.6615 11.6896 14.6615 11.3359V10.0026C14.131 10.0026 13.6223 9.79189 13.2472 9.41682C12.8722 9.04175 12.6615 8.53304 12.6615 8.0026C12.6615 7.47217 12.8722 6.96346 13.2472 6.58839C13.6223 6.21332 14.131 6.0026 14.6615 6.0026V4.66927C14.6615 4.31565 14.521 3.97651 14.2709 3.72646C14.0209 3.47641 13.6817 3.33594 13.3281 3.33594L2.66146 3.33594C2.30784 3.33594 1.9687 3.47641 1.71865 3.72646C1.4686 3.97651 1.32813 4.31565 1.32812 4.66927L1.32812 6.0026Z" stroke="currentColor" strokeWidth="1.33" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                Wykorzystaj
               </button>
             </div>
           </div>
@@ -1602,7 +1635,7 @@ const VIEWS = {
 };
 
 function App() {
-  const [onboarded, setOnboarded] = useState(false);
+  const [onboarded, setOnboarded] = useState(true); // TODO: zmień na false aby włączyć onboarding
   const [active,    setActive_]   = useState("overview");
   const [navKey,    setNavKey]    = useState(0);
 
