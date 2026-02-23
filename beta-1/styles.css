@@ -1254,6 +1254,27 @@ img { display: block; max-width: 100%; }
   letter-spacing: 0.02em;
 }
 
+.product-card__countdown-text {
+  margin-bottom: 6px;
+}
+
+.product-card__countdown-label {
+  display: block;
+  font-size: 11px;
+  color: var(--color-muted);
+  margin-bottom: 2px;
+}
+
+.product-card__countdown-timer {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: #F43F5E;
+}
+
 .product-card__body {
   padding: 12px 14px 14px;
   display: flex;
@@ -1349,6 +1370,37 @@ img { display: block; max-width: 100%; }
 
 .product-card__cta:hover {
   background: #bde636;
+}
+
+.product-card__cta--in-cart {
+  background: var(--color-secondary);
+  color: var(--color-green);
+  cursor: pointer;
+}
+
+.product-card__cta-default,
+.product-card__cta-hover {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.product-card__cta-hover {
+  display: none;
+}
+
+.product-card__cta--in-cart:hover {
+  background: #FEF2F2;
+  color: var(--color-red);
+}
+
+.product-card__cta--in-cart:hover .product-card__cta-default {
+  display: none;
+}
+
+.product-card__cta--in-cart:hover .product-card__cta-hover {
+  display: flex;
 }
 
 /* ─── PRODUCT DETAIL PAGE (PDP) ────────────────────────────────────────── */

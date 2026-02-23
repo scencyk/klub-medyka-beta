@@ -170,7 +170,7 @@ const PURCHASE_CATALOG = [
         ],
         delivery: "Dostawa 1–2 dni robocze",
       },
-      { id: "sony",     brand: "Sony",   model: "WH-1000XM5",        desc: "Słuchawki · ANC · na dyżury i do nauki",  price: "1 099 zł", priceOld: "1 499 zł", priceNote: null,         emoji: "🎧",
+      { id: "sony",     brand: "Sony",   model: "WH-1000XM5",        desc: "Słuchawki · ANC · na dyżury i do nauki",  price: "1 099 zł", priceOld: "1 499 zł", priceNote: null,         emoji: "🎧", countdownHours: 26,
         photo: "zdjecia-produktow/sony-xm5-front.jpg",
         images: [
           { url: "zdjecia-produktow/sony-xm5-front.jpg", label: "Przód" },
@@ -1098,9 +1098,44 @@ function ProductDetail({ product: p, cat, defaultSelections, onBack, addToCart }
   );
 }
 
+// ─── COUNTDOWN BADGE ──────────────────────────────────────────────────────────
+
+function CountdownText({ hours }) {
+  const [endTime] = useState(() => Date.now() + hours * 3600000);
+  const [remaining, setRemaining] = useState(hours * 3600000);
+
+  React.useEffect(() => {
+    const tick = () => setRemaining(Math.max(0, endTime - Date.now()));
+    const id = setInterval(tick, 1000);
+    return () => clearInterval(id);
+  }, [endTime]);
+
+  const totalSec = Math.floor(remaining / 1000);
+  const d = Math.floor(totalSec / 86400);
+  const h = Math.floor((totalSec % 86400) / 3600);
+  const m = Math.floor((totalSec % 3600) / 60);
+  const s = totalSec % 60;
+  const pad = (n) => n.toString().padStart(2, "0");
+
+  return (
+    <div className="product-card__countdown-text">
+      <span className="product-card__countdown-label">Limitowane czasowo</span>
+      <span className="product-card__countdown-timer">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        {d > 0 ? `Kończy się za ${d}d ${pad(h)}:${pad(m)}:${pad(s)}` : `Kończy się za ${pad(h)}:${pad(m)}:${pad(s)}`}
+      </span>
+    </div>
+  );
+}
+
 // ─── PURCHASES VIEW ───────────────────────────────────────────────────────────
 
-function PurchasesView({ addToCart }) {
+function PurchasesView({ addToCart, cart, removeFromCart }) {
+  const isInCart = (itemId) => cart && cart.some(c => c.product.id === itemId);
+  const removeByProductId = (itemId) => {
+    const cartItem = cart && cart.find(c => c.product.id === itemId);
+    if (cartItem) removeFromCart(cartItem.key);
+  };
   const [filter, setFilter] = useState("all");
   const [view, setView] = useState("shop"); // "shop", "orders", or "detail"
   const [selectedProduct, setSelectedProduct] = useState(null);
@@ -1226,6 +1261,7 @@ function PurchasesView({ addToCart }) {
                     }
                   </div>
                   <div className="product-card__body">
+                    {item.countdownHours && <CountdownText hours={item.countdownHours} />}
                     <div className="product-card__name">{item.brand} {item.model}</div>
                     <div className="product-card__desc">{item.desc}</div>
                     <div className="product-card__price-row">
@@ -1240,10 +1276,23 @@ function PurchasesView({ addToCart }) {
                         </div>
                       )}
                     </div>
-                    <button className="product-card__cta" onClick={(e) => { e.stopPropagation(); addToCart && addToCart(item); }}>
-                      <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M1.36646 1.3667H2.69979L4.47312 9.6467C4.53817 9.94994 4.7069 10.221 4.95026 10.4133C5.19362 10.6055 5.49639 10.7069 5.80646 10.7H12.3265C12.6299 10.6995 12.9241 10.5956 13.1605 10.4053C13.3968 10.215 13.5612 9.94972 13.6265 9.65337L14.7265 4.70003H3.41312M5.99992 14C5.99992 14.3682 5.70144 14.6667 5.33325 14.6667C4.96506 14.6667 4.66659 14.3682 4.66659 14C4.66659 13.6318 4.96506 13.3333 5.33325 13.3333C5.70144 13.3333 5.99992 13.6318 5.99992 14ZM13.3333 14C13.3333 14.3682 13.0348 14.6667 12.6666 14.6667C12.2984 14.6667 11.9999 14.3682 11.9999 14C11.9999 13.6318 12.2984 13.3333 12.6666 13.3333C13.0348 13.3333 13.3333 13.6318 13.3333 14Z" stroke="currentColor" strokeWidth="1.33" strokeLinecap="round" strokeLinejoin="round"/></svg>
-                      Do koszyka
-                    </button>
+                    {isInCart(item.id) ? (
+                      <button className="product-card__cta product-card__cta--in-cart" onClick={(e) => { e.stopPropagation(); removeByProductId(item.id); }}>
+                        <span className="product-card__cta-default">
+                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                          Już w koszyku
+                        </span>
+                        <span className="product-card__cta-hover">
+                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                          Usuń z koszyka
+                        </span>
+                      </button>
+                    ) : (
+                      <button className="product-card__cta" onClick={(e) => { e.stopPropagation(); addToCart && addToCart(item); }}>
+                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M1.36646 1.3667H2.69979L4.47312 9.6467C4.53817 9.94994 4.7069 10.221 4.95026 10.4133C5.19362 10.6055 5.49639 10.7069 5.80646 10.7H12.3265C12.6299 10.6995 12.9241 10.5956 13.1605 10.4053C13.3968 10.215 13.5612 9.94972 13.6265 9.65337L14.7265 4.70003H3.41312M5.99992 14C5.99992 14.3682 5.70144 14.6667 5.33325 14.6667C4.96506 14.6667 4.66659 14.3682 4.66659 14C4.66659 13.6318 4.96506 13.3333 5.33325 13.3333C5.70144 13.3333 5.99992 13.6318 5.99992 14ZM13.3333 14C13.3333 14.3682 13.0348 14.6667 12.6666 14.6667C12.2984 14.6667 11.9999 14.3682 11.9999 14C11.9999 13.6318 12.2984 13.3333 12.6666 13.3333C13.0348 13.3333 13.3333 13.6318 13.3333 14Z" stroke="currentColor" strokeWidth="1.33" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                        Do koszyka
+                      </button>
+                    )}
                   </div>
                 </div>
               );
@@ -1942,7 +1991,7 @@ function App() {
       <div className="main">
         <TopBar active={active} setActive={setActive} cart={cart} onCartClick={() => setCartOpen(true)} />
         <main className="main__content">
-          <View key={navKey} setActive={setActive} addToCart={addToCart} />
+          <View key={navKey} setActive={setActive} addToCart={addToCart} cart={cart} removeFromCart={removeFromCart} />
         </main>
       </div>
       {cartOpen && <CartDrawer cart={cart} onClose={() => setCartOpen(false)} removeFromCart={removeFromCart} updateQty={updateQty} />}
