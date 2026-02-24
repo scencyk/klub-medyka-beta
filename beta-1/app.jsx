@@ -228,45 +228,346 @@ const MY_PURCHASES = [
 ];
 
 const DISCOUNT_CATEGORIES = [
-  { id: "all",        label: "Wszystko" },
-  { id: "finanse",    label: "Finanse" },
-  { id: "sprzet",     label: "Sprzęt" },
-  { id: "auto",       label: "Samochody" },
-  { id: "medycyna",   label: "Medycyna" },
+  { id: "all",           label: "Wszystko" },
+  { id: "finanse",       label: "Finanse" },
+  { id: "ubezpieczenia", label: "Ubezpieczenia" },
+  { id: "medycyna",      label: "Medycyna" },
+  { id: "auto",          label: "Samochody" },
+  { id: "sprzet",        label: "Sprzęt" },
+  { id: "edukacja",      label: "Edukacja" },
+  { id: "podroze",       label: "Podróże" },
+  { id: "zdrowie",       label: "Zdrowie" },
+  { id: "dom",           label: "Dom i rodzina" },
 ];
 
 const DISCOUNTS = [
-  {
-    id: "d1", partner: "inFakt", badge: "-100 zł", category: "finanse",
+  // ── Finanse ──
+  { id: "d1", partner: "inFakt", badge: "-100 zł", category: "finanse",
     title: "Zleć księgowość",
     desc: "Zleć prowadzenie księgowości firmie inFakt, skorzystaj ze 100 zł zniżki na pierwszą płatność, a za każdą następną płać tylko 179 zł.",
-    fullDesc: "Skup się na leczeniu pacjentów, a księgowość zostaw specjalistom. inFakt to najpopularniejsza platforma do fakturowania i księgowości online w Polsce. Jako członek Klub Medyka otrzymujesz 100 zł zniżki na start oraz stałą cenę 179 zł/mies. za pełną obsługę księgową JDG.",
-    hero: "znizki/hero-infakt.jpg", logo: "znizki/logo-infakt.png",
-    url: "https://www.infakt.pl",
+    fullDesc: "inFakt – zakładanie firmy i księgowość dla lekarzy. Dedykowany księgowy, pełne wsparcie online i aplikacja zintegrowana z KSeF. Formalności bez stresu, finanse pod kontrolą z rabatem dla Klubu Medyka.",
+    hero: "https://cdn.remedium.md/image/club_product_group/2025/08/19/11/infakt-grafika-png-68a440e58281d.png",
+    logo: "https://cdn.remedium.md/image/club_vendor/2025/08/19/08/infakt-ikona-rgb-png-68a418a59c92f.png",
+    url: "https://www.infakt.pl/polecam/partner-brandmed",
+    howToUse: ["Wejdź na stronę partnera przez link zniżkowy.", "Wypełnij formularz zgłoszeniowy.", "Poczekaj na ofertę dostosowaną do Twojej działalności."],
   },
-  {
-    id: "d2", partner: "WeSub", badge: "-5 %", category: "sprzet",
-    title: "Subskrybuj sprzęt",
-    desc: "Wybierasz laptop, tablet, smartfon lub sprzęt peryferyjny – nowy lub odnowiony – i subskrybujesz na 12 miesięcy, 5% taniej.",
-    fullDesc: "WeSub to nowoczesny model finansowania sprzętu elektronicznego. Wybierasz laptop, tablet, smartfon lub sprzęt peryferyjny — nowy lub odnowiony — i subskrybujesz na 12 miesięcy. Jako członek Klub Medyka płacisz 5% mniej. Po zakończeniu subskrypcji możesz przedłużyć, wymienić na nowszy model lub wykupić sprzęt.",
-    hero: "znizki/hero-wesub.jpg", logo: "znizki/logo-wesub.png",
-    url: "https://wesub.eu",
+  { id: "d11", partner: "Zen", badge: "PRO", category: "finanse",
+    title: "Płać w podróży i na co dzień z dodatkową gwarancją!",
+    desc: "Płać kartą ZEN i odbieraj do 15% cashbacku każdego dnia.",
+    fullDesc: "Płać w podróży i na co dzień bez ukrytych kosztów. Karta ZEN.COM z wielowalutowym kontem, cashbackiem i dodatkowymi 2 latami gwarancji na elektronikę – teraz plan PRO za darmo przez 4 miesiące w Klubie Medyka.",
+    hero: "https://cdn.remedium.md/image/club_product_group/2025/08/19/12/zen-brandmed-visual-asset-png-68a456bf50b05.png",
+    logo: "https://cdn.remedium.md/image/club_vendor/2025/08/19/10/zen-logo-png-68a436d3a78ad.png",
+    url: "https://be.zen.com/BRANDMED",
+    howToUse: ["Wejdź na stronę partnera przez link zniżkowy.", "Zeskanuj kod QR i pobierz aplikację na telefon.", "Postępuj zgodnie z dalszymi poleceniami."],
   },
-  {
-    id: "d3", partner: "Mooveno", badge: "-26%", category: "auto",
-    title: "Obniż wydatki na samochód",
-    desc: "Jedna aplikacja — oszczędność na paliwie, myjniach, ładowaniu, parkingach, czy opłatach za autostrady, a za wszystkie opłaty płacisz mniej.",
-    fullDesc: "Mooveno to aplikacja, która obniża koszty eksploatacji samochodu. Oszczędzasz na paliwie, myjniach, ładowaniu EV, parkingach i opłatach za autostrady. Jedna aplikacja zastępuje kilkanaście kart lojalnościowych. Członkowie Klub Medyka otrzymują dodatkowe 26% zniżki na wszystkie usługi w aplikacji.",
-    hero: "znizki/hero-mooveno.jpg", logo: "znizki/logo-mooveno.png",
-    url: "https://mooveno.com",
+  { id: "d15", partner: "Leaselink", badge: "-10%", category: "finanse",
+    title: "Sfinansuj dowolny zakup",
+    desc: "Leasing i raty o 10% taniej w Klubie Medyka – sfinansuj sprzęt lub usługi od 300 do 100 000 zł już od pierwszego dnia działalności.",
+    fullDesc: "Leasing i raty w preferencyjnej ofercie w Klubie Medyka – sfinansuj sprzęt lub usługi od 300 do 100 000 zł już od pierwszego dnia działalności – także dla nowych praktyk lekarskich.",
+    hero: "https://cdn.remedium.md/image/club_product_group/2025/08/20/11/photo-1-png-68a5900c7352f.png",
+    logo: "https://cdn.remedium.md/image/club_vendor/2025/08/19/08/leaselink-png-68a41a9209f41.png",
+    url: "http://leaselink.pl/shortH/co/d64333",
+    howToUse: ["Wejdź na stronę partnera przez link zniżkowy.", "Uzupełnij formularz wklejając informacje o produkcie.", "Wyślij formularz i poczekaj na ofertę."],
   },
-  {
-    id: "d4", partner: "ESLT medical", badge: "-20 %", category: "medycyna",
+  { id: "d43", partner: "Tax Legal Beauty", badge: "-20%", category: "finanse",
+    title: "Kompleksowe wsparcie dla branży Med & Beauty",
+    desc: "-20% na kompleksową obsługę prawno-podatkową lekarzy i podmiotów leczniczych.",
+    fullDesc: "Tax Legal Beauty — kompleksowa obsługa prawno-podatkowa lekarzy i podmiotów leczniczych. Bezpiecznie, legalnie, bez stresu.",
+    hero: "https://cdn.remedium.md/image/club_product_group/2025/10/28/11/tlbgrafikakreacyjna-kopia-png-69009657690f6.png",
+    logo: "https://cdn.remedium.md/image/club_vendor/2025/10/27/14/tlb-kwadrat-png-68ff78f15a90b.png",
+    url: "https://taxlegalbeauty.pl/kontakt/",
+    howToUse: ["Wejdź na stronę partnera przez link.", "Zostaw swoje dane kontaktowe.", "W treści wiadomości dodaj hasło \"Klub Medyka\"."],
+  },
+
+  // ── Ubezpieczenia ──
+  { id: "d34", partner: "Salus", badge: "premium", category: "ubezpieczenia",
+    title: "Ubezpieczenia dla medyków",
+    desc: "Oferty ubezpieczeń majątkowych, komunikacyjnych i o wiele więcej ze specjalnymi rabatami dla członków Klubu Medyka.",
+    fullDesc: "Ubezpieczenia komunikacyjne, majątkowe i działalności gospodarczej. A także polisy na życie i zdrowie, szkolne NNW oraz gwarancje ubezpieczeniowe dla kontraktów.",
+    hero: "https://cdn.remedium.md/image/club_product_group/2025/10/09/11/salus-grafika3-png-68e781202fe35.png",
+    logo: "https://cdn.remedium.md/image/club_vendor/2025/12/05/13/salus-kwadrat-png-6932d701991d7.png",
+    url: "https://www.salusfinance.pl/kontakt/",
+    howToUse: ["Wejdź na stronę partnera przez link zniżkowy.", "W formularzu kontaktowym uwzględnij, że chcesz skorzystać z oferty dla Klubu Medyka."],
+  },
+  { id: "d37", partner: "INTER Ubezpieczenia", badge: "premium", category: "ubezpieczenia",
+    title: "Pakiet ubezpieczeń zawodowych dla lekarzy",
+    desc: "Zawodowa ochrona dla pracujących na praktyce, etacie, umowach cywilnoprawnych. OC obowiązkowe, dobrowolne, ochrona prawna i inne.",
+    fullDesc: "Pakiet ubezpieczeń zawodowych INTER Lekarz – kompleksowa ochrona dla lekarzy i dentystów niezależnie od formy zatrudnienia. OC obowiązkowe i dobrowolne, pomoc prawna, psychologiczna i zabezpieczenie w razie ekspozycji zawodowej.",
+    hero: "https://cdn.remedium.md/image/club_product_group/2025/10/20/14/inter1-obowiazkowe-oc-jpg-68f62f68bddb3.jpg",
+    logo: "https://cdn.remedium.md/image/club_vendor/2025/10/17/14/inter-kwadrat-png-68f22fc533d6b.png",
+    url: "https://ubezpieczenia.interpolska.pl/lekarz/?utm_source=Remedium&utm_medium=KM&utm_campaign=102025",
+  },
+  { id: "d36", partner: "INTER Ubezpieczenia", badge: "premium", category: "ubezpieczenia",
+    title: "Ubezpieczenie INTER Lekarz po stażu",
+    desc: "Ubezpieczenie dla Lekarzy po Stażu – zarówno na umowie o pracę, jak i w praktyce – zyskaj do 30% zniżki!",
+    fullDesc: "Ubezpieczenie Lekarz po stażu od INTER Polska — kompleksowa ochrona dla młodych lekarzy i dentystów w pierwszym roku pracy.",
+    hero: "https://cdn.remedium.md/image/club_product_group/2025/10/22/10/inter4-pomoc-psychologiczna-jpg-68f89bcb9af80.jpg",
+    logo: "https://cdn.remedium.md/image/club_vendor/2025/10/17/14/inter-kwadrat-png-68f22fc533d6b.png",
+    url: "https://ubezpieczenia.interpolska.pl/lekarz/?spec=lekarz_po_stazu&utm_source=Remedium&utm_medium=KM&utm_campaign=102025",
+  },
+  { id: "d38", partner: "INTER Ubezpieczenia", badge: "premium", category: "ubezpieczenia",
+    title: "Ubezpieczenie INTER Student",
+    desc: "Kompleksowa ochrona dla studentów kierunków medycznych. Chroni podczas nauki, praktyk i życia prywatnego.",
+    fullDesc: "Studiujesz na kierunku medycznym? To ubezpieczenie chroni Cię w czasie nauki, praktyk studenckich i w życiu prywatnym przed finansowymi skutkami zdarzeń losowych lub nieumyślnie przez Ciebie spowodowanych.",
+    hero: "https://cdn.remedium.md/image/club_product_group/2025/10/21/10/inter2-dobrowolne-oc-jpg-68f74754e793b.jpg",
+    logo: "https://cdn.remedium.md/image/club_vendor/2025/10/17/14/inter-kwadrat-png-68f22fc533d6b.png",
+    url: "https://ubezpieczenia.interpolska.pl/student/?utm_source=Remedium&utm_medium=KM&utm_campaign=102025",
+  },
+  { id: "d39", partner: "INTER Ubezpieczenia", badge: "premium", category: "ubezpieczenia",
+    title: "Pakiet ubezpieczeń dla lekarzy stażystów",
+    desc: "Ubezpieczenie Lekarz Stażysta – oferta dedykowana lekarzom w trakcie stażu podyplomowego.",
+    fullDesc: "Ubezpieczenie INTER Lekarz Stażysta – kompleksowa ochrona dla lekarzy rozpoczynających staż podyplomowy. OC dobrowolne, pomoc prawna 24/7, wsparcie psychologiczne i zabezpieczenie w razie ekspozycji zawodowej na HIV/WZW.",
+    hero: "https://cdn.remedium.md/image/club_product_group/2025/10/22/09/inter5-hiv-wzw-jpg-68f889738ec74.jpg",
+    logo: "https://cdn.remedium.md/image/club_vendor/2025/10/17/14/inter-kwadrat-png-68f22fc533d6b.png",
+    url: "https://ubezpieczenia.interpolska.pl/lekarz/?spec=lekarz_stazysta&utm_source=Remedium&utm_medium=KM&utm_campaign=102025",
+  },
+
+  // ── Medycyna ──
+  { id: "d6", partner: "ESLT Medical", badge: "-20%", category: "medycyna",
     title: "Wyposaż swój gabinet w sprzęt laserowy",
     desc: "Wyposaż swój gabinet w sprzęt laserowy, który zwiększy precyzję i komfort zabiegów z zakresu medycyny estetycznej i nie tylko.",
-    fullDesc: "ESLT medical dostarcza profesjonalny sprzęt laserowy dla gabinetów medycznych i klinik medycyny estetycznej. Jako członek Klub Medyka otrzymujesz 20% zniżki na zakup urządzeń laserowych, które zwiększą precyzję i komfort zabiegów — od depilacji laserowej, przez odmładzanie skóry, po zabiegi naczyniowe.",
-    hero: "znizki/hero-eslt.jpg", logo: "znizki/logo-eslt.png",
-    url: "https://eslt-medical.com",
+    fullDesc: "Wyposaż swój gabinet w sprzęt laserowy, który zwiększy precyzję i komfort zabiegów z zakresu medycyny estetycznej i nie tylko. Zyskaj do 20% rabatu na urządzenia ESLT Medical w Klubie Medyka.",
+    hero: "https://cdn.remedium.md/image/club_product_group/2025/08/19/12/eslt-grafika-jpg-68a44b5a50855.jpg",
+    logo: "https://cdn.remedium.md/image/club_vendor/2025/08/18/21/eslt-logo-png-68a37c8454e82.png",
+    url: "https://eslt-medical.com/remedium/",
+    howToUse: ["Wejdź na stronę partnera przez link zniżkowy.", "Przy składaniu oferty użyj kodu REMEDIUM."],
+  },
+  { id: "d28", partner: "ESLT Medical", badge: "-82 800 zł", category: "medycyna",
+    title: "Laser ELEMENT TL Elemenic",
+    desc: "Niezastąpione urządzenie laserowe z 20% rabatem, opieką serwisową i dedykowanymi szkoleniami.",
+    fullDesc: "Zastanawiasz się nad kupnem sprzętu laserowego do Twojego gabinetu? Wybraliśmy dla Ciebie niezastąpione urządzenie, dołożyliśmy 20% rabatu, opiekę serwisową i dedykowane szkolenia.",
+    hero: "https://cdn.remedium.md/image/club_product_group/2025/09/15/14/laser9-png-68c8047f317b9.png",
+    logo: "https://cdn.remedium.md/image/club_vendor/2025/08/18/21/eslt-logo-png-68a37c8454e82.png",
+    url: "https://eslt-medical.com/remedium/",
+    howToUse: ["Wejdź na stronę partnera przez link zniżkowy.", "Przy składaniu oferty użyj kodu REMEDIUM."],
+  },
+  { id: "d30", partner: "eGabinet", badge: "za darmo", category: "medycyna",
+    title: "eGabinet",
+    desc: "Aplikacja dla Twojego gabinetu — zautomatyzowane planowanie wizyt. Bezpłatne konto do 100 wizyt/mies. i 10% zniżki dla klinik.",
+    fullDesc: "Aplikacja dla Twojego gabinetu — zautomatyzowane planowanie wizyt dla oszczędności czasu i formalności. Bezpłatne konto do 100 wizyt miesięcznie dla praktyk indywidualnych i 10% zniżki na oprogramowanie dla klinik.",
+    hero: "https://cdn.remedium.md/image/club_product_group/2025/09/15/14/egabinet-png-68c808b52b491.png",
+    logo: "https://cdn.remedium.md/image/club_vendor/2025/08/18/21/e-gabinet-logo-v2-png-68a37b655d783.png",
+    url: "https://app.egabinet.pl/demo/register?ref=remedium",
+    howToUse: ["Wejdź na stronę partnera przez link zniżkowy.", "Uzupełnij formularz i załóż darmowe konto.", "Postępuj zgodnie z dalszymi poleceniami."],
+  },
+  { id: "d7", partner: "MedWe", badge: "-10%", category: "medycyna",
+    title: "Odzież medyczna dla Ciebie",
+    desc: "Kup scrubsy lub inną odzież medyczną 10% taniej w MedWe.pl.",
+    fullDesc: "W MedWe łączymy nowoczesny design z praktycznymi rozwiązaniami, aby każdy medyk mógł wyglądać profesjonalnie, czuć się komfortowo i działać bez ograniczeń.",
+    hero: "https://cdn.remedium.md/image/club_product_group/2025/08/19/12/grafika-kreacyjna-medwe-wie-eksza-11-2025-jpg-68a450f43d864.jpg",
+    logo: "https://cdn.remedium.md/image/club_vendor/2025/08/21/16/medwe-logo-png-68a72859e5fd5.png",
+    needsCode: true,
+    howToUse: ["Wygeneruj kod zniżkowy i skopiuj go.", "Wejdź na stronę partnera przez link.", "Po dodaniu produktów przejdź do koszyka i wklej swój kod rabatowy.", "Sfinalizuj zakup."],
+  },
+  { id: "d9", partner: "MedHero", badge: "-20%", category: "medycyna",
+    title: "Wybierz ryciny anatomiczne",
+    desc: "Anatomiczne ryciny jako pomoc edukacyjna lub dekoracja gabinetu 20% taniej w MedHero.art.",
+    fullDesc: "MedHero.art — plakaty anatomiczne do Twojego gabinetu. Miejsce gdzie sztuka spotyka się z medycyną.",
+    hero: "https://cdn.remedium.md/image/club_product_group/2025/08/19/12/grafika-kreacyjna-medhero-art-wie-eksza-jpg-68a4520f8eaa4.jpg",
+    logo: "https://cdn.remedium.md/image/club_vendor/2025/08/21/16/medhero-logo-png-68a7297c86258.png",
+    needsCode: true,
+    howToUse: ["Wygeneruj kod zniżkowy i skopiuj go.", "Wejdź na stronę partnera przez link.", "Po dodaniu produktów przejdź do koszyka, wybierz \"Masz kod promocyjny?\" i wklej swój kod rabatowy."],
+  },
+
+  // ── Samochody ──
+  { id: "d5", partner: "Mooveno", badge: "-26%", category: "auto",
+    title: "Obniż wydatki na samochód",
+    desc: "Jedna aplikacja — oszczędność na paliwie, myjniach, ładowaniu, parkingach i opłatach za autostrady. Jedna faktura miesięcznie.",
+    fullDesc: "Jedna aplikacja — oszczędność na paliwie, myjniach, ładowaniu, parkingach, czy opłatach za autostrady, a za wszystkie opłaty otrzymasz jedną fakturę miesięcznie. Oszczędź kilkaset złotych miesięcznie na rozliczeniach.",
+    hero: "https://cdn.remedium.md/image/club_product_group/2025/08/19/12/mooveno-grafika-2-png-68a44c2fa6423.png",
+    logo: "https://cdn.remedium.md/image/club_vendor/2025/08/19/10/mooveno-logo-png-68a437c1efaae.png",
+    url: "https://www.mooveno.pl/brandmed-lp-2",
+    howToUse: ["Wejdź na stronę partnera przez link zniżkowy.", "Wybierz ofertę dopasowaną do Twoich potrzeb.", "Wypełnij formularz i postępuj zgodnie z otrzymanymi informacjami."],
+  },
+  { id: "d26", partner: "Hertz", badge: "-15%", category: "auto",
+    title: "Wynajmij samochód w Hertz",
+    desc: "Wybierz spośród setek modeli dostępnych w Polsce i za granicą. Zaoszczędź nawet do 15% na wynajmie samochodu.",
+    fullDesc: "Hertz — światowy lider wynajmu samochodów. Wybierz spośród setek modeli dostępnych w Polsce i za granicą, rezerwując online lub przez dedykowaną infolinię. Dzięki ofercie dla Klubu Medyka możesz zaoszczędzić nawet do 15% na wynajmie samochodu.",
+    hero: "https://cdn.remedium.md/image/club_product_group/2025/09/09/14/tlo-1-jpg-68c0234483a6b.jpg",
+    logo: "https://cdn.remedium.md/image/club_vendor/2025/09/09/14/hertz-logo-png-68c02177d5773.png",
+    needsCode: true,
+    howToUse: ["Wejdź na stronę hertz.pl lub zadzwoń pod 22 500 16 20.", "Podaj kod zniżkowy. Kod jest wielorazowego użytku."],
+  },
+  { id: "d48", partner: "Mercedes", badge: "od 1 199 zł/mies.", category: "auto",
+    title: "Mercedes-Benz EQA w Lease&Drive",
+    desc: "Oferta niezależna od programu NaszEauto. Bez wpłaty własnej, umowa na 25 m-cy, przebieg 10 000 km.",
+    fullDesc: "Mercedes-Benz EQA od 1199 zł netto w Lease&Drive. Oferta niezależna od programu NaszEauto. Bez wpłaty własnej, umowa na 25 miesięcy, przebieg 10 000 km.",
+    hero: "https://cdn.remedium.md/image/club_product_group/2026/02/19/13/mb-eqa-1920x1080px-remedium-jpg-6997092625035.jpg",
+    logo: "https://cdn.remedium.md/image/club_vendor/2025/09/09/14/mercedes-logo-jpg-68c01abd3bdeb.jpg",
+    url: "https://www.mercedes-benz.pl/passengercars/mercedes-benz-cars/car-configurator.html",
+  },
+
+  // ── Sprzęt ──
+  { id: "d2", partner: "WeSub", badge: "-5%", category: "sprzet",
+    title: "Subskrybuj sprzęt",
+    desc: "Wybierasz laptop, tablet, smartfon lub sprzęt peryferyjny – nowy lub odnowiony – i subskrybujesz na 12 miesięcy, 5% taniej.",
+    fullDesc: "Laptopy, tablety, smartfony w subskrypcji na 12 miesięcy – z fakturą VAT, elastycznie i z pełnym wsparciem. Pracuj na nowoczesnym sprzęcie bez dużych wydatków na start ze specjalną ofertą w Klubie Medyka.",
+    hero: "https://cdn.remedium.md/image/club_product_group/2025/08/19/11/wesub-grafika-jpg-68a443c40f4b5.jpg",
+    logo: "https://cdn.remedium.md/image/club_vendor/2025/08/19/09/wesub-logo-png-68a4230aef2b7.png",
+    url: "https://klubmedyka.store/",
+    howToUse: ["Wejdź na stronę partnera przez link zniżkowy.", "Dodaj wybrane produkty do koszyka i sfinalizuj zakup."],
+  },
+  { id: "d40", partner: "WeSub", badge: "-50%", category: "sprzet",
+    title: "Odnowiony sprzęt za połowę ceny",
+    desc: "Wszystkie sprzęty w kategorii \"Odnowione\" teraz -50% ceny miesięcznej! Tylko dla Klubu Medyka. Kod: KLUB50.",
+    fullDesc: "Wszystkie ceny widoczne w kategorii \"odnowione\" po wpisaniu kodu \"KLUB50\" -50%! Subskrybuj i wymieniaj co rok!",
+    hero: "https://cdn.remedium.md/image/club_product_group/2025/10/22/11/grafika-we-sub-png-68f8a74016c42.png",
+    logo: "https://cdn.remedium.md/image/club_vendor/2025/08/19/09/wesub-logo-png-68a4230aef2b7.png",
+    needsCode: true,
+    howToUse: ["Wejdź na stronę partnera przez link zniżkowy.", "Dodaj wybrane sprzęty do koszyka.", "Przejdź procedurę przyznania finansowania.", "Kod rabatowy wpisz w płatności RentPay."],
+  },
+
+  // ── Edukacja ──
+  { id: "d4", partner: "NaMedycyneShop", badge: "-2%", category: "edukacja",
+    title: "Ucz się z najlepszych książek",
+    desc: "Kup książki i opracowania medyczne 2% taniej w NaMedycyneShop.",
+    fullDesc: "Wyposaż się w sprawdzone narzędzia codziennej pracy – od podręczników, przez wygodną odzież medyczną, po plakaty anatomiczne. Skorzystaj z rabatów dostępnych tylko w Klubie Medyka.",
+    hero: "https://cdn.remedium.md/image/club_product_group/2025/08/19/12/grafika-kreacyjna-namedycyne-shop-wie-eksza-jpg-68a44ddccd689.jpg",
+    logo: "https://cdn.remedium.md/image/club_vendor/2025/08/19/08/namedycyneshop-logo-png-68a41eafcf799.png",
+    needsCode: true,
+    howToUse: ["Wygeneruj kod zniżkowy i skopiuj go.", "Wejdź na stronę partnera przez link.", "Po dodaniu produktów przejdź do koszyka, wybierz \"Masz kod promocyjny?\" i wklej swój kod.", "Sfinalizuj zakup."],
+  },
+  { id: "d10", partner: "Tutlo", badge: "30h gratis", category: "edukacja",
+    title: "Ucz się angielskiego online",
+    desc: "3 darmowe lekcje próbne i 30 lekcji gratis na wybrane kursy.",
+    fullDesc: "Tutlo – angielski online wtedy, kiedy masz czas. Indywidualne lekcje z lektorami z całego świata, od A1 do C2. 3 lekcje gratis i nawet 500 zł zniżki na kurs w Klubie Medyka.",
+    hero: "https://cdn.remedium.md/image/club_product_group/2025/08/19/12/tutlo-grafika-jpg-68a4542354840.jpg",
+    logo: "https://cdn.remedium.md/image/club_vendor/2025/08/19/10/tutlo-logo-png-68a4359dcb62c.png",
+    needsCode: true,
+    howToUse: ["Wygeneruj kod zniżkowy.", "Wejdź na stronę partnera przez link.", "Wypełnij formularz na stronie Tutlo, uwzględniając kod rabatowy."],
+  },
+  { id: "d21", partner: "Medu", badge: "-40%", category: "edukacja",
+    title: "Doskonal technikę szycia chirurgicznego",
+    desc: "Ćwicz szycie taniej z padami Medu. Specjalna oferta dla medyków -40%.",
+    fullDesc: "Rozwijaj praktyczne umiejętności medyczne z Medu. W Klubie Medyka otrzymujesz 40% rabatu na zestawy do nauki szycia chirurgicznego i kursy w aplikacji.",
+    hero: "https://cdn.remedium.md/image/club_product_group/2025/08/22/13/medu-grafika-1-jpg-68a85af66ae4c.jpg",
+    logo: "https://cdn.remedium.md/image/club_vendor/2025/08/21/15/medu-logo2-png-68a72502c9811.png",
+    needsCode: true,
+    howToUse: ["Wejdź na stronę partnera przez link.", "Po dodaniu produktów przejdź do koszyka i płatności. Wybierz \"Dodaj kod promocyjny\" i wklej swój kod.", "Sfinalizuj zakup."],
+  },
+
+  // ── Podróże ──
+  { id: "d8", partner: "Soliści", badge: "do -400 zł", category: "podroze",
+    title: "Wybierz się w podróż",
+    desc: "Ponad 55 kierunków na 6 kontynentach i 10 stylów podróżowania, do 400 zł taniej.",
+    fullDesc: "Autentyczne wyprawy w małych grupach, poza utartym szlakiem. Z Solistami zamieniasz marzenia o podróżach w wspomnienia, które zostają na lata.",
+    hero: "https://cdn.remedium.md/image/club_product_group/2025/08/19/12/grafika-2-png-68a44e1a84f4a.png",
+    logo: "https://cdn.remedium.md/image/club_vendor/2025/08/19/08/soli-i-logo-png-68a420ea7c8c4.png",
+  },
+  { id: "d13", partner: "Taksidi", badge: "-100 zł", category: "podroze",
+    title: "Zaplanuj aktywny wypoczynek",
+    desc: "Zorganizowane wyjazdy dla każdego stylu podróżowania – PARTY, EXPLORE, czy FAMILY – 100 zł taniej.",
+    fullDesc: "Taksidi – zimowe wyjazdy na narty i snowboard do najlepszych kurortów Alp. Wybierz formułę dopasowaną do siebie: imprezową, rodzinną lub spokojną i skorzystaj z kodu rabatowego w Klubie Medyka.",
+    hero: "https://cdn.remedium.md/image/club_product_group/2025/08/19/13/taksidi-grafika-jpg-68a463e006b18.jpg",
+    logo: "https://cdn.remedium.md/image/club_vendor/2025/08/19/09/taksidi-logo-png-68a423ba96a4f.png",
+  },
+  { id: "d22", partner: "The Boat Trip", badge: "-100 zł", category: "podroze",
+    title: "Wypłyń w niezapomniany rejs",
+    desc: "Zaoszczędź 100 zł na niezapomniane wakacje na jachcie z The Boat Trip.",
+    fullDesc: "Wakacje na jachcie – rejsy w formule Party, Explore, Chill i Adventure. Wyrusz solo lub z ekipą znajomych i ciesz się rabatem 100 zł na dowolną wycieczkę w Klubie Medyka.",
+    hero: "https://cdn.remedium.md/image/club_product_group/2025/08/22/12/the-boat-trip-grafika-jpg-68a847569719d.jpg",
+    logo: "https://cdn.remedium.md/image/club_vendor/2025/09/09/15/theboattrip-logo-png-68c02ac717161.png",
+  },
+  { id: "d12", partner: "8a", badge: "do -10%", category: "podroze",
+    title: "Wyposaż się na szlak",
+    desc: "Sprzęt górski i outdoorowy dla każdego. Od odzieży i obuwia po namioty i akcesoria, do 10% taniej.",
+    fullDesc: "8a.pl – sprawdzony sprzęt górski i outdoorowy dla każdego poziomu zaawansowania. Od odzieży i obuwia po namioty i akcesoria. Skorzystaj ze specjalnej oferty w Klubie Medyka.",
+    hero: "https://cdn.remedium.md/image/club_product_group/2025/08/19/13/8a-grafika-jpg-68a4632cef705.jpg",
+    logo: "https://cdn.remedium.md/image/club_vendor/2025/08/18/21/8a-logo-png-68a3788909673.png",
+    needsCode: true,
+    howToUse: ["Wygeneruj kod zniżkowy i skopiuj go.", "Wejdź na stronę partnera przez link.", "Po dodaniu produktów przejdź do koszyka, wybierz \"Zastosuj kod rabatowy\", wklej go i naciśnij \"Zastosuj zniżkę\"."],
+  },
+
+  // ── Zdrowie ──
+  { id: "d24", partner: "Belvedere", badge: "do -12%", category: "zdrowie",
+    title: "Zamów najlepszą dietę",
+    desc: "Prywatny Kucharz by Belvedere – pięciogwiazdkowy catering dietetyczny dla wymagających. Odbierz rabat -12%.",
+    fullDesc: "Prywatny Kucharz by Belvedere – pięciogwiazdkowy catering dietetyczny dla wymagających. Wybierz program i odbierz rabat w Klubie Medyka.",
+    hero: "https://cdn.remedium.md/image/club_product_group/2025/10/03/13/kucharz-png-68dfba07b2161.png",
+    logo: "https://cdn.remedium.md/image/club_vendor/2025/09/04/15/belvedere-catering-logo-png-68b98e9e1d73c.png",
+    howToUse: ["Wejdź na stronę partnera przez link zniżkowy.", "Wybierz dietę dostosowaną do Ciebie.", "Postępuj zgodnie z dalszymi poleceniami."],
+  },
+  { id: "d32", partner: "BEKETO CATERING", badge: "-200 zł", category: "zdrowie",
+    title: "BE KETO catering",
+    desc: "Voucher na dietę keto na 200 zł od 14 dni.",
+    fullDesc: "BeKeto Catering to profesjonalny catering ketogeniczny dostarczany do ponad 4 100 miejscowości w Polsce. Oferuje aż 6 wariantów diet dostosowanych kalorrycznie – smacznie, wygodnie i zgodnie z zasadami keto.",
+    hero: "https://cdn.remedium.md/image/club_product_group/2025/10/28/12/be-keto-png-6900a3ad524f6.png",
+    logo: "https://cdn.remedium.md/image/club_vendor/2025/10/08/14/beketo-catering-kwadrat-png-68e6600164ace.png",
+  },
+  { id: "d33", partner: "BEKETO", badge: "-100 zł", category: "zdrowie",
+    title: "BE KETO — sklep keto",
+    desc: "Voucher 100 zł na zakupy powyżej 500 zł w sklepie internetowym.",
+    fullDesc: "BeKeto to sklep i marka dedykowana diecie ketogenicznej i low-carb, oferujący oleje MCT, keto przekąski, posiłki w proszku i suplementy — wszystko bez cukru i gotowe do codziennego stosowania.",
+    hero: "https://cdn.remedium.md/image/club_product_group/2025/10/08/15/beketo-grafika-png-68e669144dcd7.png",
+    logo: "https://cdn.remedium.md/image/club_vendor/2025/10/08/15/beketo-kwadrat-png-68e667f71e3df.png",
+  },
+  { id: "d35", partner: "The Collagen Company", badge: "-100 zł", category: "zdrowie",
+    title: "Produkty kolagenowe",
+    desc: "Zadbaj o siebie z wysokiej jakości produktami z kolagenem. W Klubie Medyka aż 100 zł taniej!",
+    fullDesc: "Kup produkty z kolagenem ze specjalnymi promocjami w Klubie Medyka!",
+    hero: "https://cdn.remedium.md/image/club_product_group/2025/10/16/14/tcc-grafika2-png-68f0dfec31f0f.png",
+    logo: "https://cdn.remedium.md/image/club_vendor/2025/10/16/14/tcc-kwadrat-png-68f0df95a0d9d.png",
+  },
+
+  // ── Dom i rodzina ──
+  { id: "d16", partner: "AskHenry", badge: "do -20%", category: "dom",
+    title: "Oddeleguj zadania",
+    desc: "Twój osobisty asystent na 10h lub więcej, do 20% taniej. Oddeleguj zakupy, sprawy urzędowe, reklamacje i wiele więcej.",
+    fullDesc: "Twój osobisty asystent. Oddeleguj zakupy, sprawy urzędowe, reklamacje, research i wiele więcej.",
+    hero: "https://cdn.remedium.md/image/club_product_group/2025/08/22/12/askhenry-grafika-jpg-68a842a5eb9d7.jpg",
+    logo: "https://cdn.remedium.md/image/club_vendor/2025/08/18/21/askhenry-logo-png-68a37ac3d241c.png",
+    url: "https://askhenry.pl/remedium/",
+    howToUse: ["Wejdź na stronę i wybierz pakiet, który Cię interesuje.", "Zjedź na sam dół strony, podaj dane i skorzystaj ze zniżki."],
+  },
+  { id: "d17", partner: "Lisek", badge: "-6%", category: "dom",
+    title: "Zamów zakupy",
+    desc: "Zamawiaj zakupy pod drzwi, nawet w 10 min, także w niedziele i święta, z Klubem 6% taniej.",
+    fullDesc: "Marzą Ci się zakupy dostarczone pod same drzwi? Złóż zamówienie w Lisek.App i skorzystaj ze zniżki 6%. Wołaj Liska! Promocja nie obejmuje produktów alkoholowych oraz wyrobów tytoniowych.",
+    hero: "https://cdn.remedium.md/image/club_product_group/2025/12/22/11/lisek-slider3-png-69491e5c769b1.png",
+    logo: "https://cdn.remedium.md/image/club_vendor/2025/08/19/08/lisek-logo-png-68a41c02c594d.png",
+    needsCode: true,
+    howToUse: ["Zainstaluj aplikację Lisek.App lub wejdź na stronę Lisek.App.", "Wpisz swój kod promocyjny w zakładce Kupony.", "Złóż zamówienie za minimum 50 zł i gotowe!"],
+  },
+  { id: "d18", partner: "Lisek", badge: "-30 zł", category: "dom",
+    title: "Zamów pierwsze zakupy",
+    desc: "Pierwsze zakupy w Lisku -30 zł (min. wartość zamówienia 65 zł).",
+    fullDesc: "Zakupy bez wychodzenia z domu, z dostawą nawet w 10 minut, z rabatem w Klubie Medyka. Lisek – tysiące produktów z Twojego telefonu prosto pod drzwi, codziennie, także w niedziele i święta.",
+    hero: "https://cdn.remedium.md/image/club_product_group/2025/08/27/11/remedium-1920x1080-2-98-png-68aecb9993948.png",
+    logo: "https://cdn.remedium.md/image/club_vendor/2025/08/19/08/lisek-logo-png-68a41c02c594d.png",
+  },
+  { id: "d41", partner: "Niania", badge: "2 tyg. za 1 zł", category: "dom",
+    title: "Znajdź troskliwą nianię",
+    desc: "2 tygodnie dostępu do największej bazy opiekunek w Polsce tylko za 1 zł.",
+    fullDesc: "Znajdź troskliwą nianię — 2 tygodnie dostępu do największej bazy opiekunek w Polsce tylko za 1 zł.",
+    hero: "https://cdn.remedium.md/image/club_product_group/2025/10/28/12/niania-3-png-6900a32bcecab.png",
+    logo: "https://cdn.remedium.md/image/club_vendor/2025/10/27/13/niania-kwadrat-png-68ff6bcdc1862.png",
+    url: "https://niania.pl/Discount.do?code=xgbnlfYpPNnx",
+    howToUse: ["Wejdź na stronę partnera przez link zniżkowy.", "Załóż konto na portalu niania.pl."],
+  },
+  { id: "d42", partner: "Opieka Seniora", badge: "2 tyg. za 1 zł", category: "dom",
+    title: "Znajdź opiekuna dla seniora",
+    desc: "2 tygodnie dostępu do największej bazy opiekunów w Polsce tylko za 1 zł.",
+    fullDesc: "Znajdź zaufanego opiekuna dla seniora — 2 tygodnie dostępu do największej bazy opiekunów w Polsce tylko za 1 zł.",
+    hero: "https://cdn.remedium.md/image/club_product_group/2025/10/27/16/os-klubmedyka-png-68ff90b5064e8.png",
+    logo: "https://cdn.remedium.md/image/club_vendor/2025/10/27/14/os-kwadrat-png-68ff6d0c69b52.png",
+    url: "https://opiekaseniora.pl/Discount.do?code=MRNBYHkLpywQ",
+    howToUse: ["Wejdź na stronę partnera przez link zniżkowy.", "Załóż konto na portalu opiekaseniora.pl."],
+  },
+  { id: "d44", partner: "Pomoce Domowe", badge: "2 tyg. za 1 zł", category: "dom",
+    title: "Znajdź pomoc domową",
+    desc: "Znajdź najlepszą pomoc domową — 2 tygodnie dostępu za 1 zł.",
+    fullDesc: "PomoceDomowe.pl to serwis łączący osoby poszukujące wsparcia w obowiązkach domowych z pomocami domowymi w całej Polsce. Regularno utrzymanie czystości, gruntowne porządki, prowadzenie domu — znajdziesz tu odpowiednią osobę.",
+    hero: "https://cdn.remedium.md/image/club_product_group/2025/10/28/16/pomoce-domowe-grafika-png-6900db92787b9.png",
+    logo: "https://cdn.remedium.md/image/club_vendor/2025/10/27/14/pd-kwadrat-png-68ff6e80c3843.png",
+    url: "https://pomocedomowe.pl/Discount.do?code=rMjShXumLMrs",
+  },
+  { id: "d45", partner: "Opieka Zwierząt", badge: "2 tyg. za 1 zł", category: "dom",
+    title: "Znajdź opiekę dla pupila",
+    desc: "2 tygodnie dostępu do bazy opiekunów zwierząt tylko za 1 zł.",
+    fullDesc: "OpiekaZwierzat.pl to serwis stworzony z myślą o właścicielach zwierząt i opiekunach. Platforma łączy osoby poszukujące zaufanej opieki dla swojego pupila z opiekunami i petsitterami.",
+    hero: "https://cdn.remedium.md/image/club_product_group/2025/11/05/14/opieka-zwierzat-grafika-png-690b502a97a2f.png",
+    logo: "https://cdn.remedium.md/image/club_vendor/2025/10/27/14/oz-kwadrat-png-68ff6f5216399.png",
+    url: "http://opiekazwierzat.pl/Discount.do?code=DMphzmatnllO",
   },
 ];
 
@@ -856,16 +1157,11 @@ function Overview({ setActive }) {
           {DISCOUNTS.slice(0, 3).map(d => (
             <div key={d.id} className="card__row" style={{ justifyContent: "space-between" }}>
               <div className="flex items-center gap-2">
-                <span className="font-semibold" style={{ fontSize: 13 }}>{d.name}</span>
-                {d.monthly && <Pill variant="accent">co miesiąc</Pill>}
+                <img src={d.logo} alt={d.partner} style={{ width: 24, height: 24, borderRadius: 4, objectFit: "contain" }} />
+                <span className="font-semibold" style={{ fontSize: 13 }}>{d.partner}</span>
+                <span className="text-xs text-muted">{d.title}</span>
               </div>
-              <div className="flex items-center" style={{ gap: 14 }}>
-                <span className="font-semibold" style={{ fontSize: 13 }}>{d.discount}</span>
-                <span className="font-mono text-xs text-muted" style={{
-                  background: "var(--color-bg-subtle)", border: "1px dashed var(--color-border)",
-                  padding: "3px 9px", borderRadius: 5,
-                }}>{d.code}</span>
-              </div>
+              <span className="font-semibold" style={{ fontSize: 13, color: "var(--color-accent)" }}>{d.badge}</span>
             </div>
           ))}
         </div>
@@ -1542,42 +1838,60 @@ function DiscountDrawer({ discount: d, onClose }) {
           <div className="drawer__title">{d.title}</div>
           <p className="drawer__desc-short">{d.desc}</p>
 
-          {/* Sekcja kodu — widoczna od razu */}
-          <div className="drawer__code-box">
-            <div className="drawer__code-box-label">Kod zniżkowy</div>
-            {generatedCode ? (
-              <div>
-                <div className="drawer__code-row">
-                  <div className="drawer__code-value">{generatedCode}</div>
-                  <button className="drawer__code-copy" onClick={copyCode} title="Kopiuj">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
-                  </button>
-                  <button className="drawer__code-refresh" onClick={generateCode} title="Nowy kod">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/></svg>
-                  </button>
+          {/* Sekcja kodu — tylko jeśli needsCode */}
+          {d.needsCode && (
+            <div className="drawer__code-box">
+              <div className="drawer__code-box-label">Kod zniżkowy</div>
+              {generatedCode ? (
+                <div>
+                  <div className="drawer__code-row">
+                    <div className="drawer__code-value">{generatedCode}</div>
+                    <button className="drawer__code-copy" onClick={copyCode} title="Kopiuj">
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                    </button>
+                    <button className="drawer__code-refresh" onClick={generateCode} title="Nowy kod">
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/></svg>
+                    </button>
+                  </div>
+                  {copied && <div className="drawer__code-toast">Kod skopiowany do schowka</div>}
                 </div>
-                {copied && <div className="drawer__code-toast">Kod skopiowany do schowka</div>}
-              </div>
-            ) : (
-              <button className="drawer__btn-primary" onClick={generateCode}>
-                <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M5.99479 6.0026H6.00146M9.99479 6.0026L5.99479 10.0026M9.99479 10.0026H10.0015M1.32812 6.0026C1.85856 6.0026 2.36727 6.21332 2.74234 6.58839C3.11741 6.96346 3.32813 7.47217 3.32813 8.0026C3.32813 8.53304 3.11741 9.04175 2.74234 9.41682C2.36727 9.79189 1.85856 10.0026 1.32812 10.0026L1.32812 11.3359C1.32812 11.6896 1.4686 12.0287 1.71865 12.2787C1.9687 12.5288 2.30784 12.6693 2.66146 12.6693L13.3281 12.6693C13.6817 12.6693 14.0209 12.5288 14.2709 12.2787C14.521 12.0287 14.6615 11.6896 14.6615 11.3359V10.0026C14.131 10.0026 13.6223 9.79189 13.2472 9.41682C12.8722 9.04175 12.6615 8.53304 12.6615 8.0026C12.6615 7.47217 12.8722 6.96346 13.2472 6.58839C13.6223 6.21332 14.131 6.0026 14.6615 6.0026V4.66927C14.6615 4.31565 14.521 3.97651 14.2709 3.72646C14.0209 3.47641 13.6817 3.33594 13.3281 3.33594L2.66146 3.33594C2.30784 3.33594 1.9687 3.47641 1.71865 3.72646C1.4686 3.97651 1.32813 4.31565 1.32812 4.66927L1.32812 6.0026Z" stroke="currentColor" strokeWidth="1.33" strokeLinecap="round" strokeLinejoin="round"/></svg>
-                Wygeneruj kod zniżkowy
-              </button>
-            )}
-          </div>
+              ) : (
+                <button className="drawer__btn-primary" onClick={generateCode}>
+                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M5.99479 6.0026H6.00146M9.99479 6.0026L5.99479 10.0026M9.99479 10.0026H10.0015M1.32812 6.0026C1.85856 6.0026 2.36727 6.21332 2.74234 6.58839C3.11741 6.96346 3.32813 7.47217 3.32813 8.0026C3.32813 8.53304 3.11741 9.04175 2.74234 9.41682C2.36727 9.79189 1.85856 10.0026 1.32812 10.0026L1.32812 11.3359C1.32812 11.6896 1.4686 12.0287 1.71865 12.2787C1.9687 12.5288 2.30784 12.6693 2.66146 12.6693L13.3281 12.6693C13.6817 12.6693 14.0209 12.5288 14.2709 12.2787C14.521 12.0287 14.6615 11.6896 14.6615 11.3359V10.0026C14.131 10.0026 13.6223 9.79189 13.2472 9.41682C12.8722 9.04175 12.6615 8.53304 12.6615 8.0026C12.6615 7.47217 12.8722 6.96346 13.2472 6.58839C13.6223 6.21332 14.131 6.0026 14.6615 6.0026V4.66927C14.6615 4.31565 14.521 3.97651 14.2709 3.72646C14.0209 3.47641 13.6817 3.33594 13.3281 3.33594L2.66146 3.33594C2.30784 3.33594 1.9687 3.47641 1.71865 3.72646C1.4686 3.97651 1.32813 4.31565 1.32812 4.66927L1.32812 6.0026Z" stroke="currentColor" strokeWidth="1.33" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                  Wygeneruj kod zniżkowy
+                </button>
+              )}
+            </div>
+          )}
+
+          {/* Jak skorzystać — kroki */}
+          {d.howToUse && d.howToUse.length > 0 && (
+            <div className="drawer__how-to-use">
+              <div className="drawer__how-to-use-label">Jak skorzystać</div>
+              <ol className="drawer__how-to-use-steps">
+                {d.howToUse.map((step, i) => <li key={i}>{step}</li>)}
+              </ol>
+            </div>
+          )}
 
           {/* Szczegóły — rozwijane */}
-          <button className="drawer__details-toggle" onClick={() => setShowFullDesc(!showFullDesc)}>
-            Szczegóły oferty
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ transform: showFullDesc ? "rotate(180deg)" : "", transition: "transform 0.2s" }}><polyline points="6 9 12 15 18 9"/></svg>
-          </button>
-          {showFullDesc && <p className="drawer__desc-full">{d.fullDesc}</p>}
+          {d.fullDesc && (
+            <React.Fragment>
+              <button className="drawer__details-toggle" onClick={() => setShowFullDesc(!showFullDesc)}>
+                Szczegóły oferty
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ transform: showFullDesc ? "rotate(180deg)" : "", transition: "transform 0.2s" }}><polyline points="6 9 12 15 18 9"/></svg>
+              </button>
+              {showFullDesc && <p className="drawer__desc-full">{d.fullDesc}</p>}
+            </React.Fragment>
+          )}
 
           {/* Link do partnera */}
-          <a href={d.url} target="_blank" rel="noopener noreferrer" className="drawer__btn-outline">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
-            Przejdź na stronę partnera
-          </a>
+          {d.url && (
+            <a href={d.url} target="_blank" rel="noopener noreferrer" className="drawer__btn-outline">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+              Przejdź na stronę partnera
+            </a>
+          )}
         </div>
       </div>
     </React.Fragment>
