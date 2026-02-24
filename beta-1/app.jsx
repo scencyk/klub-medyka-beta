@@ -601,13 +601,13 @@ const NAV_SECTIONS = [
     items: [
       { id: "overview",    label: "Panel główny",  icon: "overview"  },
       { id: "purchases",   label: "Zakupy",        icon: "purchases" },
+      { id: "insurance",   label: "Ubezpieczenia", icon: "insurance", tag: "Nowość" },
       { id: "discounts",   label: "Zniżki",        icon: "discounts" },
       { id: "discounts-v2", label: "Zniżki v2",     icon: "discounts" },
       { id: "discounts-v3", label: "Zniżki v3",     icon: "discounts" },
       // { id: "discounts-v4", label: "Zniżki v4",     icon: "discounts" },
       { id: "packages",    label: "Usługi",        icon: "packages",    soon: true },
       { id: "advisors",    label: "Twoi doradcy",  icon: "advisors"  },
-      { id: "insurance",   label: "Ubezpieczenia", icon: "insurance",   soon: true },
       { id: "investments", label: "Inwestycje",    icon: "investments", soon: true },
     ],
   },
@@ -619,12 +619,107 @@ const NAV_SECTIONS = [
   },
 ];
 
-const INSURANCE_PRODUCTS = [
-  { id: "oc",     name: "OC Lekarskie",          priority: 1, owned: true,  provider: "PZU",   showPrices: true,  priceFrom: 69,  renewal: "30 cze 2026", desc: "Odpowiedzialność cywilna za błędy w sztuce lekarskiej. Wymagane prawnie." },
-  { id: "income", name: "Utrata dochodu",         priority: 1, owned: false, provider: null,    showPrices: false, priceEst: "~80–350 zł/mies.", desc: "Ochrona przychodu przy chorobie lub wypadku. Stawka indywidualna — doradca wyśle kwestionariusz." },
-  { id: "travel", name: "Ubezpieczenie podróżne", priority: 2, owned: false, provider: "INTER", showPrices: true,  priceFrom: 19,  desc: "Roczna polisa — podróże prywatne i konferencje medyczne. Dostępne w pakiecie z OC." },
-  { id: "life",   name: "Na życie",               priority: 0, owned: false, provider: null,    showPrices: false, priceEst: "~60–400 zł/mies.", desc: "Ochrona rodziny na wypadek śmierci lub niezdolności do pracy." },
-  { id: "other",  name: "Inne",                   priority: 0, owned: false, provider: null,    showPrices: false, desc: "NNW, mieszkanie, auto, OC prywatne — pełna lista wkrótce." },
+const INSURANCE_CATEGORIES = [
+  { id: "oc",     name: "OC lekarskie",   icon: "shield", tag: "Obowiązkowe", tagVariant: "red",  priceLabel: "od 69 zł/mies.",    desc: "Odpowiedzialność cywilna za błędy w sztuce lekarskiej. Wymagane prawnie.", noMissing: false },
+  { id: "income", name: "Utrata dochodu", icon: "wallet", tag: "Zalecane",    tagVariant: "warn", priceLabel: "~80–350 zł/mies.",  desc: "Ochrona przychodu przy chorobie lub wypadku.", noMissing: false },
+  { id: "life",   name: "Na życie",       icon: "heart",  tag: null,          tagVariant: null,   priceLabel: "~60–400 zł/mies.",  desc: "Ochrona rodziny na wypadek śmierci lub niezdolności do pracy.", noMissing: false },
+  { id: "travel", name: "Podróże",        icon: "plane",  tag: null,          tagVariant: null,   priceLabel: "od 19 zł/mies.",    desc: "Roczna polisa — podróże prywatne i konferencje medyczne.", provider: "INTER", noMissing: true },
+  { id: "other",  name: "Inne",           icon: "list",   tag: null,          tagVariant: null,   priceLabel: null,                desc: "NNW, mieszkanie, auto, OC prywatne.", noMissing: true },
+];
+
+/* ── OC DATA ─────────────────────────────────────────── */
+const OC_SPEC_III = [
+  "Anestezjologia i intensywna terapia","Chirurgia dziecięca","Chirurgia klatki piersiowej",
+  "Chirurgia ogólna","Chirurgia szczękowo-twarzowa","Kardiochirurgia","Neurochirurgia",
+  "Ortopedia i traumatologia narządu ruchu","Położnictwo i ginekologia","Urologia",
+  "Chirurgia naczyniowa","Chirurgia onkologiczna","Chirurgia plastyczna",
+  "Ginekologia onkologiczna","Urologia dziecięca","Chirurgia stomatologiczna",
+  "Medycyna ratunkowa","Neonatologia",
+];
+const OC_SPEC_II = [
+  "Medycyna sportowa","Ortodoncja","Periodontologia","Protetyka stomatologiczna",
+  "Radioterapia onkologiczna","Stomatologia dziecięca","Stomatologia zachowawcza z endodoncją",
+];
+const OC_SPEC_I = [
+  "Alergologia","Angiologia","Audiologia i foniatria","Balneologia i medycyna fizykalna",
+  "Choroby płuc","Choroby wewnętrzne","Dermatologia i wenerologia","Diabetologia",
+  "Endokrynologia","Farmakologia kliniczna","Gastroenterologia","Geriatria",
+  "Hematologia","Hipertensjologia","Immunologia kliniczna","Intensywna terapia",
+  "Kardiologia","Medycyna lotnicza","Medycyna morska i tropikalna",
+  "Medycyna nuklearna","Medycyna pracy","Medycyna rodzinna","Medycyna sądowa",
+  "Mikrobiologia lekarska","Nefrologia","Neurologia","Onkologia kliniczna",
+  "Okulistyka","Otorynolaryngologia","Patomorfologia","Pediatria",
+  "Psychiatria","Psychiatria dzieci i młodzieży","Radiologia i diagnostyka obrazowa",
+  "Rehabilitacja medyczna","Reumatologia","Toksykologia kliniczna",
+  "Transplantologia kliniczna","Medycyna paliatywna","Zdrowie publiczne",
+];
+const OC_ALL_SPECS = [
+  ...OC_SPEC_III.map(s => ({ name: s, group: 3 })),
+  ...OC_SPEC_II.map(s => ({ name: s, group: 2 })),
+  ...OC_SPEC_I.map(s => ({ name: s, group: 1 })),
+].sort((a, b) => a.name.localeCompare(b.name, "pl"));
+
+const OC_SUMS = ["1 000 000 zł", "1 500 000 zł", "2 000 000 zł"];
+const OC_PREMIUM = {
+  mandatory: { 3: 400, 2: 200, 1: 100 },
+  surplus: {
+    "1 000 000 zł": { 3: 630, 2: 300, 1: 150 },
+    "1 500 000 zł": { 3: 950, 2: 450, 1: 220 },
+    "2 000 000 zł": { 3: 1300, 2: 650, 1: 320 },
+  },
+};
+const OC_EXTRAS = [
+  { key: "legal",     label: "Koszty ochrony prawnej",                    shortLabel: "Ochrona prawna", recommended: true,
+    variants: [
+      { sum: "50 000 zł",  price: 80  },
+      { sum: "100 000 zł", price: 130 },
+      { sum: "200 000 zł", price: 190 },
+    ], defaultVariant: 1 },
+  { key: "aesthetic", label: "Medycyna estetyczna i chirurgia plastyczna", shortLabel: "Medycyna estetyczna",
+    variants: [
+      { sum: "50 000 zł",  price: 320 },
+      { sum: "100 000 zł", price: 500 },
+      { sum: "200 000 zł", price: 750 },
+    ], defaultVariant: 1 },
+  { key: "nfz",      label: "Kary NFZ za błędną refundację leków",        shortLabel: "Kary NFZ", recommended: true,
+    variants: [
+      { sum: "100 000 zł", price: 130 },
+      { sum: "200 000 zł", price: 200 },
+      { sum: "500 000 zł", price: 340 },
+    ], defaultVariant: 1 },
+  { key: "hiv",      label: "Profilaktyka poekspozycyjna HIV/WZW",        shortLabel: "HIV/WZW", recommended: true,
+    variants: [
+      { sum: "Pakiet standardowy", price: 115 },
+    ], defaultVariant: 0 },
+];
+
+function ocRiskGroup(s1, s2, sor) {
+  if (sor) return 3;
+  const g = (name) => OC_ALL_SPECS.find(s => s.name === name)?.group || 1;
+  return Math.max(s1 ? g(s1) : 1, s2 ? g(s2) : 0);
+}
+function ocCalc(d) {
+  const rg = ocRiskGroup(d.spec1, d.spec2, d.sor);
+  let total = 0; const items = [];
+  if (d.practice) { const p = OC_PREMIUM.mandatory[rg]; total += p; items.push({ label: "OC obowiązkowe", amount: p }); }
+  if (d.practice && d.surplusSum) { const p = OC_PREMIUM.surplus[d.surplusSum]?.[rg] || 0; total += p; items.push({ label: "OC nadwyżkowe " + d.surplusSum, amount: p }); }
+  if (!d.practice && d.voluntarySum) { const p = OC_PREMIUM.surplus[d.voluntarySum]?.[rg] || 0; total += p; items.push({ label: "OC dobrowolne " + d.voluntarySum, amount: p }); }
+  if (d.practice && !d.surplusSum && d.voluntarySum) { const p = OC_PREMIUM.surplus[d.voluntarySum]?.[rg] || 0; total += p; items.push({ label: "OC dobrowolne " + d.voluntarySum, amount: p }); }
+  OC_EXTRAS.forEach(ex => {
+    if (d[ex.key]) {
+      const vi = d.extraVariants?.[ex.key] ?? ex.defaultVariant;
+      const v = ex.variants[vi] || ex.variants[ex.defaultVariant];
+      total += v.price; items.push({ label: ex.label, amount: v.price });
+    }
+  });
+  return { total, items, riskGroup: rg };
+}
+
+const INS_PARTNERS = [
+  { name: "PZU",                 logo: "../ubezpieczenia/loga/PZU_logo.png",   h: 36 },
+  { name: "Ergo Hestia",        logo: "../ubezpieczenia/loga/ergohestia.png",  h: 34 },
+  { name: "INTER Ubezpieczenia", logo: "../ubezpieczenia/loga/inter logo.webp", h: 26 },
+  { name: "Lloyd's",            logo: "../ubezpieczenia/loga/lloyds.png",      h: 18 },
 ];
 
 const OB_ROLES = [
@@ -914,6 +1009,9 @@ function Sidebar({ active, setActive }) {
                   {item.badge && !isActive && (
                     <span className="sidebar__badge">{item.badge}</span>
                   )}
+                  {item.tag && (
+                    <span className="sidebar__tag">{item.tag}</span>
+                  )}
                   {item.soon && (
                     <span className="sidebar__soon">wkrótce</span>
                   )}
@@ -1054,7 +1152,7 @@ function Overview({ setActive }) {
       <div>
         <SectionHeader title="Twoi doradcy" />
         <div className="advisor-grid">
-          {ALL_ADVISORS.map(a => {
+          {ALL_ADVISORS.slice(0, 3).map(a => {
             const openId = contactDropdown === a.id;
             const booked = contactBooked[a.id];
             return (
@@ -1097,6 +1195,45 @@ function Overview({ setActive }) {
               </div>
             );
           })}
+        </div>
+      </div>
+
+      {/* Insurance status */}
+      <div>
+        <SectionHeader title="Ubezpieczenia" action="Wszystkie" onAction={() => setActive("insurance")} />
+        <div className="card" style={{ padding: 0, overflow: "hidden" }}>
+          <div className="dash-ins__active">
+            <div className="dash-ins__row">
+              <div className="dash-ins__icon dash-ins__icon--ok">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#166534" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+              </div>
+              <div className="dash-ins__info">
+                <span className="font-semibold" style={{ fontSize: 13 }}>Na życie</span>
+                <span className="text-xs" style={{ color: "#166534" }}>Aktywne · wygasa za 202 dni</span>
+              </div>
+              <button className="dash-ins__manage" onClick={() => setActive("insurance")}>Zarządzaj</button>
+            </div>
+          </div>
+          <div className="dash-ins__missing">
+            <div className="dash-ins__missing-header">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
+              <span>4 obszary bez ochrony</span>
+            </div>
+            <div className="dash-ins__chips">
+              {[
+                { label: "OC lekarskie", tag: "Obowiązkowe", urgent: true },
+                { label: "Utrata dochodu", tag: "Zalecane", urgent: false },
+                { label: "Podróże", tag: null, urgent: false },
+                { label: "Inne", tag: null, urgent: false },
+              ].map(item => (
+                <button key={item.label} className={`dash-ins__chip ${item.urgent ? "dash-ins__chip--urgent" : ""}`}
+                  onClick={() => setActive("insurance")}>
+                  {item.label}
+                  {item.tag && <span className="dash-ins__chip-tag">{item.tag}</span>}
+                </button>
+              ))}
+            </div>
+          </div>
         </div>
       </div>
 
@@ -2322,68 +2459,1134 @@ function DiscountsV4View() {
 
 // ─── INSURANCE VIEW ───────────────────────────────────────────────────────────
 
-function InsuranceView() {
-  const [expanded, setExpanded] = useState(null);
-  const [uploaded, setUploaded] = useState({});
-  const toggle = id => setExpanded(p => p === id ? null : id);
+function InsIcon({ id, size }) {
+  const s = size || 28;
+  const props = { width: s, height: s, viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: 1.5, strokeLinecap: "round", strokeLinejoin: "round" };
+  switch (id) {
+    case "shield": return <svg {...props}><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>;
+    case "wallet": return <svg {...props}><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M2 10h20"/><circle cx="16" cy="14" r="1"/></svg>;
+    case "plane":  return <svg {...props}><path d="M17.8 19.2 16 11l3.5-3.5C21 6 21.5 4 21 3c-1-.5-3 0-4.5 1.5L13 8 4.8 6.2c-.5-.1-.9.1-1.1.5l-.3.5c-.2.4-.1.9.3 1.1L9 12l-2 3H4l-1 1 3 2 2 3 1-1v-3l3-2 3.8 5.3c.2.4.7.5 1.1.3l.5-.3c.4-.2.6-.6.5-1.1z"/></svg>;
+    case "heart":  return <svg {...props}><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg>;
+    case "list":   return <svg {...props}><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>;
+    default: return null;
+  }
+}
+
+/* ── OC FORM ─────────────────────────────────────────── */
+function OcForm() {
+  const [step, setStep] = useState(0);
+  // Pre-fill from profile — user is "Rezydent · Kardiologia"
+  const [spec1, setSpec1] = useState("Kardiologia");
+  const [spec1Confirmed, setSpec1Confirmed] = useState(false);
+  const [spec2, setSpec2] = useState("");
+  const [sor, setSor] = useState(null);
+  const [practice, setPractice] = useState(null);
+  const [surplusSum, setSurplusSum] = useState("");
+  const [voluntarySum, setVoluntarySum] = useState("");
+  const [extras, setExtras] = useState({ legal: false, aesthetic: false, nfz: false, hiv: false });
+  const [extraVariants, setExtraVariants] = useState(() => {
+    const ev = {};
+    OC_EXTRAS.forEach(ex => { ev[ex.key] = ex.defaultVariant; });
+    return ev;
+  });
+  const [hadClaim, setHadClaim] = useState(null);
+  const [phase, setPhase] = useState("form"); // form | loading | offers
+  const [submitted, setSubmitted] = useState(false);
+  const [editField, setEditField] = useState(null);
+
+  const toggleExtra = (k) => setExtras(e => ({ ...e, [k]: !e[k] }));
+  const setExtraVariant = (k, vi) => setExtraVariants(ev => ({ ...ev, [k]: vi }));
+  const d = { spec1, spec2, sor, practice, surplusSum, voluntarySum, extraVariants, ...extras };
+  const { total, items, riskGroup } = ocCalc(d);
+  const riskLabel = riskGroup === 3 ? "III (najwyższa)" : riskGroup === 2 ? "II (średnia)" : "I (podstawowa)";
+  const needsVoluntary = !practice || (practice && !surplusSum);
+
+  const canNext = () => {
+    if (step === 0) return spec1 && spec1Confirmed && sor !== null;
+    if (step === 1) {
+      if (practice === null) return false;
+      return true;
+    }
+    if (step === 2) return hadClaim !== null;
+    return true;
+  };
+
+  const startCalc = () => {
+    setPhase("loading");
+    setTimeout(() => setPhase("offers"), 2800);
+  };
+
+  // Offer amounts — INTER slightly more expensive
+  const ergoTotal = total;
+  const interTotal = Math.round(total * 1.08);
+  const [expandedOffer, setExpandedOffer] = useState(null);
+  const [hoveredTip, setHoveredTip] = useState(null);
+  const [compareMode, setCompareMode] = useState(false);
+
+  const scopeItems = () => {
+    const items = [];
+    if (practice) items.push({ key: "mandatory", label: "OC obowiązkowe", sum: "równowartość 75 000 EUR", price: OC_PREMIUM.mandatory[riskGroup], removable: false, active: true,
+      tip: "Obowiązkowe ubezpieczenie dla lekarzy prowadzących praktykę. Pokrywa roszczenia pacjentów z tytułu błędów w sztuce lekarskiej do ustawowego limitu." });
+    if (surplusSum) items.push({ key: "surplus", label: "OC nadwyżkowe", sum: surplusSum, price: OC_PREMIUM.surplus[surplusSum]?.[riskGroup] || 0, removable: true, active: true,
+      tip: "Rozszerzenie sumy gwarancyjnej ponad obowiązkowe minimum. Chroni w razie roszczeń przekraczających limit OC obowiązkowego.",
+      onRemove: () => setSurplusSum("") });
+    if (needsVoluntary && voluntarySum) items.push({ key: "voluntary", label: "OC dobrowolne", sum: voluntarySum, price: OC_PREMIUM.surplus[voluntarySum]?.[riskGroup] || 0, removable: true, active: true,
+      tip: "Dobrowolne OC dla lekarzy nieprowadzących praktyki. Ochrona odpowiedzialności cywilnej w ramach zatrudnienia.",
+      onRemove: () => setVoluntarySum("") });
+    const tips = {
+      legal: "Pokrywa koszty adwokata, radcy prawnego i postępowań sądowych w sprawach związanych z wykonywaniem zawodu.",
+      aesthetic: "Rozszerzenie OC o zabiegi medycyny estetycznej i chirurgii plastycznej, które standardowo są wyłączone z polisy.",
+      nfz: "Ochrona na wypadek kar nakładanych przez NFZ za błędy w wystawianiu recept refundowanych.",
+      hiv: "Pakiet obejmujący profilaktykę poekspozycyjną: NNW, koszty badań, leków antyretrowirusowych oraz świadczenie w razie zakażenia HIV lub WZW.",
+    };
+    OC_EXTRAS.forEach(ex => {
+      const vi = extraVariants[ex.key] ?? ex.defaultVariant;
+      const v = ex.variants[vi];
+      items.push({
+        key: ex.key, label: ex.shortLabel, sum: ex.variants.length > 1 ? "limit " + v.sum : v.sum,
+        price: v.price, removable: true, active: extras[ex.key],
+        tip: tips[ex.key],
+        onToggle: () => toggleExtra(ex.key),
+        variants: ex.variants.length > 1 ? ex.variants : null,
+        currentVariant: vi,
+        onVariantChange: ex.variants.length > 1 ? (newVi) => setExtraVariant(ex.key, newVi) : null,
+      });
+    });
+    return items;
+  };
+
+  const offers = [
+    { id: "ergo", name: "Ergo Hestia", logo: "../ubezpieczenia/loga/ergohestia.png", price: ergoTotal, available: true, excludes: [] },
+    { id: "inter", name: "INTER Ubezpieczenia", logo: "../ubezpieczenia/loga/inter logo.webp", price: interTotal, available: true, excludes: ["aesthetic"] },
+    { id: "pzu", name: "PZU", logo: "../ubezpieczenia/loga/PZU_logo.png", price: null, available: false, excludes: [] },
+    { id: "lloyds", name: "Lloyd's", logo: "../ubezpieczenia/loga/lloyds.png", price: null, available: false, excludes: [] },
+  ];
+
+  // ── Loading / offers screen ──
+  if (phase === "loading") {
+    return (
+      <div className="oc-form">
+        <div className="oc-loading">
+          <p className="oc-loading__title">Porównujemy oferty ubezpieczycieli...</p>
+          <div className="oc-loading__logos">
+            {INS_PARTNERS.map((p, i) => (
+              <img key={p.name} src={p.logo} alt={p.name} className="oc-loading__logo" style={{ height: p.h, animationDelay: i * 0.3 + "s" }} />
+            ))}
+          </div>
+          <div className="oc-loading__bar"><div className="oc-loading__bar-fill" /></div>
+        </div>
+      </div>
+    );
+  }
+
+  if (phase === "offers") {
+    const scope = scopeItems();
+    const optionalOff = scope.filter(s => s.removable && !s.active);
+    return (
+      <div className="oc-form">
+        <div className="oc-offers">
+          <h3 className="oc-step__title">Oferty ubezpieczycieli</h3>
+          <div className="oc-offers__tabs">
+            <button className={`oc-offers__tab ${!compareMode ? "oc-offers__tab--active" : ""}`} onClick={() => setCompareMode(false)}>Lista ofert</button>
+            <button className={`oc-offers__tab ${compareMode ? "oc-offers__tab--active" : ""}`} onClick={() => setCompareMode(true)}>Porównaj oferty</button>
+          </div>
+
+          {compareMode ? (() => {
+            const avail = offers.filter(o => o.available);
+            const prices = avail.map(o => Math.round(total * (o.id === "inter" ? 1.08 : 1)));
+            const minPrice = Math.min(...prices);
+            return (
+              <div className="oc-compare">
+                <table className="oc-compare__table">
+                  <thead>
+                    <tr>
+                      <th></th>
+                      {avail.map((o, i) => (
+                        <th key={o.id}>
+                          <div className="oc-compare__insurer">
+                            <img src={o.logo} alt={o.name} className="oc-compare__logo" />
+                            <span className="oc-compare__name">{o.name}</span>
+                            {prices[i] === minPrice && <span className="oc-compare__best">Najlepsza cena</span>}
+                          </div>
+                        </th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr className="oc-compare__row--total">
+                      <td>Składka roczna</td>
+                      {avail.map((o, i) => (
+                        <td key={o.id}><strong>{prices[i].toLocaleString("pl-PL")} zł</strong><span className="text-muted">/rok</span></td>
+                      ))}
+                    </tr>
+                    {scope.map(s => (
+                      <tr key={s.key} className={`oc-compare__row ${s.active ? "" : "oc-compare__row--addable"}`}>
+                        <td>{s.label}</td>
+                        {avail.map(o => {
+                          const mult = o.id === "inter" ? 1.08 : 1;
+                          const excluded = o.excludes?.includes(s.key);
+                          return (
+                            <td key={o.id}>
+                              {excluded ? (
+                                <span className="oc-compare__unavail">
+                                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18M6 6l12 12"/></svg>
+                                  Niedostępne
+                                </span>
+                              ) : s.active ? (
+                                <span className={`oc-compare__yes ${s.removable ? "oc-compare__yes--clickable" : ""}`}
+                                  onClick={s.removable ? (s.onToggle || s.onRemove) : undefined}>
+                                  <span className="oc-compare__yes-default">
+                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#2E35FF" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+                                    {s.removable ? " " + Math.round(s.price * mult) + " zł" : " " + s.sum}
+                                  </span>
+                                  {s.removable && <span className="oc-compare__yes-hover">
+                                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18M6 6l12 12"/></svg>
+                                    Usuń
+                                  </span>}
+                                </span>
+                              ) : (
+                                <button className="oc-compare__add-btn" onClick={s.onToggle || undefined}>
+                                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M12 5v14M5 12h14"/></svg>
+                                  Dodaj · +{Math.round(s.price * mult)} zł
+                                </button>
+                              )}
+                            </td>
+                          );
+                        })}
+                      </tr>
+                    ))}
+                  </tbody>
+                  <tfoot>
+                    <tr>
+                      <td></td>
+                      {avail.map((o, i) => (
+                        <td key={o.id}>
+                          <button className="oc-compare__select-btn" onClick={() => setSubmitted(true)}>
+                            Wybierz — {prices[i].toLocaleString("pl-PL")} zł/rok
+                          </button>
+                          <span className="oc-compare__or-installment">lub 2 raty × {Math.ceil(prices[i] / 2).toLocaleString("pl-PL")} zł</span>
+                        </td>
+                      ))}
+                    </tr>
+                  </tfoot>
+                </table>
+              </div>
+            );
+          })() : (() => {
+            const bestId = offers.filter(o => o.available).reduce((best, o) => {
+              const p = Math.round(total * (o.id === "inter" ? 1.08 : 1));
+              return !best || p < best.p ? { id: o.id, p } : best;
+            }, null)?.id;
+            return <div className="oc-offers__list">
+            {offers.map((o, i) => {
+              const mult = o.id === "inter" ? 1.08 : 1;
+              const livePrice = o.available ? Math.round(total * mult) : null;
+              return (
+              <div key={o.id} className={`oc-offer ${!o.available ? "oc-offer--pending" : ""} ${expandedOffer === o.id ? "oc-offer--expanded" : ""}`} style={{ animationDelay: i * 0.12 + "s" }}>
+                <div className="oc-offer__header" onClick={() => o.available && setExpandedOffer(expandedOffer === o.id ? null : o.id)}>
+                  <div className="oc-offer__logo">
+                    <img src={o.logo} alt={o.name} />
+                  </div>
+                  <div className="oc-offer__body">
+                    <span className="oc-offer__name">{o.name} {o.id === bestId && <span className="oc-offer__best">Najlepsza cena</span>}</span>
+                    {o.available ? (
+                      <span className="oc-offer__price">{livePrice.toLocaleString("pl-PL")} zł<span className="text-muted">/rok</span></span>
+                    ) : (
+                      <span className="oc-offer__pending">Oferta po akceptacji konsultanta</span>
+                    )}
+                  </div>
+                  {o.available ? (
+                    <svg className="oc-offer__chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+                  ) : (
+                    <div className="oc-offer__lock">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                    </div>
+                  )}
+                </div>
+
+                {expandedOffer === o.id && (
+                  <div className="oc-offer__details">
+                    <div className="oc-offer__scope">
+                      <span className="oc-offer__scope-title">Zakres ubezpieczenia</span>
+                      {scope.filter(s => s.active).map(s => (
+                        <div key={s.key} className={`oc-offer__scope-row ${s.removable ? "oc-offer__scope-row--toggle" : "oc-offer__scope-row--locked"} ${s.variants ? "oc-offer__scope-row--has-variants" : ""}`}>
+                          <div className="oc-offer__scope-row-main"
+                            onClick={() => { setHoveredTip(null); (s.onToggle || s.onRemove || (() => {}))(); }}>
+                            {s.removable
+                              ? <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#2E35FF" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+                              : <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                            }
+                            <span className="oc-offer__scope-label"
+                              onMouseEnter={() => setHoveredTip(s.key)} onMouseLeave={() => setHoveredTip(null)}>{s.label}</span>
+                            {!s.variants && <span className="oc-offer__scope-sum">{s.sum}</span>}
+                            {s.removable && <span className="oc-offer__scope-price">{s.price} zł</span>}
+                          </div>
+                          {hoveredTip === s.key && s.tip && (
+                            <div className="oc-offer__tip">{s.tip}</div>
+                          )}
+                          {s.variants && (
+                            <div className="oc-offer__variant-picker">
+                              {s.variants.map((v, vi) => (
+                                <button key={vi} className={`oc-offer__variant-btn ${vi === s.currentVariant ? "oc-offer__variant-btn--active" : ""}`}
+                                  onClick={(e) => { e.stopPropagation(); s.onVariantChange(vi); }}>
+                                  {v.sum} · {v.price} zł
+                                </button>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+
+                    {optionalOff.length > 0 && (
+                      <div className="oc-offer__add-back">
+                        <span className="oc-offer__scope-title">Dodaj do zakresu</span>
+                        {optionalOff.map(s => (
+                          <div key={s.key} className="oc-offer__scope-row oc-offer__scope-row--off"
+                            onClick={() => { setHoveredTip(null); (s.onToggle || s.onRemove)(); }}>
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--color-muted)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 5v14M5 12h14"/></svg>
+                            <span className="oc-offer__scope-label"
+                              onMouseEnter={() => setHoveredTip(s.key)} onMouseLeave={() => setHoveredTip(null)}>{s.label}</span>
+                            <span className="oc-offer__scope-price">+{s.price} zł</span>
+                            {hoveredTip === s.key && s.tip && (
+                              <div className="oc-offer__tip">{s.tip}</div>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
+                    <div className="oc-offer__meta">
+                      <span>Grupa ryzyka: <strong>{riskLabel}</strong> · Specjalizacja: <strong>{spec1}</strong></span>
+                    </div>
+                    <button className="oc-offer__select-btn" onClick={() => setSubmitted(true)}>Wybierz tę ofertę — {livePrice.toLocaleString("pl-PL")} zł/rok</button>
+                  </div>
+                )}
+              </div>
+              );
+            })}
+          </div>; })()}
+
+          <div className="oc-nav" style={{ marginTop: 20 }}>
+            <button className="oc-nav__back" onClick={() => { setPhase("form"); setStep(3); setExpandedOffer(null); }}>← Zmień parametry</button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (submitted) {
+    return (
+      <div className="oc-form">
+        <div className="oc-done">
+          <div className="oc-done__icon">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#2E35FF" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+          </div>
+          <h3>Oferta wybrana</h3>
+          <p className="text-sm text-muted">Doradca przygotuje dokumenty i skontaktuje się w ciągu 24h w celu finalizacji polisy.</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div style={{ maxWidth: 680, display: "flex", flexDirection: "column", gap: 24 }}>
-      <div>
-        <h2 style={{ fontSize: 20, fontWeight: 700, marginBottom: 4 }}>Ubezpieczenia</h2>
-        <p className="text-sm text-muted">Wybierz → podaj parametry → dołącz polisę → odbierz ofertę od doradcy.</p>
+    <div className="oc-form">
+      {/* Progress */}
+      <div className="oc-steps">
+        {["Specjalizacja", "Zakres OC", "Rozszerzenia", "Podsumowanie"].map((label, i) => (
+          <div key={i} className={`oc-steps__item ${i < step ? "oc-steps__item--done" : ""} ${i === step ? "oc-steps__item--active" : ""}`}>
+            <div className="oc-steps__dot">{i < step ? "✓" : i + 1}</div>
+            <span className="oc-steps__label">{label}</span>
+          </div>
+        ))}
       </div>
-      <div className="card">
-        {INSURANCE_PRODUCTS.map(ins => {
-          const isOpen = expanded === ins.id;
+
+      {/* STEP 0: Specialization */}
+      {step === 0 && (
+        <div className="oc-step">
+          <h3 className="oc-step__title">Specjalizacja lekarska</h3>
+          <p className="oc-step__desc">Specjalizacja wpływa na grupę ryzyka i wysokość składki.</p>
+
+          <div className="oc-field">
+            <label className="oc-field__label">Główna specjalizacja</label>
+            {spec1Confirmed ? (
+              <div className="oc-spec-confirmed">
+                <div className="oc-spec-confirmed__info">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#2E35FF" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+                  <span className="oc-spec-confirmed__name">{spec1}</span>
+                  <span className="oc-spec-confirmed__group">Grupa {riskGroup === 3 ? "III" : riskGroup === 2 ? "II" : "I"}</span>
+                </div>
+                <button className="oc-spec-confirmed__change" onClick={() => setSpec1Confirmed(false)}>Zmień</button>
+              </div>
+            ) : (
+              <>
+                <div className="oc-spec-confirm">
+                  <span className="oc-spec-confirm__label">Z Twojego profilu:</span>
+                  <span className="oc-spec-confirm__value">{spec1}</span>
+                  <button className="oc-spec-confirm__btn" onClick={() => setSpec1Confirmed(true)}>Potwierdzam</button>
+                </div>
+                <details className="oc-spec-confirm__details">
+                  <summary>Inna specjalizacja?</summary>
+                  <select className="oc-select" value={spec1} onChange={e => { setSpec1(e.target.value); setSpec1Confirmed(true); }} style={{ marginTop: 8 }}>
+                    <option value="">— Wybierz specjalizację —</option>
+                    <optgroup label="Grupa III ryzyka (najwyższa)">{OC_SPEC_III.map(s => <option key={s} value={s}>{s}</option>)}</optgroup>
+                    <optgroup label="Grupa II ryzyka">{OC_SPEC_II.map(s => <option key={s} value={s}>{s}</option>)}</optgroup>
+                    <optgroup label="Grupa I ryzyka (podstawowa)">{OC_SPEC_I.map(s => <option key={s} value={s}>{s}</option>)}</optgroup>
+                  </select>
+                </details>
+              </>
+            )}
+          </div>
+
+          <div className="oc-field">
+            <label className="oc-field__label">Druga specjalizacja <span className="text-muted">(opcjonalnie)</span></label>
+            <p className="oc-field__hint">Składka liczona wg najwyższej grupy ryzyka spośród obu specjalizacji.</p>
+            <select className="oc-select" value={spec2} onChange={e => setSpec2(e.target.value)}>
+              <option value="">— Brak drugiej specjalizacji —</option>
+              <optgroup label="Grupa III">{OC_SPEC_III.map(s => <option key={s} value={s}>{s}</option>)}</optgroup>
+              <optgroup label="Grupa II">{OC_SPEC_II.map(s => <option key={s} value={s}>{s}</option>)}</optgroup>
+              <optgroup label="Grupa I">{OC_SPEC_I.map(s => <option key={s} value={s}>{s}</option>)}</optgroup>
+            </select>
+          </div>
+
+          <div className="oc-field">
+            <label className="oc-field__label">Pracujesz w pogotowiu ratunkowym lub pełnisz dyżury na SOR?</label>
+            <div className="oc-toggle">
+              <button className={`oc-toggle__btn ${sor === true ? "oc-toggle__btn--on" : ""}`} onClick={() => setSor(true)}>Tak</button>
+              <button className={`oc-toggle__btn ${sor === false ? "oc-toggle__btn--on" : ""}`} onClick={() => setSor(false)}>Nie</button>
+            </div>
+            {sor === true && <p className="oc-field__warn">Praca na SOR = automatycznie III grupa ryzyka (najwyższa składka).</p>}
+          </div>
+
+          {spec1 && sor !== null && (
+            <div className="oc-risk-badge">Twoja grupa ryzyka: <strong>{riskLabel}</strong></div>
+          )}
+        </div>
+      )}
+
+      {/* STEP 1: Practice & Sums */}
+      {step === 1 && (
+        <div className="oc-step">
+          <h3 className="oc-step__title">Zakres ubezpieczenia OC</h3>
+          <p className="oc-step__desc">Grupa ryzyka: <strong>{riskLabel}</strong></p>
+
+          <div className="oc-field">
+            <label className="oc-field__label">Prowadzisz indywidualną lub grupową praktykę lekarską?</label>
+            <div className="oc-toggle">
+              <button className={`oc-toggle__btn ${practice === true ? "oc-toggle__btn--on" : ""}`} onClick={() => { setPractice(true); }}>Tak</button>
+              <button className={`oc-toggle__btn ${practice === false ? "oc-toggle__btn--on" : ""}`} onClick={() => { setPractice(false); setSurplusSum(""); }}>Nie</button>
+            </div>
+            {practice === true && (
+              <p className="oc-field__info">OC obowiązkowe: <strong>{OC_PREMIUM.mandatory[riskGroup]} zł/rok</strong></p>
+            )}
+          </div>
+
+          {practice === true && (
+            <div className="oc-field">
+              <label className="oc-field__label">Podwyższenie sumy OC obowiązkowego</label>
+              <p className="oc-field__hint">Nadwyżka uruchamia się po wyczerpaniu sumy z ubezpieczenia obowiązkowego.</p>
+              <div className="oc-sum-picker">
+                <button className={`oc-sum-picker__btn ${surplusSum === "" ? "oc-sum-picker__btn--on" : ""}`} onClick={() => setSurplusSum("")}>Nie podwyższam</button>
+                {OC_SUMS.map(s => (
+                  <button key={s} className={`oc-sum-picker__btn ${surplusSum === s ? "oc-sum-picker__btn--on" : ""}`} onClick={() => setSurplusSum(s)}>
+                    {s} <span className="text-muted">({OC_PREMIUM.surplus[s][riskGroup]} zł/rok)</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {needsVoluntary && practice !== null && (
+            <div className="oc-field">
+              <label className="oc-field__label">Suma OC dobrowolnego</label>
+              <p className="oc-field__hint">{practice === false ? "Rekomendujemy OC dobrowolne — pełna ochrona przy pracy na umowie." : "Wybierz sumę OC dobrowolnego."}</p>
+              <div className="oc-sum-picker">
+                <button className={`oc-sum-picker__btn ${voluntarySum === "" ? "oc-sum-picker__btn--on" : ""}`} onClick={() => setVoluntarySum("")}>Nie wybieram</button>
+                {OC_SUMS.map(s => (
+                  <button key={s} className={`oc-sum-picker__btn ${voluntarySum === s ? "oc-sum-picker__btn--on" : ""}`} onClick={() => setVoluntarySum(s)}>
+                    {s} <span className="text-muted">({OC_PREMIUM.surplus[s][riskGroup]} zł/rok)</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* STEP 2: Extensions + Claims */}
+      {step === 2 && (
+        <div className="oc-step">
+          <h3 className="oc-step__title">Rozszerzenia ochrony</h3>
+          <p className="oc-step__desc">Dopasuj zakres do swoich potrzeb.</p>
+
+          {(() => {
+            const allOn = OC_EXTRAS.every(ex => extras[ex.key]);
+            const totalExtras = OC_EXTRAS.reduce((sum, ex) => sum + ex.variants[extraVariants[ex.key]].price, 0);
+            return (
+              <div className="oc-extras">
+                <div className={`oc-extra oc-extra--full ${allOn ? "oc-extra--on" : ""}`}
+                  onClick={() => { const newVal = !allOn; setExtras(OC_EXTRAS.reduce((acc, ex) => ({ ...acc, [ex.key]: newVal }), {})); }}>
+                  <label className="oc-extra__top">
+                    <div className="oc-extra__check">
+                      {allOn && <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M20 6 9 17l-5-5"/></svg>}
+                    </div>
+                    <div className="oc-extra__body">
+                      <span className="oc-extra__name">Dodaj pełną ochronę <span className="oc-extra__rec">Zalecane</span></span>
+                      <span className="oc-extra__hint">Wszystkie rozszerzenia w jednym pakiecie</span>
+                    </div>
+                    <span className="oc-extra__price">+{totalExtras} zł</span>
+                  </label>
+                </div>
+                {OC_EXTRAS.map(ex => {
+                  const vi = extraVariants[ex.key];
+                  const v = ex.variants[vi];
+                  const hasVars = ex.variants.length > 1;
+                  return (
+                    <div key={ex.key} className={`oc-extra ${extras[ex.key] ? (allOn ? "oc-extra--on-subtle" : "oc-extra--on") : ""}`}>
+                      <label className="oc-extra__top" onClick={() => toggleExtra(ex.key)}>
+                        <div className="oc-extra__check">
+                          {extras[ex.key] && <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M20 6 9 17l-5-5"/></svg>}
+                        </div>
+                        <div className="oc-extra__body">
+                          <span className="oc-extra__name">{ex.label}</span>
+                          <span className="oc-extra__hint">{hasVars ? `Limit ${v.sum}` : v.sum}</span>
+                        </div>
+                        <span className="oc-extra__price">+{v.price} zł</span>
+                      </label>
+                      {extras[ex.key] && hasVars && (
+                        <div className="oc-extra__variants">
+                          <span className="oc-extra__variants-label">Wybierz limit:</span>
+                          <div className="oc-extra__variants-btns">
+                            {ex.variants.map((opt, oi) => (
+                              <button key={oi} className={`oc-extra__var-btn ${oi === vi ? "oc-extra__var-btn--on" : ""}`}
+                                onClick={() => setExtraVariant(ex.key, oi)}>
+                                {opt.sum}<span className="text-muted"> · {opt.price} zł</span>
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            );
+          })()}
+
+          <div className="oc-field" style={{ marginTop: 20 }}>
+            <label className="oc-field__label">W ostatnich 3 latach miałeś szkodę lub zgłoszono wobec Ciebie roszczenie?</label>
+            <div className="oc-toggle">
+              <button className={`oc-toggle__btn ${hadClaim === true ? "oc-toggle__btn--warn" : ""}`} onClick={() => setHadClaim(true)}>Tak</button>
+              <button className={`oc-toggle__btn ${hadClaim === false ? "oc-toggle__btn--on" : ""}`} onClick={() => setHadClaim(false)}>Nie</button>
+            </div>
+            {hadClaim === true && (
+              <div className="oc-field__error-box">
+                Ze względu na zgłoszone roszczenia nie możemy przedstawić oferty w standardowym trybie. Konsultant skontaktuje się indywidualnie w celu oceny ryzyka.
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* STEP 3: Summary — inline editing */}
+      {step === 3 && (
+        <div className="oc-step">
+          <h3 className="oc-step__title">Sprawdź parametry</h3>
+          <p className="oc-step__desc">Kliknij dowolną wartość, aby zmienić ją na miejscu.</p>
+
+          <div className="oc-summary">
+            {/* Specjalizacja */}
+            {editField === "spec1" ? (
+              <div className="oc-summary__edit-row">
+                <span className="oc-summary__edit-label">Specjalizacja</span>
+                <select className="oc-select" value={spec1} autoFocus onChange={e => { setSpec1(e.target.value); setEditField(null); }}>
+                  <optgroup label="Grupa III (najwyższa)">{OC_SPEC_III.map(s => <option key={s}>{s}</option>)}</optgroup>
+                  <optgroup label="Grupa II">{OC_SPEC_II.map(s => <option key={s}>{s}</option>)}</optgroup>
+                  <optgroup label="Grupa I (podstawowa)">{OC_SPEC_I.map(s => <option key={s}>{s}</option>)}</optgroup>
+                </select>
+              </div>
+            ) : (
+              <div className="oc-summary__row oc-summary__row--edit" onClick={() => setEditField("spec1")}>
+                <span>Specjalizacja</span><strong>{spec1}<span className="oc-summary__pen">&#9998;</span></strong>
+              </div>
+            )}
+
+            {/* Druga specjalizacja */}
+            {editField === "spec2" ? (
+              <div className="oc-summary__edit-row">
+                <span className="oc-summary__edit-label">Druga specjalizacja</span>
+                <select className="oc-select" value={spec2} autoFocus onChange={e => { setSpec2(e.target.value); setEditField(null); }}>
+                  <option value="">— Brak —</option>
+                  <optgroup label="Grupa III">{OC_SPEC_III.map(s => <option key={s}>{s}</option>)}</optgroup>
+                  <optgroup label="Grupa II">{OC_SPEC_II.map(s => <option key={s}>{s}</option>)}</optgroup>
+                  <optgroup label="Grupa I">{OC_SPEC_I.map(s => <option key={s}>{s}</option>)}</optgroup>
+                </select>
+              </div>
+            ) : (
+              <div className="oc-summary__row oc-summary__row--edit" onClick={() => setEditField("spec2")}>
+                <span>Druga specjalizacja</span><strong>{spec2 || "Brak"}<span className="oc-summary__pen">&#9998;</span></strong>
+              </div>
+            )}
+
+            {/* SOR */}
+            {editField === "sor" ? (
+              <div className="oc-summary__edit-row">
+                <span className="oc-summary__edit-label">Praca na SOR</span>
+                <div className="oc-toggle">
+                  <button className={`oc-toggle__btn ${sor ? "oc-toggle__btn--on" : ""}`} onClick={() => { setSor(true); setEditField(null); }}>Tak</button>
+                  <button className={`oc-toggle__btn ${sor === false ? "oc-toggle__btn--on" : ""}`} onClick={() => { setSor(false); setEditField(null); }}>Nie</button>
+                </div>
+              </div>
+            ) : (
+              <div className="oc-summary__row oc-summary__row--edit" onClick={() => setEditField("sor")}>
+                <span>Praca na SOR</span><strong>{sor ? "Tak" : "Nie"}<span className="oc-summary__pen">&#9998;</span></strong>
+              </div>
+            )}
+
+            {/* Grupa ryzyka — auto */}
+            <div className="oc-summary__row">
+              <span>Grupa ryzyka</span><strong>{riskLabel}</strong>
+            </div>
+
+            {/* Praktyka */}
+            {editField === "practice" ? (
+              <div className="oc-summary__edit-row">
+                <span className="oc-summary__edit-label">Praktyka lekarska</span>
+                <div className="oc-toggle">
+                  <button className={`oc-toggle__btn ${practice ? "oc-toggle__btn--on" : ""}`} onClick={() => { setPractice(true); setEditField(null); }}>Tak</button>
+                  <button className={`oc-toggle__btn ${practice === false ? "oc-toggle__btn--on" : ""}`} onClick={() => { setPractice(false); setSurplusSum(""); setEditField(null); }}>Nie</button>
+                </div>
+              </div>
+            ) : (
+              <div className="oc-summary__row oc-summary__row--edit" onClick={() => setEditField("practice")}>
+                <span>Praktyka lekarska</span><strong>{practice ? "Tak" : "Nie"}<span className="oc-summary__pen">&#9998;</span></strong>
+              </div>
+            )}
+
+            {/* Nadwyżka OC */}
+            {practice && (editField === "surplus" ? (
+              <div className="oc-summary__edit-row">
+                <span className="oc-summary__edit-label">Nadwyżka OC obowiązkowego</span>
+                <div className="oc-sum-picker">
+                  <button className={`oc-sum-picker__btn ${surplusSum === "" ? "oc-sum-picker__btn--on" : ""}`} onClick={() => { setSurplusSum(""); setEditField(null); }}>Nie podwyższam</button>
+                  {OC_SUMS.map(s => (
+                    <button key={s} className={`oc-sum-picker__btn ${surplusSum === s ? "oc-sum-picker__btn--on" : ""}`} onClick={() => { setSurplusSum(s); setEditField(null); }}>
+                      {s} <span className="text-muted">({OC_PREMIUM.surplus[s][riskGroup]} zł)</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            ) : (
+              <div className="oc-summary__row oc-summary__row--edit" onClick={() => setEditField("surplus")}>
+                <span>Nadwyżka OC</span><strong>{surplusSum || "Brak"}<span className="oc-summary__pen">&#9998;</span></strong>
+              </div>
+            ))}
+
+            {/* OC dobrowolne */}
+            {needsVoluntary && (editField === "voluntary" ? (
+              <div className="oc-summary__edit-row">
+                <span className="oc-summary__edit-label">Suma OC dobrowolnego</span>
+                <div className="oc-sum-picker">
+                  <button className={`oc-sum-picker__btn ${voluntarySum === "" ? "oc-sum-picker__btn--on" : ""}`} onClick={() => { setVoluntarySum(""); setEditField(null); }}>Nie wybieram</button>
+                  {OC_SUMS.map(s => (
+                    <button key={s} className={`oc-sum-picker__btn ${voluntarySum === s ? "oc-sum-picker__btn--on" : ""}`} onClick={() => { setVoluntarySum(s); setEditField(null); }}>
+                      {s} <span className="text-muted">({OC_PREMIUM.surplus[s][riskGroup]} zł)</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            ) : (
+              <div className="oc-summary__row oc-summary__row--edit" onClick={() => setEditField("voluntary")}>
+                <span>OC dobrowolne</span><strong>{voluntarySum || "Brak"}<span className="oc-summary__pen">&#9998;</span></strong>
+              </div>
+            ))}
+
+            {/* Rozszerzenia — toggle + warianty */}
+            {OC_EXTRAS.map(ex => {
+              const vi = extraVariants[ex.key];
+              const v = ex.variants[vi];
+              const hasVars = ex.variants.length > 1;
+              const isEditing = editField === "ext_" + ex.key;
+              return (
+                <React.Fragment key={ex.key}>
+                  {isEditing ? (
+                    <div className="oc-summary__edit-row">
+                      <span className="oc-summary__edit-label">{ex.shortLabel}</span>
+                      <div style={{ display: "flex", flexDirection: "column", gap: 6, width: "100%" }}>
+                        <div className="oc-toggle">
+                          <button className={`oc-toggle__btn ${extras[ex.key] ? "oc-toggle__btn--on" : ""}`} onClick={() => { if (!extras[ex.key]) toggleExtra(ex.key); }}>Tak</button>
+                          <button className={`oc-toggle__btn ${!extras[ex.key] ? "oc-toggle__btn--on" : ""}`} onClick={() => { if (extras[ex.key]) toggleExtra(ex.key); setEditField(null); }}>Nie</button>
+                        </div>
+                        {extras[ex.key] && hasVars && (
+                          <div className="oc-sum-picker">
+                            {ex.variants.map((opt, oi) => (
+                              <button key={oi} className={`oc-sum-picker__btn ${oi === vi ? "oc-sum-picker__btn--on" : ""}`}
+                                onClick={() => { setExtraVariant(ex.key, oi); setEditField(null); }}>
+                                {opt.sum} <span className="text-muted">({opt.price} zł)</span>
+                              </button>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="oc-summary__row oc-summary__row--edit" onClick={() => hasVars && extras[ex.key] ? setEditField("ext_" + ex.key) : toggleExtra(ex.key)}>
+                      <span>{ex.shortLabel} {extras[ex.key] && <span className="text-muted">(+{v.price} zł{hasVars ? `, limit ${v.sum}` : ""})</span>}</span>
+                      <strong className={extras[ex.key] ? "text-green" : ""}>{extras[ex.key] ? "✓ Tak" : "Nie"}{extras[ex.key] && hasVars && <span className="oc-summary__pen">&#9998;</span>}</strong>
+                    </div>
+                  )}
+                </React.Fragment>
+              );
+            })}
+
+            {/* Szkody */}
+            {editField === "claim" ? (
+              <div className="oc-summary__edit-row">
+                <span className="oc-summary__edit-label">Szkody w ostatnich 3 latach</span>
+                <div className="oc-toggle">
+                  <button className={`oc-toggle__btn ${hadClaim === true ? "oc-toggle__btn--warn" : ""}`} onClick={() => { setHadClaim(true); setEditField(null); }}>Tak</button>
+                  <button className={`oc-toggle__btn ${hadClaim === false ? "oc-toggle__btn--on" : ""}`} onClick={() => { setHadClaim(false); setEditField(null); }}>Nie</button>
+                </div>
+              </div>
+            ) : (
+              <div className="oc-summary__row oc-summary__row--edit" onClick={() => setEditField("claim")}>
+                <span>Szkody w ostatnich 3 latach</span><strong>{hadClaim ? "Tak" : "Nie"}<span className="oc-summary__pen">&#9998;</span></strong>
+              </div>
+            )}
+          </div>
+
+          {hadClaim === true && (
+            <div className="oc-field__error-box" style={{ marginTop: 12 }}>
+              Ze względu na zgłoszone roszczenia standardowa kalkulacja nie jest dostępna. Konsultant oceni ryzyko indywidualnie.
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Navigation */}
+      <div className="oc-nav">
+        {step > 0 && <button className="oc-nav__back" onClick={() => setStep(s => s - 1)}>← Wstecz</button>}
+        {step < 3 ? (
+          <button className="oc-nav__next" disabled={!canNext()} onClick={() => setStep(s => s + 1)}>Dalej →</button>
+        ) : (
+          <button className="oc-nav__next" onClick={startCalc}>
+            {hadClaim ? "Wyślij zapytanie" : "Porównaj oferty ubezpieczycieli"}
+          </button>
+        )}
+      </div>
+    </div>
+  );
+}
+
+/* ── INCOME LOSS FORM ─────────────────────────────────── */
+const INCOME_SOURCES = [
+  "Jednoosobowa działalność gospodarcza",
+  "Udziałowiec w spółce",
+  "Umowa zlecenie / o dzieło",
+  "Umowa o pracę",
+];
+const TAX_FORMS = [
+  "Skala podatkowa",
+  "Podatek liniowy",
+  "Ryczałt",
+  "Karta podatkowa",
+];
+const INCOME_BENEFIT_OPTIONS = [
+  { value: 3000,  label: "3 000 zł" },
+  { value: 5000,  label: "5 000 zł" },
+  { value: 8000,  label: "8 000 zł" },
+  { value: 10000, label: "10 000 zł" },
+  { value: 15000, label: "15 000 zł" },
+  { value: 20000, label: "20 000 zł" },
+];
+
+function IncomeForm() {
+  const [step, setStep] = useState(0);
+  const [birthDate, setBirthDate] = useState("");
+  const [benefit, setBenefit] = useState("");
+  const [incomeSource, setIncomeSource] = useState("");
+  const [taxForm, setTaxForm] = useState("");
+  const [hasEmployees, setHasEmployees] = useState(null);
+  const [notes, setNotes] = useState("");
+  const [phase, setPhase] = useState("form"); // form | loading | done
+
+  const canNext = () => {
+    if (step === 0) return birthDate && incomeSource && taxForm;
+    if (step === 1) return benefit && hasEmployees !== null;
+    return true;
+  };
+
+  const submit = () => {
+    setPhase("loading");
+    setTimeout(() => setPhase("done"), 2200);
+  };
+
+  if (phase === "done") {
+    return (
+      <div className="oc-form">
+        <div className="oc-done">
+          <div className="oc-done__icon">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#2E35FF" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+          </div>
+          <h3>Zapytanie wysłane</h3>
+          <p className="text-sm text-muted">Doradca przygotuje indywidualną ofertę i skontaktuje się w ciągu 24h.</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (phase === "loading") {
+    return (
+      <div className="oc-form">
+        <div className="oc-loading">
+          <div className="oc-loading__spinner" />
+          <p className="oc-loading__text">Przesyłamy dane do doradcy…</p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="oc-form">
+      {/* Stepper */}
+      <div className="oc-steps">
+        {["Dane podstawowe", "Ochrona", "Podsumowanie"].map((label, i) => (
+          <div key={i} className={`oc-steps__item ${i < step ? "oc-steps__item--done" : ""} ${i === step ? "oc-steps__item--active" : ""}`}>
+            <div className="oc-steps__dot">{i < step ? "✓" : i + 1}</div>
+            <span className="oc-steps__label">{label}</span>
+          </div>
+        ))}
+      </div>
+
+      {/* STEP 0: Dane podstawowe */}
+      {step === 0 && (
+        <div className="oc-step">
+          <h3 className="oc-step__title">Dane podstawowe</h3>
+          <p className="oc-step__desc">Informacje potrzebne do wyceny ubezpieczenia od utraty dochodu.</p>
+
+          <div className="oc-field">
+            <label className="oc-field__label">Data urodzenia</label>
+            <input type="date" className="oc-select" value={birthDate} onChange={e => setBirthDate(e.target.value)} />
+          </div>
+
+          <div className="oc-field">
+            <label className="oc-field__label">Źródło przychodów <span className="text-muted">(min. 80% dochodu)</span></label>
+            <p className="oc-field__hint">Wskaż główną formę, z której pochodzi co najmniej 80% Twoich przychodów z zawodu lekarza.</p>
+            <select className="oc-select" value={incomeSource} onChange={e => setIncomeSource(e.target.value)}>
+              <option value="">— Wybierz —</option>
+              {INCOME_SOURCES.map(s => <option key={s} value={s}>{s}</option>)}
+            </select>
+          </div>
+
+          <div className="oc-field">
+            <label className="oc-field__label">Forma opodatkowania przychodów</label>
+            <select className="oc-select" value={taxForm} onChange={e => setTaxForm(e.target.value)}>
+              <option value="">— Wybierz —</option>
+              {TAX_FORMS.map(s => <option key={s} value={s}>{s}</option>)}
+            </select>
+          </div>
+        </div>
+      )}
+
+      {/* STEP 1: Ochrona */}
+      {step === 1 && (
+        <div className="oc-step">
+          <h3 className="oc-step__title">Zakres ochrony</h3>
+          <p className="oc-step__desc">Wybierz wysokość miesięcznego świadczenia i uzupełnij informacje o zatrudnieniu.</p>
+
+          <div className="oc-field">
+            <label className="oc-field__label">Wysokość świadczenia miesięcznego</label>
+            <p className="oc-field__hint">Nie więcej niż 80% średniomiesięcznych przychodów z zawodu lekarza osiągniętych w ostatnich 12 miesiącach.</p>
+            <div className="oc-sum-picker" style={{ flexWrap: "wrap" }}>
+              {INCOME_BENEFIT_OPTIONS.map(opt => (
+                <button key={opt.value}
+                  className={`oc-sum-picker__btn ${benefit === opt.value ? "oc-sum-picker__btn--on" : ""}`}
+                  onClick={() => setBenefit(opt.value)}>
+                  {opt.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="oc-field">
+            <label className="oc-field__label">Zatrudniasz współpracowników? <span className="text-muted">(bez względu na formę)</span></label>
+            <div className="oc-toggle">
+              <button className={`oc-toggle__btn ${hasEmployees === true ? "oc-toggle__btn--on" : ""}`} onClick={() => setHasEmployees(true)}>Tak</button>
+              <button className={`oc-toggle__btn ${hasEmployees === false ? "oc-toggle__btn--on" : ""}`} onClick={() => setHasEmployees(false)}>Nie</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* STEP 2: Podsumowanie */}
+      {step === 2 && (
+        <div className="oc-step">
+          <h3 className="oc-step__title">Podsumowanie</h3>
+          <p className="oc-step__desc">Sprawdź dane przed wysłaniem zapytania.</p>
+
+          <div className="oc-summary">
+            <div className="oc-summary__row">
+              <span className="oc-summary__label">Data urodzenia</span>
+              <span className="oc-summary__value">{new Date(birthDate).toLocaleDateString("pl-PL")}</span>
+            </div>
+            <div className="oc-summary__row">
+              <span className="oc-summary__label">Źródło przychodów</span>
+              <span className="oc-summary__value">{incomeSource}</span>
+            </div>
+            <div className="oc-summary__row">
+              <span className="oc-summary__label">Opodatkowanie</span>
+              <span className="oc-summary__value">{taxForm}</span>
+            </div>
+            <div className="oc-summary__row">
+              <span className="oc-summary__label">Świadczenie miesięczne</span>
+              <span className="oc-summary__value oc-summary__value--accent">{INCOME_BENEFIT_OPTIONS.find(o => o.value === benefit)?.label}/mies.</span>
+            </div>
+            <div className="oc-summary__row">
+              <span className="oc-summary__label">Współpracownicy</span>
+              <span className="oc-summary__value">{hasEmployees ? "Tak" : "Nie"}</span>
+            </div>
+          </div>
+
+          <div className="oc-field" style={{ marginTop: 16 }}>
+            <label className="oc-field__label">Uwagi / pytania dodatkowe <span className="text-muted">(opcjonalnie)</span></label>
+            <textarea className="oc-select" rows={3} placeholder="Np. pytania o karencję, zakres, wyłączenia…"
+              value={notes} onChange={e => setNotes(e.target.value)}
+              style={{ resize: "vertical", minHeight: 60 }} />
+          </div>
+        </div>
+      )}
+
+      {/* Navigation */}
+      <div className="oc-nav">
+        {step > 0 && <button className="oc-nav__back" onClick={() => setStep(s => s - 1)}>← Wstecz</button>}
+        {step < 2 ? (
+          <button className="oc-nav__next" disabled={!canNext()} onClick={() => setStep(s => s + 1)}>Dalej →</button>
+        ) : (
+          <button className="oc-nav__next" onClick={submit}>Wyślij zapytanie o ofertę</button>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function InsuranceDetail({ cat, onBack }) {
+  const [uploaded, setUploaded] = useState(false);
+  const [requested, setRequested] = useState(false);
+
+  return (
+    <div className="ins-detail">
+      <button className="ins-back" onClick={onBack}>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+        Wróć do kategorii
+      </button>
+
+      <div className="ins-detail__header">
+        <div className="ins-detail__icon"><InsIcon id={cat.icon} size={32} /></div>
+        <div>
+          <h2 style={{ fontSize: 20, fontWeight: 700, marginBottom: 2 }}>{cat.name}</h2>
+          <p className="text-sm text-muted">{cat.desc}</p>
+        </div>
+      </div>
+
+      {/* OC — formularz */}
+      {cat.id === "oc" && <OcForm />}
+
+      {/* Utrata dochodu — formularz */}
+      {cat.id === "income" && <IncomeForm />}
+
+      {/* Podróże — INTER */}
+      {cat.id === "travel" && (
+        <div className="ins-section">
+          <div className="ins-partner">
+            <Pill variant="accent">Partner: INTER</Pill>
+            <p className="text-sm" style={{ marginTop: 8, lineHeight: 1.6 }}>
+              Roczna polisa podróżna od INTER Ubezpieczenia — obejmuje podróże prywatne i wyjazdy na konferencje medyczne. Koszty leczenia, NNW, bagaż, OC w życiu prywatnym.
+            </p>
+          </div>
+          <div className="ins-estimate">
+            <span className="ins-estimate__label">Składka roczna</span>
+            <span className="ins-estimate__value">od 19 zł/mies.</span>
+          </div>
+          <p className="text-sm text-muted" style={{ marginTop: 8 }}>
+            Możliwość połączenia w pakiecie z OC lekarskim — zapytaj doradcę o cenę łączną.
+          </p>
+        </div>
+      )}
+
+      {/* Na życie — szacunek */}
+      {cat.id === "life" && (
+        <div className="ins-section">
+          <div className="ins-estimate">
+            <span className="ins-estimate__label">Szacunkowa składka</span>
+            <span className="ins-estimate__value">60–400 zł/mies.</span>
+          </div>
+          <p className="text-sm text-muted" style={{ marginTop: 12, lineHeight: 1.6 }}>
+            Ochrona finansowa rodziny na wypadek śmierci, niezdolności do pracy lub poważnej choroby. Stawka zależy od wieku, sumy ubezpieczenia i zakresu ochrony. Doradca dopasuje wariant do Twojej sytuacji.
+          </p>
+        </div>
+      )}
+
+      {/* Inne */}
+      {cat.id === "other" && (
+        <div className="ins-section">
+          <p className="text-sm" style={{ lineHeight: 1.6, marginBottom: 12 }}>Pomagamy też z innymi ubezpieczeniami:</p>
+          <ul className="ins-other-list">
+            <li>NNW (następstwa nieszczęśliwych wypadków)</li>
+            <li>Ubezpieczenie mieszkania / domu</li>
+            <li>Ubezpieczenie samochodu (AC/OC)</li>
+            <li>OC w życiu prywatnym</li>
+            <li>Ubezpieczenie sprzętu medycznego</li>
+          </ul>
+        </div>
+      )}
+
+      {/* CTA + upload (not for OC/income — have own forms) */}
+      {cat.id !== "oc" && cat.id !== "income" && <div className="ins-cta">
+        {!requested ? (
+          <Btn variant="primary" style={{ width: "100%" }} onClick={() => setRequested(true)}>
+            {cat.id === "other" ? "Skontaktuj się z doradcą" : "Poproś o ofertę"}
+          </Btn>
+        ) : (
+          <div className="ins-cta__done">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+            <span>Zgłoszenie wysłane — doradca odezwie się wkrótce</span>
+          </div>
+        )}
+        {cat.id !== "other" && (
+          <div className="ins-upload">
+            <span className="text-sm text-muted">Masz obecną polisę? Dołącz ją, a porównamy warunki.</span>
+            {uploaded
+              ? <span className="text-sm font-semibold text-green">Przesłano</span>
+              : <button className="ins-upload__btn" onClick={() => setUploaded(true)}>Załącz plik</button>
+            }
+          </div>
+        )}
+      </div>}
+    </div>
+  );
+}
+
+function InsuranceView() {
+  const [selected, setSelected] = useState(null);
+  // status: null = brak, "km" = kupione w KM, "external" = dodane z zewnątrz
+  const [statuses, setStatuses] = useState({ life: "km" });
+  const [uploadedFiles, setUploadedFiles] = useState({});
+  // daty wygaśnięcia polis kuponych w KM
+  const expiryDates = { life: "2026-09-14" };
+
+  if (selected) {
+    return <InsuranceDetail cat={selected} onBack={() => setSelected(null)} />;
+  }
+
+  const coveredCount = INSURANCE_CATEGORIES.filter(c => statuses[c.id]).length;
+  const totalCount = INSURANCE_CATEGORIES.length;
+
+  const handleFileUpload = (catId) => {
+    const input = document.createElement("input");
+    input.type = "file";
+    input.accept = ".pdf,.png,.jpg,.jpeg";
+    input.onchange = (e) => {
+      const file = e.target.files[0];
+      if (file) {
+        setUploadedFiles(prev => ({ ...prev, [catId]: file.name }));
+        setStatuses(prev => ({ ...prev, [catId]: "external" }));
+      }
+    };
+    input.click();
+  };
+
+  return (
+    <div style={{ maxWidth: 680 }}>
+      <div style={{ marginBottom: 20 }}>
+        <h2 style={{ fontSize: 20, fontWeight: 700 }}>Twoje ubezpieczenia</h2>
+      </div>
+
+      {/* Cards */}
+      <div className="ins-grid">
+        {INSURANCE_CATEGORIES.map(cat => {
+          const status = statuses[cat.id];
+          const isExternal = status === "external";
+          const fileName = uploadedFiles[cat.id];
+          const expiry = expiryDates[cat.id];
+          const daysLeft = expiry ? Math.max(0, Math.ceil((new Date(expiry) - new Date()) / 86400000)) : null;
+
           return (
-            <div key={ins.id} className="accordion-item">
-              <button onClick={() => toggle(ins.id)}
-                className={`accordion-trigger${isOpen ? " accordion-trigger--open" : ""}`}>
-                <div className="flex-1">
-                  <div className="flex items-center gap-2" style={{ flexWrap: "wrap" }}>
-                    <span style={{ fontSize: 14, fontWeight: 600 }}>{ins.name}</span>
-                    {ins.priority === 1 && <Pill variant="red">Priorytet #1</Pill>}
-                    {ins.priority === 2 && <Pill variant="warn">Priorytet #2</Pill>}
-                    {ins.owned && <Pill variant="green">Masz</Pill>}
-                  </div>
-                  <div className="text-sm text-muted" style={{ marginTop: 3 }}>
-                    {ins.provider || "Dostawca do ustalenia"}
-                    {ins.owned && ` · Odnowienie: ${ins.renewal}`}
-                  </div>
+            <div key={cat.id} className={`ins-card ins-card--status ${status ? "ins-card--covered" : cat.noMissing ? "" : "ins-card--missing"}`}>
+              <div className="ins-card__icon">
+                <InsIcon id={cat.icon} />
+                {status && (
+                  <span className="ins-card__check">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M20 6L9 17l-5-5"/></svg>
+                  </span>
+                )}
+              </div>
+              <div className="ins-card__body">
+                <div className="ins-card__top">
+                  <span className="ins-card__name">{cat.name}</span>
+                  {cat.tag && <Pill variant={cat.tagVariant}>{cat.tag}</Pill>}
+                  {status === "km" && <span className="ins-card__status-badge ins-card__status-badge--active">Aktywne</span>}
+                  {isExternal && <span className="ins-card__status-badge ins-card__status-badge--ext">Polisa zewnętrzna</span>}
                 </div>
-                <div style={{ textAlign: "right" }}>
-                  {ins.showPrices
-                    ? <span style={{ fontSize: 14, fontWeight: 700 }}>od {ins.priceFrom} zł<span className="text-xs text-muted" style={{ fontWeight: 400 }}>/mies.</span></span>
-                    : <span className="text-sm text-muted" style={{ fontStyle: "italic" }}>{ins.priceEst || "wycena"}</span>
-                  }
-                </div>
-                <span className={`accordion-chevron${isOpen ? " accordion-chevron--open" : ""}`}>⌄</span>
-              </button>
-              {isOpen && (
-                <div className="accordion-panel">
-                  <p className="text-muted" style={{ fontSize: 13, lineHeight: 1.75, margin: "16px 0" }}>{ins.desc}</p>
-                  <div className="flex items-center" style={{
-                    justifyContent: "space-between", padding: "12px 16px",
-                    borderRadius: "var(--radius-lg)", border: "1px solid var(--color-border)",
-                    background: "var(--color-bg)", marginBottom: 14,
-                  }}>
-                    <span className="text-sm text-muted">Dołącz obecną polisę (PDF lub zdjęcie)</span>
-                    {uploaded[ins.id]
-                      ? <span className="text-sm font-semibold text-green">✓ Przesłano</span>
-                      : <button className="section-header__action" style={{ fontSize: 12, fontWeight: 600 }}
-                          onClick={() => setUploaded(u => ({ ...u, [ins.id]: true }))}>Załącz →</button>
-                    }
-                  </div>
-                  <div className="flex" style={{ gap: 8 }}>
-                    <Btn variant="primary" style={{ flex: 1 }}>{ins.owned ? "Zmień polisę" : "Poproś o ofertę"}</Btn>
-                    <Btn variant="outline">Porównaj</Btn>
-                  </div>
-                </div>
-              )}
+                {!status && cat.priceLabel && <span className="ins-card__price">{cat.priceLabel}</span>}
+                {!status && !cat.priceLabel && <span className="ins-card__price ins-card__price--muted">Wycena indywidualna</span>}
+                {status === "km" && daysLeft !== null && (
+                  <span className="ins-card__expiry">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+                    Wygasa za {daysLeft} dni ({new Date(expiry).toLocaleDateString("pl-PL")})
+                  </span>
+                )}
+                {isExternal && fileName && (
+                  <span className="ins-card__file">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg>
+                    {fileName}
+                  </span>
+                )}
+              </div>
+              <div className="ins-card__actions">
+                {!status && (
+                  <>
+                    <button className="ins-card__btn ins-card__btn--primary" onClick={() => setSelected(cat)}>
+                      Znajdź ofertę
+                    </button>
+                    <button className="ins-card__btn ins-card__btn--ghost" onClick={() => handleFileUpload(cat.id)}
+                      title="Mam polisę z innego źródła">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
+                      Mam polisę
+                    </button>
+                  </>
+                )}
+                {status && (
+                  <>
+                    <button className="ins-card__btn ins-card__btn--outline" onClick={() => setSelected(cat)}>
+                      {isExternal ? "Szczegóły" : "Zarządzaj"}
+                    </button>
+                    <button className="ins-card__btn ins-card__btn--ghost" title="Zamów kontakt z agentem">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+                      Kontakt
+                    </button>
+                  </>
+                )}
+              </div>
             </div>
           );
         })}
+      </div>
+
+      {/* Hint */}
+      {coveredCount < totalCount && (
+        <div className="ins-hint">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
+          <p>Masz ubezpieczenie wykupione gdzie indziej? Dodaj polisę (PDF/zdjęcie), aby śledzić datę wygaśnięcia i mieć wszystko w jednym miejscu.</p>
+        </div>
+      )}
+
+      <div className="ins-partners">
+        <span className="ins-partners__label">Chronimy medyków z</span>
+        <div className="ins-partners__logos">
+          {INS_PARTNERS.map(p => (
+            <img key={p.name} src={p.logo} alt={p.name} className="ins-partners__logo" title={p.name} style={{ height: p.h }} />
+          ))}
+        </div>
       </div>
     </div>
   );
