@@ -1,6 +1,6 @@
 const { useState } = React;
 
-const USER_AVATAR = "https://images.unsplash.com/photo-1559839734-2b71ea197ec2?w=200&h=200&fit=crop&crop=face";
+const USER_AVATAR = "https://images.unsplash.com/photo-1592621385612-4d7129426394?w=200&h=200&fit=crop&crop=faces";
 
 // ─── DATA ─────────────────────────────────────────────────────────────────────
 
@@ -1100,7 +1100,7 @@ function ProductDetail({ product: p, cat, defaultSelections, onBack, addToCart }
 
 // ─── COUNTDOWN BADGE ──────────────────────────────────────────────────────────
 
-function CountdownText({ hours }) {
+function CountdownInline({ hours }) {
   const [endTime] = useState(() => Date.now() + hours * 3600000);
   const [remaining, setRemaining] = useState(hours * 3600000);
 
@@ -1116,14 +1116,45 @@ function CountdownText({ hours }) {
   const m = Math.floor((totalSec % 3600) / 60);
   const s = totalSec % 60;
   const pad = (n) => n.toString().padStart(2, "0");
+  const timeStr = d > 0 ? `${d}d ${pad(h)}:${pad(m)}:${pad(s)}` : `${pad(h)}:${pad(m)}:${pad(s)}`;
 
   return (
-    <div className="product-card__countdown-text">
-      <span className="product-card__countdown-label">Limitowane czasowo</span>
-      <span className="product-card__countdown-timer">
-        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-        {d > 0 ? `Kończy się za ${d}d ${pad(h)}:${pad(m)}:${pad(s)}` : `Kończy się za ${pad(h)}:${pad(m)}:${pad(s)}`}
-      </span>
+    <span className="countdown-inline" title="Oferta limitowana czasowo">
+      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+      {timeStr}
+    </span>
+  );
+}
+
+function VehisEmbed() {
+  const [loaded, setLoaded] = useState(false);
+  return (
+    <div className="product-section">
+      <div className="product-section__head">
+        <h3 className="font-bold" style={{ fontSize: 16 }}>Wirtualny salon samochodowy</h3>
+        <span className="text-sm text-muted">Powered by VEHIS</span>
+      </div>
+      <div className="vehis-embed">
+        {!loaded && (
+          <div className="vehis-embed__loader">
+            <div className="vehis-embed__sygnet">
+              <svg width="40" height="40" viewBox="0 0 23 23" fill="none">
+                <path d="M19.9652 0H2.85217C1.27696 0 0 1.27696 0 2.85217V19.9652C0 21.5404 1.27696 22.8173 2.85217 22.8173H19.9652C21.5404 22.8173 22.8173 21.5404 22.8173 19.9652V2.85217C22.8173 1.27696 21.5404 0 19.9652 0Z" fill="#18181B"/>
+                <path className="vehis-embed__sygnet-mark" d="M11.5447 11.0658L16.8498 7.54338L14.6465 3.75L5.96875 9.24042L5.99014 9.27607C5.99014 9.27607 5.97588 9.27607 5.96875 9.27607V13.6613C8.89222 13.6613 11.2667 16.0928 11.2667 19.0733H15.6519C15.6519 15.7719 14.0261 12.8484 11.5447 11.0729V11.0658Z" fill="#CEFF3E"/>
+              </svg>
+            </div>
+            <span>Ładowanie salonu samochodowego…</span>
+          </div>
+        )}
+        <iframe
+          src="https://embed.vehis.pl/?embed_client_token=03e091d0-bb44-4339-bb83-b330f6149a0a"
+          title="VEHIS – Wirtualny salon samochodowy"
+          className="vehis-embed__iframe"
+          style={{ opacity: loaded ? 1 : 0 }}
+          allow="fullscreen"
+          onLoad={() => setLoaded(true)}
+        />
+      </div>
     </div>
   );
 }
@@ -1261,13 +1292,13 @@ function PurchasesView({ addToCart, cart, removeFromCart }) {
                     }
                   </div>
                   <div className="product-card__body">
-                    {item.countdownHours && <CountdownText hours={item.countdownHours} />}
                     <div className="product-card__name">{item.brand} {item.model}</div>
                     <div className="product-card__desc">{item.desc}</div>
                     <div className="product-card__price-row">
                       <div className="product-card__price-col">
                         <span className="product-card__price">{item.price}</span>
                         {item.priceOld && <span className="product-card__price-old">{item.priceOld}</span>}
+                        {item.countdownHours && <CountdownInline hours={item.countdownHours} />}
                       </div>
                       {rataVal && (
                         <div className="product-card__rata-col">
@@ -1303,20 +1334,7 @@ function PurchasesView({ addToCart, cart, removeFromCart }) {
 
       {/* VEHIS Virtual Showroom */}
       {(filter === "all" || filter === "cars") && (
-        <div className="product-section">
-          <div className="product-section__head">
-            <h3 className="font-bold" style={{ fontSize: 16 }}>Wirtualny salon samochodowy</h3>
-            <span className="text-sm text-muted">Powered by VEHIS</span>
-          </div>
-          <div className="vehis-embed">
-            <iframe
-              src="https://embed.vehis.pl/?embed_client_token=03e091d0-bb44-4339-bb83-b330f6149a0a"
-              title="VEHIS – Wirtualny salon samochodowy"
-              className="vehis-embed__iframe"
-              allow="fullscreen"
-            />
-          </div>
-        </div>
+        <VehisEmbed />
       )}
     </div>
   );

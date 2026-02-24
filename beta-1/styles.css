@@ -1254,33 +1254,27 @@ img { display: block; max-width: 100%; }
   letter-spacing: 0.02em;
 }
 
-.product-card__countdown-text {
-  margin-bottom: 6px;
-}
-
-.product-card__countdown-label {
-  display: block;
-  font-size: 11px;
-  color: var(--color-muted);
-  margin-bottom: 2px;
-}
-
-.product-card__countdown-timer {
-  display: flex;
+.countdown-inline {
+  display: inline-flex;
   align-items: center;
-  gap: 4px;
-  font-size: 12px;
+  gap: 3px;
+  font-size: 11px;
   font-weight: 700;
   font-variant-numeric: tabular-nums;
   color: #F43F5E;
+  margin-left: 6px;
+  cursor: default;
+  white-space: nowrap;
 }
 
 /* VEHIS embed */
 .vehis-embed {
+  position: relative;
   border: 1px solid var(--color-border);
   border-radius: var(--radius-xl);
   overflow: hidden;
   background: #fff;
+  min-height: 700px;
 }
 
 .vehis-embed__iframe {
@@ -1288,6 +1282,38 @@ img { display: block; max-width: 100%; }
   height: 700px;
   border: none;
   display: block;
+  transition: opacity 0.3s ease;
+}
+
+.vehis-embed__loader {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  font-size: 14px;
+  color: var(--color-muted);
+  z-index: 1;
+}
+
+.vehis-embed__sygnet {
+  animation: sygnetPulse 1.6s ease-in-out infinite;
+}
+
+.vehis-embed__sygnet-mark {
+  animation: sygnetGlow 1.6s ease-in-out infinite;
+}
+
+@keyframes sygnetPulse {
+  0%, 100% { transform: scale(1); opacity: 0.7; }
+  50%      { transform: scale(1.12); opacity: 1; }
+}
+
+@keyframes sygnetGlow {
+  0%, 100% { fill: #CEFF3E; opacity: 0.6; }
+  50%      { fill: #E2FF7A; opacity: 1; }
 }
 
 .product-card__body {
