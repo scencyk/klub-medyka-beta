@@ -602,6 +602,9 @@ const NAV_SECTIONS = [
       { id: "overview",    label: "Panel główny",  icon: "overview"  },
       { id: "purchases",   label: "Zakupy",        icon: "purchases" },
       { id: "discounts",   label: "Zniżki",        icon: "discounts" },
+      { id: "discounts-v2", label: "Zniżki v2",     icon: "discounts" },
+      { id: "discounts-v3", label: "Zniżki v3",     icon: "discounts" },
+      // { id: "discounts-v4", label: "Zniżki v4",     icon: "discounts" },
       { id: "packages",    label: "Usługi",        icon: "packages",    soon: true },
       { id: "advisors",    label: "Twoi doradcy",  icon: "advisors"  },
       { id: "insurance",   label: "Ubezpieczenia", icon: "insurance",   soon: true },
@@ -1942,6 +1945,381 @@ function DiscountsView() {
   );
 }
 
+// ─── DISCOUNTS V2 VIEW (compact list) ─────────────────────────────────────────
+
+function DiscountsV2Row({ d, isExpanded, onToggle }) {
+  const [generatedCode, setGeneratedCode] = useState(null);
+  const [copied, setCopied] = useState(false);
+
+  const generateCode = (e) => {
+    e.stopPropagation();
+    const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+    let code = "KM-";
+    for (let i = 0; i < 6; i++) code += chars[Math.floor(Math.random() * chars.length)];
+    setGeneratedCode(code);
+  };
+  const copyCode = (e) => {
+    e.stopPropagation();
+    navigator.clipboard.writeText(generatedCode);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  return (
+    <div className={`dv2-item${isExpanded ? " dv2-item--expanded" : ""}`}>
+      <button className="dv2-row" onClick={onToggle}>
+        <img src={d.logo} alt={d.partner} className="dv2-row__logo" />
+        <span className="dv2-row__partner">{d.partner}</span>
+        <span className="dv2-row__title">{d.title}</span>
+        <span className="dv2-row__badge">{d.badge}</span>
+        <svg className={`dv2-row__chevron${isExpanded ? " dv2-row__chevron--open" : ""}`} width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <polyline points="6 9 12 15 18 9"/>
+        </svg>
+      </button>
+
+      {isExpanded && (
+        <div className="dv2-expand">
+          <p className="dv2-expand__desc">{d.desc}</p>
+          {d.howToUse && d.howToUse.length > 0 && (
+            <ol className="dv2-expand__steps">
+              {d.howToUse.map((step, i) => <li key={i}>{step}</li>)}
+            </ol>
+          )}
+          <div className="dv2-expand__actions">
+            {d.needsCode && (
+              generatedCode ? (
+                <div className="dv2-expand__code-row">
+                  <span className="dv2-expand__code-value">{generatedCode}</span>
+                  <button className="dv2-expand__code-btn" onClick={copyCode} title="Kopiuj">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                  </button>
+                  {copied && <span className="dv2-expand__code-toast">Skopiowano</span>}
+                </div>
+              ) : (
+                <button className="dv2-expand__btn dv2-expand__btn--primary" onClick={generateCode}>
+                  <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M5.99479 6.0026H6.00146M9.99479 6.0026L5.99479 10.0026M9.99479 10.0026H10.0015M1.32812 6.0026C1.85856 6.0026 2.36727 6.21332 2.74234 6.58839C3.11741 6.96346 3.32813 7.47217 3.32813 8.0026C3.32813 8.53304 3.11741 9.04175 2.74234 9.41682C2.36727 9.79189 1.85856 10.0026 1.32812 10.0026L1.32812 11.3359C1.32812 11.6896 1.4686 12.0287 1.71865 12.2787C1.9687 12.5288 2.30784 12.6693 2.66146 12.6693L13.3281 12.6693C13.6817 12.6693 14.0209 12.5288 14.2709 12.2787C14.521 12.0287 14.6615 11.6896 14.6615 11.3359V10.0026C14.131 10.0026 13.6223 9.79189 13.2472 9.41682C12.8722 9.04175 12.6615 8.53304 12.6615 8.0026C12.6615 7.47217 12.8722 6.96346 13.2472 6.58839C13.6223 6.21332 14.131 6.0026 14.6615 6.0026V4.66927C14.6615 4.31565 14.521 3.97651 14.2709 3.72646C14.0209 3.47641 13.6817 3.33594 13.3281 3.33594L2.66146 3.33594C2.30784 3.33594 1.9687 3.47641 1.71865 3.72646C1.4686 3.97651 1.32813 4.31565 1.32812 4.66927L1.32812 6.0026Z" stroke="currentColor" strokeWidth="1.33" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                  Wygeneruj kod
+                </button>
+              )
+            )}
+            {d.url && (
+              <a href={d.url} target="_blank" rel="noopener noreferrer" className="dv2-expand__btn" onClick={(e) => e.stopPropagation()}>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+                Strona partnera
+              </a>
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function packByPartner(items) {
+  const map = new Map();
+  items.forEach(d => {
+    const key = d.partner;
+    if (!map.has(key)) map.set(key, []);
+    map.get(key).push(d);
+  });
+  return Array.from(map.values());
+}
+
+function bestBadge(group) {
+  const badges = group.map(d => d.badge);
+  if (badges.every(b => b === badges[0])) return badges[0];
+
+  function numVal(badge) {
+    const clean = badge.replace(/^do\s+/, "");
+    const pct = clean.match(/-?\s*(\d[\d\s]*)\s*%/);
+    if (pct) return parseFloat(pct[1].replace(/\s/g, ""));
+    const money = clean.match(/-?\s*(\d[\d\s]*)\s*zł/);
+    if (money) return parseFloat(money[1].replace(/\s/g, ""));
+    return 0;
+  }
+
+  let best = badges[0], bestVal = numVal(badges[0]);
+  for (let i = 1; i < badges.length; i++) {
+    const v = numVal(badges[i]);
+    if (v > bestVal) { bestVal = v; best = badges[i]; }
+  }
+  return best.startsWith("do ") ? best : "do " + best;
+}
+
+function DiscountsV2Partner({ group, expandedId, toggleExpand }) {
+  const [open, setOpen] = useState(false);
+  const first = group[0];
+
+  if (group.length === 1) {
+    return <DiscountsV2Row d={first} isExpanded={expandedId === first.id} onToggle={() => toggleExpand(first.id)} />;
+  }
+
+  return (
+    <div className="dv2-item">
+      <button className="dv2-row" onClick={() => setOpen(!open)}>
+        <img src={first.logo} alt={first.partner} className="dv2-row__logo" />
+        <span className="dv2-row__partner">{first.partner}</span>
+        <span className="dv2-row__title">{group.length} oferty</span>
+        <span className="dv2-row__badge">{bestBadge(group)}</span>
+        <svg className={`dv2-row__chevron${open ? " dv2-row__chevron--open" : ""}`} width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <polyline points="6 9 12 15 18 9"/>
+        </svg>
+      </button>
+      {open && (
+        <div className="dv2-sublist">
+          {group.map(d => (
+            <DiscountsV2Row key={d.id} d={d} isExpanded={expandedId === d.id} onToggle={() => toggleExpand(d.id)} />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function DiscountsV2View() {
+  const [filter, setFilter] = useState("all");
+  const [expandedId, setExpandedId] = useState(null);
+  const filtered = filter === "all" ? DISCOUNTS : DISCOUNTS.filter(d => d.category === filter);
+
+  const grouped = DISCOUNT_CATEGORIES.filter(c => c.id !== "all").map(cat => {
+    const items = DISCOUNTS.filter(d => d.category === cat.id);
+    return items.length > 0 ? { ...cat, items } : null;
+  }).filter(Boolean);
+
+  const toggleExpand = (id) => setExpandedId(prev => prev === id ? null : id);
+
+  const renderPacked = (items) => {
+    const packed = packByPartner(items);
+    return packed.map((group, i) => (
+      <DiscountsV2Partner key={group[0].partner + i} group={group} expandedId={expandedId} toggleExpand={toggleExpand} />
+    ));
+  };
+
+  return (
+    <div>
+      <div style={{ marginBottom: 20 }}>
+        <h2 style={{ fontSize: 20, fontWeight: 700, marginBottom: 4 }}>Zniżki</h2>
+        <p className="text-sm text-muted">Kompaktowy widok ofert i rabatów.</p>
+      </div>
+      <div className="filter-bar">
+        {DISCOUNT_CATEGORIES.map(c => (
+          <button key={c.id} className={`filter-pill${filter === c.id ? " filter-pill--active" : ""}`} onClick={() => setFilter(c.id)}>
+            {c.label}
+          </button>
+        ))}
+      </div>
+
+      {filter === "all" ? (
+        grouped.map(group => (
+          <div key={group.id} className="dv2-group">
+            <div className="dv2-group__header">
+              <span className="dv2-group__label">{group.label}</span>
+              <span className="dv2-group__count">{group.items.length} {group.items.length === 1 ? "oferta" : group.items.length < 5 ? "oferty" : "ofert"}</span>
+            </div>
+            <div className="dv2-list">
+              {renderPacked(group.items)}
+            </div>
+          </div>
+        ))
+      ) : (
+        <div className="dv2-list">
+          {renderPacked(filtered)}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ─── DISCOUNTS V3 VIEW (coupon cards) ─────────────────────────────────────────
+
+function DiscountsV3Coupon({ d }) {
+  const [generatedCode, setGeneratedCode] = useState(null);
+  const [copied, setCopied] = useState(false);
+  const catLabel = DISCOUNT_CATEGORIES.find(c => c.id === d.category)?.label || d.category;
+
+  const generateCode = (e) => {
+    e.stopPropagation();
+    const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+    let code = "KM-";
+    for (let i = 0; i < 6; i++) code += chars[Math.floor(Math.random() * chars.length)];
+    setGeneratedCode(code);
+  };
+  const copyCode = (e) => {
+    e.stopPropagation();
+    navigator.clipboard.writeText(generatedCode);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  return (
+    <div className="dv3-coupon">
+      <div className="dv3-coupon__tag" data-cat={d.category}>{catLabel}</div>
+      <div className="dv3-coupon__body">
+        <div className="dv3-coupon__header">
+          <img src={d.logo} alt={d.partner} className="dv3-coupon__logo" />
+          <span className="dv3-coupon__partner">{d.partner}</span>
+          <span className="dv3-coupon__badge">{d.badge}</span>
+        </div>
+        <div className="dv3-coupon__title">{d.title}</div>
+        <p className="dv3-coupon__desc">{d.desc}</p>
+      </div>
+      <div className="dv3-coupon__footer">
+        {d.needsCode && (
+          generatedCode ? (
+            <button className="dv3-coupon__btn dv3-coupon__btn--code" onClick={copyCode}>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+              {copied ? "Skopiowano!" : generatedCode}
+            </button>
+          ) : (
+            <button className="dv3-coupon__btn dv3-coupon__btn--generate" onClick={generateCode}>
+              Wygeneruj kod
+            </button>
+          )
+        )}
+        {d.url && (
+          <a href={d.url} target="_blank" rel="noopener noreferrer" className="dv3-coupon__btn dv3-coupon__btn--link">
+            Strona partnera
+          </a>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function DiscountsV3View() {
+  const [filter, setFilter] = useState("all");
+  const filtered = filter === "all" ? DISCOUNTS : DISCOUNTS.filter(d => d.category === filter);
+
+  return (
+    <div>
+      <div style={{ marginBottom: 20 }}>
+        <h2 style={{ fontSize: 20, fontWeight: 700, marginBottom: 4 }}>Zniżki</h2>
+        <p className="text-sm text-muted">Kupony i oferty od partnerów.</p>
+      </div>
+      <div className="filter-bar">
+        {DISCOUNT_CATEGORIES.map(c => (
+          <button key={c.id} className={`filter-pill${filter === c.id ? " filter-pill--active" : ""}`} onClick={() => setFilter(c.id)}>
+            {c.label}
+          </button>
+        ))}
+      </div>
+      <div className="dv3-grid">
+        {filtered.map(d => (
+          <DiscountsV3Coupon key={d.id} d={d} />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// ─── DISCOUNTS V4 — CLAIMABLE COUPONS ─────────────────────────────────────────
+
+function DiscountsV4Coupon({ d, onClaim }) {
+  const [claimed, setClaimed] = useState(false);
+  const [generatedCode, setGeneratedCode] = useState(null);
+  const [copied, setCopied] = useState(false);
+  const catLabel = DISCOUNT_CATEGORIES.find(c => c.id === d.category)?.label || d.category;
+
+  const claim = () => {
+    if (claimed) return;
+    if (d.needsCode) {
+      const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+      let code = "KM-";
+      for (let i = 0; i < 6; i++) code += chars[Math.floor(Math.random() * chars.length)];
+      setGeneratedCode(code);
+    }
+    setClaimed(true);
+    onClaim(d.partner);
+  };
+
+  const copyCode = (e) => {
+    e.stopPropagation();
+    if (!generatedCode) return;
+    navigator.clipboard.writeText(generatedCode);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  return (
+    <div className={`dv4-coupon${claimed ? " dv4-coupon--claimed" : ""}`}>
+      <div className="dv4-coupon__main">
+        <div className="dv4-coupon__tag" data-cat={d.category}>{catLabel}</div>
+        <div className="dv4-coupon__body">
+          <div className="dv4-coupon__header">
+            <img src={d.logo} alt={d.partner} className="dv4-coupon__logo" />
+            <span className="dv4-coupon__partner">{d.partner}</span>
+            <span className="dv4-coupon__badge">{d.badge}</span>
+          </div>
+          <div className="dv4-coupon__title">{d.title}</div>
+        </div>
+      </div>
+      <div className="dv4-coupon__tear">
+        {!claimed ? (
+          <button className="dv4-coupon__claim" onClick={claim}>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="2" width="20" height="20" rx="2"/><path d="M12 8v8M8 12h8"/></svg>
+            Odbierz kupon
+          </button>
+        ) : (
+          <div className="dv4-coupon__unlocked">
+            {d.needsCode && generatedCode && (
+              <button className="dv4-coupon__code" onClick={copyCode}>
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                {copied ? "Skopiowano!" : generatedCode}
+              </button>
+            )}
+            {d.url && (
+              <a href={d.url} target="_blank" rel="noopener noreferrer" className="dv4-coupon__go">
+                Skorzystaj u partnera
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+              </a>
+            )}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function DiscountsV4View() {
+  const [filter, setFilter] = useState("all");
+  const [toast, setToast] = useState(null);
+  const toastTimer = React.useRef(null);
+  const filtered = filter === "all" ? DISCOUNTS : DISCOUNTS.filter(d => d.category === filter);
+
+  const showToast = (partner) => {
+    if (toastTimer.current) clearTimeout(toastTimer.current);
+    setToast(partner);
+    toastTimer.current = setTimeout(() => setToast(null), 3500);
+  };
+
+  return (
+    <div>
+      <div style={{ marginBottom: 20 }}>
+        <h2 style={{ fontSize: 20, fontWeight: 700, marginBottom: 4 }}>Zniżki</h2>
+        <p className="text-sm text-muted">Odbierz kupony i aktywuj rabaty u partnerów.</p>
+      </div>
+      <div className="filter-bar">
+        {DISCOUNT_CATEGORIES.map(c => (
+          <button key={c.id} className={`filter-pill${filter === c.id ? " filter-pill--active" : ""}`} onClick={() => setFilter(c.id)}>
+            {c.label}
+          </button>
+        ))}
+      </div>
+      <div className="dv4-grid">
+        {filtered.map(d => (
+          <DiscountsV4Coupon key={d.id} d={d} onClaim={showToast} />
+        ))}
+      </div>
+      {toast && (
+        <div className="dv4-toast" key={toast}>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+          <span>Kupon <strong>{toast}</strong> przypisany do Twojego konta</span>
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ─── INSURANCE VIEW ───────────────────────────────────────────────────────────
 
 function InsuranceView() {
@@ -2418,8 +2796,11 @@ const VIEWS = {
   overview:    Overview,
   purchases:   PurchasesView,
   packages:    ServicesView,
-  discounts:   DiscountsView,
-  advisors:    AdvisorsView,
+  discounts:      DiscountsView,
+  "discounts-v2": DiscountsV2View,
+  "discounts-v3": DiscountsV3View,
+  "discounts-v4": DiscountsV4View,
+  advisors:       AdvisorsView,
   insurance:   InsuranceView,
   investments: InvestmentsView,
   profile:     ProfileView,
