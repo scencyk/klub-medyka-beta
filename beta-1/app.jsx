@@ -602,6 +602,7 @@ const NAV_SECTIONS = [
       { id: "overview",    label: "Panel główny",  icon: "overview"  },
       { id: "purchases",   label: "Zakupy",        icon: "purchases" },
       { id: "insurance",   label: "Ubezpieczenia", icon: "insurance", tag: "Nowość" },
+      { id: "insurance-v2", label: "Ubezpieczenia v2", icon: "insurance", tag: "Nowy" },
       { id: "discounts",   label: "Zniżki",        icon: "discounts" },
       { id: "discounts-v2", label: "Zniżki v2",     icon: "discounts" },
       { id: "discounts-v3", label: "Zniżki v3",     icon: "discounts" },
@@ -693,6 +694,59 @@ const OC_EXTRAS = [
     ], defaultVariant: 0 },
 ];
 
+/* ── INTER DATA ──────────────────────────────────────── */
+const INTER_MANDATORY_SUMS = [
+  { label: "150 000 / 350 000 EUR", value: "150k/350k", factor: 1.0  },
+  { label: "350 000 / 700 000 EUR", value: "350k/700k", factor: 1.3  },
+  { label: "500 000 / 500 000 EUR", value: "500k/500k", factor: 1.5  },
+  { label: "750 000 / 750 000 EUR", value: "750k/750k", factor: 1.8  },
+  { label: "1 000 000 / 1 000 000 EUR", value: "1M/1M", factor: 2.2 },
+];
+const INTER_VOLUNTARY_SUMS = [
+  { label: "100 000 EUR", value: "100k", price: 180 },
+  { label: "200 000 EUR", value: "200k", price: 280 },
+  { label: "500 000 EUR", value: "500k", price: 450 },
+];
+const INTER_KLAUZULE = {
+  regress:        { label: "Rezygnacja z regresu",                              price: 50  },
+  nightEmergency: { label: "Nocna/świąteczna pomoc z wyjazdami",                price: 80  },
+  surgical:       { label: "Zabiegi chirurgiczne/endoskopowe/radiologia interw.",price: 120 },
+  staff:          { label: "Zatrudnianie personelu medycznego (kl. 1)",         price: 60  },
+  leasing:        { label: "Leasing sprzętu medycznego (kl. 2)",               price: 40  },
+  euroTransport:  { label: "Transport medyczny w Europie (kl. 4)",             price: 90  },
+  aesthetic5A:    { label: "Medycyna estetyczna (kl. 5A)",                      price: 350 },
+  plastic5B:      { label: "Chirurgia plastyczna (kl. 5B)",                     price: 500 },
+  patientRights:  { label: "Naruszenie praw pacjenta (kl. 9)",
+    sublimits: ["50 000 zł","100 000 zł","200 000 zł"], prices: [120, 200, 340] },
+  courtExpert:    { label: "Biegły sądowy / orzecznik (kl. 11)",               price: 70  },
+  office:         { label: "Gabinet własny / najmowany (kl. 12)",
+    sublimits: ["50 000 zł","100 000 zł"], prices: [80, 140] },
+  nfzFines:       { label: "Błędna refundacja leków (kl. 23)",
+    sums: ["100 000 PLN","200 000 PLN","500 000 PLN"], prices: [150, 230, 380] },
+};
+const INTER_HIV_VARIANTS = [
+  { label: "A-I  — NNW + badania + leki",                price: 130 },
+  { label: "A-II — NNW + badania + leki + świadczenie",  price: 180 },
+  { label: "B-V  — Pełny pakiet",                        price: 250 },
+];
+const INTER_LEGAL_VARIANTS = [
+  { label: "Podstawowy — 50 000 EUR",   price: 150 },
+  { label: "Rozszerzony — 100 000 EUR", price: 250 },
+];
+const INTER_PSYCH = [
+  { label: "3 konsultacje", price: 90  },
+  { label: "8 konsultacji", price: 180 },
+];
+const INTER_TOUR = {
+  variants: [
+    { label: "Europa — 100 000 EUR",  basePrice: 190 },
+    { label: "Świat — 200 000 EUR",   basePrice: 290 },
+  ],
+  extremeAddon: 80,
+  polandAddon:  40,
+  groupAddon:   60,
+};
+
 function ocRiskGroup(s1, s2, sor) {
   if (sor) return 3;
   const g = (name) => OC_ALL_SPECS.find(s => s.name === name)?.group || 1;
@@ -712,6 +766,90 @@ function ocCalc(d) {
       total += v.price; items.push({ label: ex.label, amount: v.price });
     }
   });
+  return { total, items, riskGroup: rg };
+}
+
+function interCalc(d) {
+  const rg = ocRiskGroup(d.spec1, d.spec2, d.sor);
+  let total = 0; const items = [];
+
+  // OC obowiązkowe
+  if (d.practice) {
+    const sumEntry = INTER_MANDATORY_SUMS.find(s => s.value === d.interMandatorySum);
+    const base = Math.round(OC_PREMIUM.mandatory[rg] * (sumEntry?.factor || 1.0) * 1.08);
+    total += base; items.push({ label: "OC obowiązkowe (" + (sumEntry?.label || "min.") + ")", amount: base });
+  }
+
+  // OC dobrowolna (INTER EUR)
+  if (d.interVoluntaryOc && d.interVoluntarySum) {
+    const entry = INTER_VOLUNTARY_SUMS.find(s => s.value === d.interVoluntarySum);
+    if (entry) { total += entry.price; items.push({ label: "OC dobrowolne " + entry.label, amount: entry.price }); }
+  }
+
+  // Klauzule proste (stała cena)
+  const simpleKl = [
+    ["regressWaiver",   "regress"],
+    ["nightEmergency",  "nightEmergency"],
+    ["surgicalProc",    "surgical"],
+    ["employsMedStaff", "staff"],
+    ["leasesEquipment", "leasing"],
+    ["euroTransport",   "euroTransport"],
+    ["aesthetic",       "aesthetic5A"],
+    ["plasticSurgery",  "plastic5B"],
+    ["courtExpert",     "courtExpert"],
+  ];
+  simpleKl.forEach(([field, klKey]) => {
+    if (d[field]) {
+      const kl = INTER_KLAUZULE[klKey];
+      total += kl.price; items.push({ label: kl.label, amount: kl.price });
+    }
+  });
+
+  // Klauzule z sublimitem
+  if (d.patientRights) {
+    const idx = d.patientRightsSub ?? 0;
+    const p = INTER_KLAUZULE.patientRights.prices[idx] || INTER_KLAUZULE.patientRights.prices[0];
+    total += p; items.push({ label: INTER_KLAUZULE.patientRights.label + " " + (INTER_KLAUZULE.patientRights.sublimits[idx] || ""), amount: p });
+  }
+  if (d.hasOwnOffice) {
+    const idx = d.officeSub ?? 0;
+    const p = INTER_KLAUZULE.office.prices[idx] || INTER_KLAUZULE.office.prices[0];
+    total += p; items.push({ label: INTER_KLAUZULE.office.label + " " + (INTER_KLAUZULE.office.sublimits[idx] || ""), amount: p });
+  }
+  if (d.nfz) {
+    const idx = d.nfzSub ?? 0;
+    const p = INTER_KLAUZULE.nfzFines.prices[idx] || INTER_KLAUZULE.nfzFines.prices[0];
+    total += p; items.push({ label: INTER_KLAUZULE.nfzFines.label + " " + (INTER_KLAUZULE.nfzFines.sums[idx] || ""), amount: p });
+  }
+
+  // Ochrona prawna INTER
+  if (d.legal && d.interLegalVariant != null) {
+    const v = INTER_LEGAL_VARIANTS[d.interLegalVariant] || INTER_LEGAL_VARIANTS[0];
+    total += v.price; items.push({ label: "Ochrona prawna — " + v.label, amount: v.price });
+  }
+
+  // HIV/WZW
+  if (d.hiv && d.interHivVariant != null) {
+    const v = INTER_HIV_VARIANTS[d.interHivVariant] || INTER_HIV_VARIANTS[0];
+    total += v.price; items.push({ label: "HIV/WZW — " + v.label, amount: v.price });
+  }
+
+  // Pomoc psychologiczna
+  if (d.psychHelp) {
+    const v = INTER_PSYCH[d.psychHelpVariant ?? 0] || INTER_PSYCH[0];
+    total += v.price; items.push({ label: "Pomoc psychologiczna — " + v.label, amount: v.price });
+  }
+
+  // INTER Tour 365
+  if (d.interTour && d.interTourVariant != null) {
+    const v = INTER_TOUR.variants[d.interTourVariant] || INTER_TOUR.variants[0];
+    let p = v.basePrice;
+    if (d.interTourExtreme) p += INTER_TOUR.extremeAddon;
+    if (d.interTourPoland) p += INTER_TOUR.polandAddon;
+    if (d.interTourGroup) p += INTER_TOUR.groupAddon;
+    total += p; items.push({ label: "INTER Tour 365 — " + v.label, amount: p });
+  }
+
   return { total, items, riskGroup: rg };
 }
 
@@ -2690,7 +2828,9 @@ function OcForm() {
                   <div className="oc-offer__body">
                     <span className="oc-offer__name">{o.name} {o.id === bestId && <span className="oc-offer__best">Najlepsza cena</span>}</span>
                     {o.available ? (
-                      <span className="oc-offer__price">{livePrice.toLocaleString("pl-PL")} zł<span className="text-muted">/rok</span></span>
+                      expandedOffer === o.id
+                        ? <span className="oc-offer__price">{livePrice.toLocaleString("pl-PL")} zł<span className="text-muted">/rok</span></span>
+                        : <span className="oc-offer__pending" style={{ cursor: "pointer" }}>Rozwiń, aby zobaczyć cenę</span>
                     ) : (
                       <span className="oc-offer__pending">Oferta po akceptacji konsultanta</span>
                     )}
@@ -3174,6 +3314,802 @@ function OcForm() {
           </button>
         )}
       </div>
+    </div>
+  );
+}
+
+/* ── OC FORM V2 — UNIFIED ERGO + INTER ─────────────────── */
+
+function InsurerBadge({ insurer }) {
+  const src = insurer === "inter"
+    ? "../ubezpieczenia/loga/inter logo.webp"
+    : "../ubezpieczenia/loga/ergohestia.png";
+  return (
+    <span className="oc-insurer-badge">
+      <img src={src} alt={insurer} style={{ height: 12, maxHeight: 12, width: "auto", maxWidth: 56, objectFit: "contain", display: "block" }} />
+    </span>
+  );
+}
+
+const V2_STEPS = ["Profil ryzyka", "Zakres OC", "Rozszerzenia", "Produkty INTER", "Podsumowanie"];
+
+function OcFormV2() {
+  const [step, setStep] = useState(0);
+  const [phase, setPhase] = useState("form");
+  const [submitted, setSubmitted] = useState(false);
+
+  /* ── Step 0: profil ryzyka ── */
+  const [spec1, setSpec1] = useState("Kardiologia");
+  const [spec1Confirmed, setSpec1Confirmed] = useState(false);
+  const [spec2, setSpec2] = useState("");
+  const [sor, setSor] = useState(null);
+  const [nightEmergency, setNightEmergency] = useState(null);
+  const [surgicalProc, setSurgicalProc] = useState(null);
+
+  /* ── Step 1: zakres OC ── */
+  const [practice, setPractice] = useState(null);
+  const [surplusSum, setSurplusSum] = useState("");
+  const [voluntarySum, setVoluntarySum] = useState("");
+  const [interMandatorySum, setInterMandatorySum] = useState("");
+  const [interVoluntaryOc, setInterVoluntaryOc] = useState(null);
+  const [interVoluntarySum, setInterVoluntarySum] = useState("");
+  const [regressWaiver, setRegressWaiver] = useState(null);
+  const [hasOwnOffice, setHasOwnOffice] = useState(null);
+  const [officeSub, setOfficeSub] = useState(0);
+  const [employsMedStaff, setEmploysMedStaff] = useState(null);
+  const [leasesEquipment, setLeasesEquipment] = useState(null);
+
+  /* ── Step 2: rozszerzenia ── */
+  const [extras, setExtras] = useState({ legal: false, aesthetic: false, nfz: false, hiv: false });
+  const [extraVariants, setExtraVariants] = useState(() => {
+    const ev = {}; OC_EXTRAS.forEach(ex => { ev[ex.key] = ex.defaultVariant; }); return ev;
+  });
+  const [interLegalVariant, setInterLegalVariant] = useState(0);
+  const [interHivVariant, setInterHivVariant] = useState(0);
+  const [plasticSurgery, setPlasticSurgery] = useState(null);
+  const [euroTransport, setEuroTransport] = useState(null);
+  const [patientRights, setPatientRights] = useState(null);
+  const [patientRightsSub, setPatientRightsSub] = useState(0);
+  const [courtExpert, setCourtExpert] = useState(null);
+  const [psychHelp, setPsychHelp] = useState(null);
+  const [psychHelpVariant, setPsychHelpVariant] = useState(0);
+  const [hadClaim, setHadClaim] = useState(null);
+  const [claimCount, setClaimCount] = useState(0);
+  const [nfzSub, setNfzSub] = useState(0);
+
+  /* ── Step 3: produkty INTER ── */
+  const [interTour, setInterTour] = useState(false);
+  const [interTourVariant, setInterTourVariant] = useState(0);
+  const [interTourExtreme, setInterTourExtreme] = useState(false);
+  const [interTourPoland, setInterTourPoland] = useState(false);
+  const [interTourGroup, setInterTourGroup] = useState(false);
+
+  /* ── Offers ── */
+  const [expandedOffer, setExpandedOffer] = useState(null);
+  const [compareMode, setCompareMode] = useState(false);
+
+  const rg = ocRiskGroup(spec1, spec2, sor);
+
+  /* ── calc ── */
+  const d = {
+    spec1, spec2, sor, practice, surplusSum, voluntarySum,
+    interMandatorySum, interVoluntaryOc, interVoluntarySum,
+    regressWaiver, nightEmergency, surgicalProc,
+    employsMedStaff, leasesEquipment, euroTransport,
+    aesthetic: extras.aesthetic, plasticSurgery, patientRights, patientRightsSub,
+    courtExpert, hasOwnOffice, officeSub,
+    legal: extras.legal, interLegalVariant,
+    hiv: extras.hiv, interHivVariant,
+    nfz: extras.nfz, nfzSub,
+    psychHelp, psychHelpVariant,
+    interTour, interTourVariant, interTourExtreme, interTourPoland, interTourGroup,
+    hadClaim, claimCount, extraVariants,
+  };
+  const ergo = ocCalc(d);
+  const inter = interCalc(d);
+
+  const canNext = () => {
+    if (step === 0) return spec1 && spec1Confirmed && sor !== null;
+    if (step === 1) return practice !== null;
+    if (step === 2) return hadClaim !== null;
+    return true;
+  };
+
+  const startCalc = () => {
+    setPhase("loading");
+    setTimeout(() => setPhase("offers"), 2800);
+  };
+
+  /* ── Offers phase ── */
+  if (phase === "loading") {
+    return (
+      <div className="oc-form">
+        <div className="oc-loading">
+          <p className="oc-loading__title">Porównujemy oferty ubezpieczycieli…</p>
+          <div className="oc-loading__logos">
+            {INS_PARTNERS.map((p, i) => (
+              <img key={p.name} className="oc-loading__logo" src={p.logo} alt={p.name}
+                style={{ height: p.h, animationDelay: i * 0.4 + "s" }} />
+            ))}
+          </div>
+          <div className="oc-loading__bar"><div className="oc-loading__bar-fill" /></div>
+        </div>
+      </div>
+    );
+  }
+
+  if (submitted) {
+    return (
+      <div className="oc-form">
+        <div className="oc-done">
+          <div className="oc-done__icon">
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#166534" strokeWidth="2"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></svg>
+          </div>
+          <h3>Zapytanie wysłane!</h3>
+          <p className="text-sm text-muted">Doradca skontaktuje się z Tobą w ciągu 24 h z indywidualną wyceną.</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (phase === "offers") {
+    const offers = [
+      { id: "ergo",  name: "Ergo Hestia",        logo: "../ubezpieczenia/loga/ergohestia.png", price: ergo.total, available: !hadClaim, items: ergo.items },
+      { id: "inter", name: "INTER Ubezpieczenia", logo: "../ubezpieczenia/loga/inter logo.webp", price: inter.total, available: !hadClaim || claimCount <= 2, items: inter.items },
+      { id: "pzu",   name: "PZU",   logo: "../ubezpieczenia/loga/PZU_logo.png", price: null, available: false, items: [] },
+      { id: "lloyds",name: "Lloyd's",logo: "../ubezpieczenia/loga/lloyds.png",   price: null, available: false, items: [] },
+    ];
+    const cheapest = offers.filter(o => o.available && o.price).sort((a, b) => a.price - b.price)[0]?.id;
+
+    return (
+      <div className="oc-form">
+        <div className="oc-offers__tabs">
+          <button className={"oc-offers__tab" + (!compareMode ? " oc-offers__tab--active" : "")} onClick={() => setCompareMode(false)}>Lista ofert</button>
+          <button className={"oc-offers__tab" + (compareMode ? " oc-offers__tab--active" : "")} onClick={() => setCompareMode(true)}>Porównaj oferty</button>
+        </div>
+
+        {!compareMode && (
+          <div className="oc-offers__list">
+            {offers.map((o, i) => {
+              const isOpen = expandedOffer === o.id;
+              return (
+                <div key={o.id} className={"oc-offer" + (isOpen ? " oc-offer--expanded" : "") + (!o.available ? " oc-offer--pending" : "")}
+                     style={{ animationDelay: i * 0.08 + "s" }}>
+                  <div className="oc-offer__header" onClick={() => o.available && setExpandedOffer(isOpen ? null : o.id)}>
+                    <div className="oc-offer__logo"><img src={o.logo} alt={o.name} /></div>
+                    <div className="oc-offer__body">
+                      <div className="oc-offer__name">
+                        {o.name}
+                        {o.id === cheapest && <span className="oc-offer__best">Najlepsza cena</span>}
+                      </div>
+                      {o.price != null ? (
+                        <div className="oc-offer__price">
+                          {!isOpen && <span className="text-sm text-muted">Rozwiń, aby zobaczyć cenę</span>}
+                          {isOpen && <>{o.price} zł<span className="text-muted"> / rok</span></>}
+                        </div>
+                      ) : (
+                        <div className="oc-offer__pending">Wkrótce dostępne</div>
+                      )}
+                    </div>
+                    {o.available ? (
+                      <svg className="oc-offer__chevron" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="m6 9 6 6 6-6"/></svg>
+                    ) : (
+                      <svg className="oc-offer__lock" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                    )}
+                  </div>
+                  {isOpen && o.items.length > 0 && (
+                    <div className="oc-offer__details">
+                      <div className="oc-offer__scope">
+                        <div className="oc-offer__scope-title">Zakres ochrony</div>
+                        {o.items.map((it, j) => (
+                          <div key={j} className="oc-offer__scope-row">
+                            <div className="oc-offer__scope-row-main">
+                              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#166534" strokeWidth="2.5"><path d="m5 13 4 4L19 7"/></svg>
+                              <span>{it.label}</span>
+                              <span className="oc-offer__scope-price">{it.amount} zł</span>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                      <div className="oc-offer__meta">
+                        <span>Składka roczna: <strong>{o.price} zł</strong></span>
+                        <span>lub dwie raty: <strong>{Math.ceil(o.price / 2)} zł × 2</strong></span>
+                      </div>
+                      <button className="oc-offer__select-btn" onClick={() => setSubmitted(true)}>Wybierz tę ofertę</button>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        )}
+
+        {compareMode && (
+          <div className="oc-compare">
+            <table className="oc-compare__table">
+              <thead>
+                <tr>
+                  <th />
+                  {offers.filter(o => o.available).map(o => (
+                    <th key={o.id}>
+                      <div className="oc-compare__insurer">
+                        <img className="oc-compare__logo" src={o.logo} alt={o.name} />
+                        <span className="oc-compare__name">{o.name}</span>
+                        {o.id === cheapest && <span className="oc-compare__best">Najlepsza cena</span>}
+                      </div>
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {/* Collect all unique labels */}
+                {(() => {
+                  const available = offers.filter(o => o.available);
+                  const allLabels = [...new Set(available.flatMap(o => o.items.map(it => it.label)))];
+                  return allLabels.map(label => (
+                    <tr key={label}>
+                      <td>{label}</td>
+                      {available.map(o => {
+                        const it = o.items.find(x => x.label === label);
+                        return <td key={o.id}>{it ? <span className="oc-compare__yes"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#166534" strokeWidth="2.5"><path d="m5 13 4 4L19 7"/></svg> {it.amount} zł</span> : "—"}</td>;
+                      })}
+                    </tr>
+                  ));
+                })()}
+              </tbody>
+              <tfoot>
+                <tr className="oc-compare__row--total">
+                  <td><strong>Razem / rok</strong></td>
+                  {offers.filter(o => o.available).map(o => (
+                    <td key={o.id}><strong>{o.price} zł</strong></td>
+                  ))}
+                </tr>
+                <tr>
+                  <td />
+                  {offers.filter(o => o.available).map(o => (
+                    <td key={o.id}>
+                      <button className="oc-compare__select-btn" onClick={() => setSubmitted(true)}>Wybieram</button>
+                      <span className="oc-compare__or-installment">lub dwie raty: {Math.ceil(o.price / 2)} zł × 2</span>
+                    </td>
+                  ))}
+                </tr>
+              </tfoot>
+            </table>
+          </div>
+        )}
+
+        <div style={{ marginTop: 16 }}>
+          <button className="oc-nav__back" onClick={() => { setPhase("form"); setStep(4); }}>← Wróć do formularza</button>
+        </div>
+      </div>
+    );
+  }
+
+  /* ── Form phase ── */
+  return (
+    <div className="oc-form">
+      {/* stepper */}
+      <div className="oc-steps">
+        {V2_STEPS.map((label, i) => (
+          <div key={i} className={"oc-steps__item" + (i === step ? " oc-steps__item--active" : "") + (i < step ? " oc-steps__item--done" : "")}>
+            <div className="oc-steps__dot">{i < step ? "✓" : i + 1}</div>
+            <span className="oc-steps__label">{label}</span>
+          </div>
+        ))}
+      </div>
+
+      {/* ── STEP 0 ── */}
+      {step === 0 && (
+        <div className="oc-step">
+          <h3 className="oc-step__title">Profil ryzyka</h3>
+          <p className="oc-step__desc">Twoja specjalizacja i zakres pracy wpływają na grupę ryzyka i składkę.</p>
+
+          <div className="oc-field">
+            <label className="oc-field__label">Specjalizacja główna</label>
+            {!spec1Confirmed ? (
+              <div className="oc-spec-confirm">
+                <span className="oc-spec-confirm__label">Z profilu:</span>
+                <span className="oc-spec-confirm__value">{spec1}</span>
+                <button className="oc-spec-confirm__btn" onClick={() => setSpec1Confirmed(true)}>Potwierdzam</button>
+              </div>
+            ) : (
+              <div className="oc-spec-confirmed">
+                <div className="oc-spec-confirmed__info">
+                  <span className="oc-spec-confirmed__name">{spec1}</span>
+                  <span className="oc-spec-confirmed__group">Grupa {rg}</span>
+                </div>
+                <button className="oc-spec-confirmed__change" onClick={() => setSpec1Confirmed(false)}>Zmień</button>
+              </div>
+            )}
+            {!spec1Confirmed && (
+              <details className="oc-spec-confirm__details">
+                <summary>Inna specjalizacja?</summary>
+                <select className="oc-select" value={spec1} onChange={e => setSpec1(e.target.value)} style={{ marginTop: 6 }}>
+                  <option value="">— Wybierz —</option>
+                  {OC_ALL_SPECS.map(s => <option key={s.name} value={s.name}>{s.name} (grupa {s.group})</option>)}
+                </select>
+              </details>
+            )}
+          </div>
+
+          <div className="oc-field">
+            <label className="oc-field__label">Druga specjalizacja (opcjonalnie)</label>
+            <select className="oc-select" value={spec2} onChange={e => setSpec2(e.target.value)}>
+              <option value="">— Brak —</option>
+              {OC_ALL_SPECS.filter(s => s.name !== spec1).map(s => <option key={s.name} value={s.name}>{s.name} (grupa {s.group})</option>)}
+            </select>
+          </div>
+
+          <div className="oc-field">
+            <label className="oc-field__label">Pracujesz na SOR / pogotowie?</label>
+            <div className="oc-toggle">
+              <button className={"oc-toggle__btn" + (sor === true ? " oc-toggle__btn--on" : "")} onClick={() => setSor(true)}>Tak</button>
+              <button className={"oc-toggle__btn" + (sor === false ? " oc-toggle__btn--on" : "")} onClick={() => setSor(false)}>Nie</button>
+            </div>
+            {sor && <div className="oc-field__warn">Praca na SOR automatycznie kwalifikuje do grupy ryzyka III.</div>}
+          </div>
+
+          <div className="oc-field oc-field--inter">
+            <label className="oc-field__label">Nocna/świąteczna pomoc z wyjazdami? <InsurerBadge insurer="inter" /></label>
+            <div className="oc-toggle">
+              <button className={"oc-toggle__btn" + (nightEmergency === true ? " oc-toggle__btn--on" : "")} onClick={() => setNightEmergency(true)}>Tak</button>
+              <button className={"oc-toggle__btn" + (nightEmergency === false ? " oc-toggle__btn--on" : "")} onClick={() => setNightEmergency(false)}>Nie</button>
+            </div>
+          </div>
+
+          <div className="oc-field oc-field--inter">
+            <label className="oc-field__label">Zabiegi chirurgiczne / endoskopowe / radiologia interwencyjna? <InsurerBadge insurer="inter" /></label>
+            <div className="oc-toggle">
+              <button className={"oc-toggle__btn" + (surgicalProc === true ? " oc-toggle__btn--on" : "")} onClick={() => setSurgicalProc(true)}>Tak</button>
+              <button className={"oc-toggle__btn" + (surgicalProc === false ? " oc-toggle__btn--on" : "")} onClick={() => setSurgicalProc(false)}>Nie</button>
+            </div>
+          </div>
+
+          {spec1Confirmed && (
+            <div className="oc-risk-badge">
+              Twoja grupa ryzyka: <strong>Grupa {rg}</strong>
+              {rg === 3 && " — najwyższa"}
+              {rg === 2 && " — średnia"}
+              {rg === 1 && " — podstawowa"}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* ── STEP 1 ── */}
+      {step === 1 && (
+        <div className="oc-step">
+          <h3 className="oc-step__title">Zakres OC</h3>
+          <p className="oc-step__desc">Określ formę wykonywania zawodu i zakres ochrony.</p>
+
+          <div className="oc-field">
+            <label className="oc-field__label">Prowadzisz praktykę lekarską?</label>
+            <div className="oc-toggle">
+              <button className={"oc-toggle__btn" + (practice === true ? " oc-toggle__btn--on" : "")} onClick={() => setPractice(true)}>Tak</button>
+              <button className={"oc-toggle__btn" + (practice === false ? " oc-toggle__btn--on" : "")} onClick={() => setPractice(false)}>Nie</button>
+            </div>
+          </div>
+
+          {practice === true && (
+            <React.Fragment>
+              <div className="oc-field__info" style={{ marginBottom: 16 }}>
+                OC obowiązkowe jest wymagane prawnie. Minimalna suma gwarancyjna: 75 000 EUR na zdarzenie.
+              </div>
+
+              <div className="oc-field oc-field--inter">
+                <label className="oc-field__label">Suma gwarancyjna OC obowiązkowego <InsurerBadge insurer="inter" /></label>
+                <p className="oc-field__hint">Dotyczy oferty INTER — wyższe sumy dają szerszą ochronę.</p>
+                <select className="oc-select" value={interMandatorySum} onChange={e => setInterMandatorySum(e.target.value)}>
+                  <option value="">— Suma minimalna —</option>
+                  {INTER_MANDATORY_SUMS.map(s => <option key={s.value} value={s.value}>{s.label}</option>)}
+                </select>
+              </div>
+
+              <div className="oc-field oc-field--ergo">
+                <label className="oc-field__label">Podwyższenie sumy OC (nadwyżkowe) <InsurerBadge insurer="ergo" /></label>
+                <p className="oc-field__hint">Dodatkowa ochrona ponad limit obowiązkowy — dotyczy oferty Ergo Hestia.</p>
+                <div className="oc-sum-picker">
+                  {OC_SUMS.map(s => (
+                    <button key={s} className={"oc-sum-picker__btn" + (surplusSum === s ? " oc-sum-picker__btn--on" : "")}
+                      onClick={() => setSurplusSum(surplusSum === s ? "" : s)}>
+                      {s} <span className="text-muted" style={{ marginLeft: "auto", fontSize: 11 }}>+{OC_PREMIUM.surplus[s]?.[rg] || "?"} zł/rok</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="oc-field oc-field--inter">
+                <label className="oc-field__label">Rezygnacja z prawa regresu? <InsurerBadge insurer="inter" /></label>
+                <p className="oc-field__hint">Ubezpieczyciel nie będzie dochodził od Ciebie zwrotu wypłaconego odszkodowania.</p>
+                <div className="oc-toggle">
+                  <button className={"oc-toggle__btn" + (regressWaiver === true ? " oc-toggle__btn--on" : "")} onClick={() => setRegressWaiver(true)}>Tak</button>
+                  <button className={"oc-toggle__btn" + (regressWaiver === false ? " oc-toggle__btn--on" : "")} onClick={() => setRegressWaiver(false)}>Nie</button>
+                </div>
+              </div>
+
+              <div className="oc-field oc-field--inter">
+                <label className="oc-field__label">Posiadasz gabinet własny / najmowany? <InsurerBadge insurer="inter" /></label>
+                <div className="oc-toggle">
+                  <button className={"oc-toggle__btn" + (hasOwnOffice === true ? " oc-toggle__btn--on" : "")} onClick={() => setHasOwnOffice(true)}>Tak</button>
+                  <button className={"oc-toggle__btn" + (hasOwnOffice === false ? " oc-toggle__btn--on" : "")} onClick={() => setHasOwnOffice(false)}>Nie</button>
+                </div>
+                {hasOwnOffice && (
+                  <div style={{ marginTop: 8 }}>
+                    <span className="oc-field__hint">Sublimit odpowiedzialności:</span>
+                    <div className="oc-sum-picker" style={{ marginTop: 4 }}>
+                      {INTER_KLAUZULE.office.sublimits.map((s, i) => (
+                        <button key={s} className={"oc-sum-picker__btn" + (officeSub === i ? " oc-sum-picker__btn--on" : "")} onClick={() => setOfficeSub(i)}>
+                          {s} <span className="text-muted" style={{ marginLeft: "auto", fontSize: 11 }}>+{INTER_KLAUZULE.office.prices[i]} zł</span>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              <div className="oc-field oc-field--inter">
+                <label className="oc-field__label">Zatrudniasz personel medyczny? <InsurerBadge insurer="inter" /></label>
+                <div className="oc-toggle">
+                  <button className={"oc-toggle__btn" + (employsMedStaff === true ? " oc-toggle__btn--on" : "")} onClick={() => setEmploysMedStaff(true)}>Tak</button>
+                  <button className={"oc-toggle__btn" + (employsMedStaff === false ? " oc-toggle__btn--on" : "")} onClick={() => setEmploysMedStaff(false)}>Nie</button>
+                </div>
+              </div>
+
+              <div className="oc-field oc-field--inter">
+                <label className="oc-field__label">Leasingujesz sprzęt medyczny? <InsurerBadge insurer="inter" /></label>
+                <div className="oc-toggle">
+                  <button className={"oc-toggle__btn" + (leasesEquipment === true ? " oc-toggle__btn--on" : "")} onClick={() => setLeasesEquipment(true)}>Tak</button>
+                  <button className={"oc-toggle__btn" + (leasesEquipment === false ? " oc-toggle__btn--on" : "")} onClick={() => setLeasesEquipment(false)}>Nie</button>
+                </div>
+              </div>
+            </React.Fragment>
+          )}
+
+          {practice === false && (
+            <React.Fragment>
+              <div className="oc-field oc-field--ergo">
+                <label className="oc-field__label">Suma OC dobrowolnego (PLN) <InsurerBadge insurer="ergo" /></label>
+                <div className="oc-sum-picker">
+                  {OC_SUMS.map(s => (
+                    <button key={s} className={"oc-sum-picker__btn" + (voluntarySum === s ? " oc-sum-picker__btn--on" : "")}
+                      onClick={() => setVoluntarySum(voluntarySum === s ? "" : s)}>
+                      {s} <span className="text-muted" style={{ marginLeft: "auto", fontSize: 11 }}>+{OC_PREMIUM.surplus[s]?.[rg] || "?"} zł/rok</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="oc-field oc-field--inter">
+                <label className="oc-field__label">OC dobrowolne (EUR) <InsurerBadge insurer="inter" /></label>
+                <div className="oc-toggle" style={{ marginBottom: 8 }}>
+                  <button className={"oc-toggle__btn" + (interVoluntaryOc === true ? " oc-toggle__btn--on" : "")} onClick={() => setInterVoluntaryOc(true)}>Ubezpieczam</button>
+                  <button className={"oc-toggle__btn" + (interVoluntaryOc === false ? " oc-toggle__btn--on" : "")} onClick={() => setInterVoluntaryOc(false)}>Rezygnuję</button>
+                </div>
+                {interVoluntaryOc && (
+                  <div className="oc-sum-picker">
+                    {INTER_VOLUNTARY_SUMS.map(s => (
+                      <button key={s.value} className={"oc-sum-picker__btn" + (interVoluntarySum === s.value ? " oc-sum-picker__btn--on" : "")}
+                        onClick={() => setInterVoluntarySum(interVoluntarySum === s.value ? "" : s.value)}>
+                        {s.label} <span className="text-muted" style={{ marginLeft: "auto", fontSize: 11 }}>+{s.price} zł/rok</span>
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </React.Fragment>
+          )}
+        </div>
+      )}
+
+      {/* ── STEP 2 ── */}
+      {step === 2 && (
+        <div className="oc-step">
+          <h3 className="oc-step__title">Rozszerzenia ochrony</h3>
+          <p className="oc-step__desc">Dopasuj zakres do swoich potrzeb.</p>
+
+          {/* Full protection toggle */}
+          <div className={"oc-extra oc-extra--full" + (extras.legal && extras.aesthetic && extras.nfz && extras.hiv ? " oc-extra--on" : "")}
+            onClick={() => {
+              const allOn = extras.legal && extras.aesthetic && extras.nfz && extras.hiv;
+              setExtras({ legal: !allOn, aesthetic: !allOn, nfz: !allOn, hiv: !allOn });
+            }}>
+            <div className="oc-extra__top">
+              <div className="oc-extra__check">{extras.legal && extras.aesthetic && extras.nfz && extras.hiv ? "✓" : ""}</div>
+              <div className="oc-extra__body">
+                <span className="oc-extra__name">Dodaj Pełną Ochronę <span className="oc-extra__rec">Zalecane</span></span>
+                <span className="oc-extra__hint">Wszystkie rozszerzenia w jednym pakiecie</span>
+              </div>
+            </div>
+          </div>
+
+          <div className="oc-extras">
+            {OC_EXTRAS.map(ex => {
+              const on = extras[ex.key];
+              return (
+                <div key={ex.key} className={"oc-extra" + (on ? " oc-extra--on" : "")}>
+                  <div className="oc-extra__top" onClick={() => setExtras(prev => ({ ...prev, [ex.key]: !prev[ex.key] }))}>
+                    <div className="oc-extra__check">{on ? "✓" : ""}</div>
+                    <div className="oc-extra__body">
+                      <span className="oc-extra__name">
+                        {ex.label}
+                        {ex.recommended && <span className="oc-extra__rec">Zalecane</span>}
+                      </span>
+                    </div>
+                    <span className="oc-extra__price">{ex.variants[extraVariants[ex.key]]?.price || ex.variants[0].price} zł</span>
+                  </div>
+                  {on && ex.variants.length > 1 && (
+                    <div className="oc-extra__variants">
+                      <span className="oc-extra__variants-label">Suma ubezpieczenia:</span>
+                      <div className="oc-extra__variants-btns">
+                        {ex.variants.map((v, vi) => (
+                          <button key={vi} className={"oc-extra__var-btn" + (extraVariants[ex.key] === vi ? " oc-extra__var-btn--on" : "")}
+                            onClick={() => setExtraVariants(prev => ({ ...prev, [ex.key]: vi }))}>
+                            {v.sum} — {v.price} zł
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                  {/* INTER-specific variants for shared extensions */}
+                  {on && ex.key === "legal" && (
+                    <div className="oc-extra__variants" style={{ borderTop: "1px dashed var(--color-border)" }}>
+                      <span className="oc-extra__variants-label"><InsurerBadge insurer="inter" /> Wariant INTER (Ochrona Prawna):</span>
+                      <div className="oc-extra__variants-btns">
+                        {INTER_LEGAL_VARIANTS.map((v, vi) => (
+                          <button key={vi} className={"oc-extra__var-btn" + (interLegalVariant === vi ? " oc-extra__var-btn--on" : "")}
+                            onClick={() => setInterLegalVariant(vi)}>{v.label} — {v.price} zł</button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                  {on && ex.key === "hiv" && (
+                    <div className="oc-extra__variants" style={{ borderTop: "1px dashed var(--color-border)" }}>
+                      <span className="oc-extra__variants-label"><InsurerBadge insurer="inter" /> Wariant INTER (HIV/WZW z NNW):</span>
+                      <div className="oc-extra__variants-btns">
+                        {INTER_HIV_VARIANTS.map((v, vi) => (
+                          <button key={vi} className={"oc-extra__var-btn" + (interHivVariant === vi ? " oc-extra__var-btn--on" : "")}
+                            onClick={() => setInterHivVariant(vi)}>{v.label} — {v.price} zł</button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                  {on && ex.key === "nfz" && (
+                    <div className="oc-extra__variants" style={{ borderTop: "1px dashed var(--color-border)" }}>
+                      <span className="oc-extra__variants-label"><InsurerBadge insurer="inter" /> Suma INTER (kl. 23):</span>
+                      <div className="oc-extra__variants-btns">
+                        {INTER_KLAUZULE.nfzFines.sums.map((s, i) => (
+                          <button key={i} className={"oc-extra__var-btn" + (nfzSub === i ? " oc-extra__var-btn--on" : "")}
+                            onClick={() => setNfzSub(i)}>{s} — {INTER_KLAUZULE.nfzFines.prices[i]} zł</button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+
+          {/* INTER-specific: chirurgia plastyczna */}
+          <div className="oc-field oc-field--inter" style={{ marginTop: 16 }}>
+            <label className="oc-field__label">Chirurgia plastyczna (kl. 5B) <InsurerBadge insurer="inter" /></label>
+            <p className="oc-field__hint">Oddzielne od medycyny estetycznej — dotyczy wyłącznie INTER.</p>
+            <div className="oc-toggle">
+              <button className={"oc-toggle__btn" + (plasticSurgery === true ? " oc-toggle__btn--on" : "")} onClick={() => setPlasticSurgery(true)}>Tak</button>
+              <button className={"oc-toggle__btn" + (plasticSurgery === false ? " oc-toggle__btn--on" : "")} onClick={() => setPlasticSurgery(false)}>Nie</button>
+            </div>
+          </div>
+
+          {/* INTER collapsible section */}
+          <details className="oc-inter-section">
+            <summary>
+              <img src="../ubezpieczenia/loga/inter logo.webp" className="oc-inter-section__logo" alt="INTER" />
+              Dodatkowe klauzule INTER
+            </summary>
+            <div style={{ padding: "12px 0", display: "flex", flexDirection: "column", gap: 14 }}>
+              <div className="oc-field">
+                <label className="oc-field__label">Transport medyczny w Europie (kl. 4)</label>
+                <div className="oc-toggle">
+                  <button className={"oc-toggle__btn" + (euroTransport === true ? " oc-toggle__btn--on" : "")} onClick={() => setEuroTransport(true)}>Tak (+{INTER_KLAUZULE.euroTransport.price} zł)</button>
+                  <button className={"oc-toggle__btn" + (euroTransport === false ? " oc-toggle__btn--on" : "")} onClick={() => setEuroTransport(false)}>Nie</button>
+                </div>
+              </div>
+
+              <div className="oc-field">
+                <label className="oc-field__label">Naruszenie praw pacjenta (kl. 9)</label>
+                <div className="oc-toggle">
+                  <button className={"oc-toggle__btn" + (patientRights === true ? " oc-toggle__btn--on" : "")} onClick={() => setPatientRights(true)}>Tak</button>
+                  <button className={"oc-toggle__btn" + (patientRights === false ? " oc-toggle__btn--on" : "")} onClick={() => setPatientRights(false)}>Nie</button>
+                </div>
+                {patientRights && (
+                  <div className="oc-sum-picker" style={{ marginTop: 6 }}>
+                    {INTER_KLAUZULE.patientRights.sublimits.map((s, i) => (
+                      <button key={s} className={"oc-sum-picker__btn" + (patientRightsSub === i ? " oc-sum-picker__btn--on" : "")} onClick={() => setPatientRightsSub(i)}>
+                        {s} <span className="text-muted" style={{ marginLeft: "auto", fontSize: 11 }}>+{INTER_KLAUZULE.patientRights.prices[i]} zł</span>
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              <div className="oc-field">
+                <label className="oc-field__label">Biegły sądowy / orzecznik (kl. 11)</label>
+                <div className="oc-toggle">
+                  <button className={"oc-toggle__btn" + (courtExpert === true ? " oc-toggle__btn--on" : "")} onClick={() => setCourtExpert(true)}>Tak (+{INTER_KLAUZULE.courtExpert.price} zł)</button>
+                  <button className={"oc-toggle__btn" + (courtExpert === false ? " oc-toggle__btn--on" : "")} onClick={() => setCourtExpert(false)}>Nie</button>
+                </div>
+              </div>
+
+              <div className="oc-field">
+                <label className="oc-field__label">Pomoc psychologiczna</label>
+                <div className="oc-toggle">
+                  <button className={"oc-toggle__btn" + (psychHelp === true ? " oc-toggle__btn--on" : "")} onClick={() => setPsychHelp(true)}>Tak</button>
+                  <button className={"oc-toggle__btn" + (psychHelp === false ? " oc-toggle__btn--on" : "")} onClick={() => setPsychHelp(false)}>Nie</button>
+                </div>
+                {psychHelp && (
+                  <div className="oc-extra__variants-btns" style={{ marginTop: 6 }}>
+                    {INTER_PSYCH.map((v, vi) => (
+                      <button key={vi} className={"oc-extra__var-btn" + (psychHelpVariant === vi ? " oc-extra__var-btn--on" : "")}
+                        onClick={() => setPsychHelpVariant(vi)}>{v.label} — {v.price} zł</button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          </details>
+
+          {/* Claims */}
+          <div className="oc-field" style={{ marginTop: 16 }}>
+            <label className="oc-field__label">Szkody / roszczenia w ostatnich 3 latach?</label>
+            <div className="oc-toggle">
+              <button className={"oc-toggle__btn" + (hadClaim === false ? " oc-toggle__btn--on" : "")} onClick={() => { setHadClaim(false); setClaimCount(0); }}>Nie</button>
+              <button className={"oc-toggle__btn" + (hadClaim === true ? " oc-toggle__btn--warn" : "")} onClick={() => setHadClaim(true)}>Tak</button>
+            </div>
+            {hadClaim && (
+              <React.Fragment>
+                <div className="oc-field oc-field--inter" style={{ marginTop: 10 }}>
+                  <label className="oc-field__label">Ile szkód w ostatnich 36 miesiącach? <InsurerBadge insurer="inter" /></label>
+                  <input type="number" min="0" max="20" className="oc-select" style={{ maxWidth: 120 }}
+                    value={claimCount} onChange={e => setClaimCount(parseInt(e.target.value) || 0)} />
+                </div>
+                <div className="oc-field__error-box" style={{ marginTop: 8 }}>
+                  Ergo Hestia: standardowa kalkulacja niedostępna — konsultant oceni indywidualnie.<br/>
+                  INTER: {claimCount <= 2 ? "kalkulacja możliwa przy " + claimCount + " szkodach." : "wymagana indywidualna ocena."}
+                </div>
+              </React.Fragment>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* ── STEP 3: INTER extras ── */}
+      {step === 3 && (
+        <div className="oc-step">
+          <h3 className="oc-step__title">Produkty dodatkowe INTER</h3>
+          <p className="oc-step__desc">Opcjonalne produkty dostępne wyłącznie w ofercie INTER Polska.</p>
+
+          <div className="oc-field__info" style={{ marginBottom: 16 }}>
+            <img src="../ubezpieczenia/loga/inter logo.webp" alt="INTER" style={{ height: 14, verticalAlign: "middle", marginRight: 6 }} />
+            Te produkty wpływają wyłącznie na ofertę INTER. Możesz je pominąć.
+          </div>
+
+          <div className={"oc-extra" + (interTour ? " oc-extra--on" : "")}>
+            <div className="oc-extra__top" onClick={() => setInterTour(!interTour)}>
+              <div className="oc-extra__check">{interTour ? "✓" : ""}</div>
+              <div className="oc-extra__body">
+                <span className="oc-extra__name">INTER Tour 365 — ubezpieczenie podróży</span>
+                <span className="oc-extra__hint">Roczna polisa podróżna dla lekarzy.</span>
+              </div>
+            </div>
+            {interTour && (
+              <div style={{ padding: "12px 0 4px 36px", display: "flex", flexDirection: "column", gap: 10, borderTop: "1px solid var(--color-border)", marginTop: 8 }}>
+                <div>
+                  <span className="oc-extra__variants-label">Wariant:</span>
+                  <div className="oc-extra__variants-btns" style={{ marginTop: 4 }}>
+                    {INTER_TOUR.variants.map((v, vi) => (
+                      <button key={vi} className={"oc-extra__var-btn" + (interTourVariant === vi ? " oc-extra__var-btn--on" : "")}
+                        onClick={() => setInterTourVariant(vi)}>{v.label} — od {v.basePrice} zł</button>
+                    ))}
+                  </div>
+                </div>
+                <div className="oc-toggle" style={{ maxWidth: 400 }}>
+                  <button className={"oc-toggle__btn" + (interTourExtreme ? " oc-toggle__btn--on" : "")} onClick={() => setInterTourExtreme(!interTourExtreme)}>Sporty ekstremalne (+{INTER_TOUR.extremeAddon} zł)</button>
+                </div>
+                <div className="oc-toggle" style={{ maxWidth: 400 }}>
+                  <button className={"oc-toggle__btn" + (interTourPoland ? " oc-toggle__btn--on" : "")} onClick={() => setInterTourPoland(!interTourPoland)}>Polska (+{INTER_TOUR.polandAddon} zł)</button>
+                </div>
+                <div className="oc-toggle" style={{ maxWidth: 400 }}>
+                  <button className={"oc-toggle__btn" + (interTourGroup ? " oc-toggle__btn--on" : "")} onClick={() => setInterTourGroup(!interTourGroup)}>Polisa grupowa (+{INTER_TOUR.groupAddon} zł)</button>
+                </div>
+              </div>
+            )}
+          </div>
+
+          <button className="oc-skip-btn" onClick={() => { setInterTour(false); setStep(4); }}>
+            Pomiń — nie potrzebuję dodatkowych produktów
+          </button>
+        </div>
+      )}
+
+      {/* ── STEP 4: Podsumowanie ── */}
+      {step === 4 && (
+        <div className="oc-step">
+          <h3 className="oc-step__title">Podsumowanie</h3>
+          <p className="oc-step__desc">Sprawdź dane i porównaj oferty.</p>
+
+          <div className="oc-premium-card">
+            <span className="oc-premium-card__label">Szacowana składka roczna</span>
+            <span className="oc-premium-card__value">
+              {Math.min(ergo.total, inter.total)} – {Math.max(ergo.total, inter.total)} zł
+            </span>
+            <div className="oc-premium-card__items">
+              <div className="oc-premium-card__row"><span>Ergo Hestia</span><span>{ergo.total} zł / rok</span></div>
+              <div className="oc-premium-card__row"><span>INTER Polska</span><span>{inter.total} zł / rok</span></div>
+            </div>
+          </div>
+
+          <div className="oc-summary">
+            <div className="oc-summary__row"><span>Specjalizacja</span><strong>{spec1}{spec2 ? ", " + spec2 : ""}</strong></div>
+            <div className="oc-summary__row"><span>SOR / pogotowie</span><strong>{sor ? "Tak" : "Nie"}</strong></div>
+            <div className="oc-summary__row"><span>Grupa ryzyka</span><strong>Grupa {rg}</strong></div>
+            <div className="oc-summary__row"><span>Praktyka lekarska</span><strong>{practice ? "Tak" : "Nie"}</strong></div>
+
+            {practice && surplusSum && <div className="oc-summary__row"><span>OC nadwyżkowe (Ergo)</span><strong>{surplusSum}</strong></div>}
+            {practice && interMandatorySum && <div className="oc-summary__row"><span>Suma OC obowiązkowego (INTER)</span><strong>{INTER_MANDATORY_SUMS.find(s => s.value === interMandatorySum)?.label || interMandatorySum}</strong></div>}
+            {!practice && voluntarySum && <div className="oc-summary__row"><span>OC dobrowolne (Ergo)</span><strong>{voluntarySum}</strong></div>}
+            {!practice && interVoluntaryOc && interVoluntarySum && <div className="oc-summary__row"><span>OC dobrowolne (INTER)</span><strong>{INTER_VOLUNTARY_SUMS.find(s => s.value === interVoluntarySum)?.label || interVoluntarySum}</strong></div>}
+
+            {nightEmergency && <div className="oc-summary__row"><span>Nocna/świąteczna pomoc</span><strong>Tak</strong></div>}
+            {surgicalProc && <div className="oc-summary__row"><span>Zabiegi chirurgiczne</span><strong>Tak</strong></div>}
+            {regressWaiver && <div className="oc-summary__row"><span>Rezygnacja z regresu</span><strong>Tak</strong></div>}
+            {hasOwnOffice && <div className="oc-summary__row"><span>Gabinet (kl. 12)</span><strong>{INTER_KLAUZULE.office.sublimits[officeSub]}</strong></div>}
+            {employsMedStaff && <div className="oc-summary__row"><span>Personel medyczny (kl. 1)</span><strong>Tak</strong></div>}
+            {leasesEquipment && <div className="oc-summary__row"><span>Leasing sprzętu (kl. 2)</span><strong>Tak</strong></div>}
+
+            {extras.legal && <div className="oc-summary__row"><span>Ochrona prawna</span><strong>{OC_EXTRAS[0].variants[extraVariants.legal]?.sum}</strong></div>}
+            {extras.aesthetic && <div className="oc-summary__row"><span>Medycyna estetyczna</span><strong>{OC_EXTRAS[1].variants[extraVariants.aesthetic]?.sum}</strong></div>}
+            {extras.nfz && <div className="oc-summary__row"><span>Kary NFZ</span><strong>{OC_EXTRAS[2].variants[extraVariants.nfz]?.sum}</strong></div>}
+            {extras.hiv && <div className="oc-summary__row"><span>HIV/WZW</span><strong>Tak</strong></div>}
+
+            {plasticSurgery && <div className="oc-summary__row"><span>Chirurgia plastyczna (kl. 5B)</span><strong>Tak</strong></div>}
+            {euroTransport && <div className="oc-summary__row"><span>Transport Europa (kl. 4)</span><strong>Tak</strong></div>}
+            {patientRights && <div className="oc-summary__row"><span>Prawa pacjenta (kl. 9)</span><strong>{INTER_KLAUZULE.patientRights.sublimits[patientRightsSub]}</strong></div>}
+            {courtExpert && <div className="oc-summary__row"><span>Biegły sądowy (kl. 11)</span><strong>Tak</strong></div>}
+            {psychHelp && <div className="oc-summary__row"><span>Pomoc psychologiczna</span><strong>{INTER_PSYCH[psychHelpVariant]?.label}</strong></div>}
+            {interTour && <div className="oc-summary__row"><span>INTER Tour 365</span><strong>{INTER_TOUR.variants[interTourVariant]?.label}</strong></div>}
+
+            <div className="oc-summary__row"><span>Szkodowość</span><strong>{hadClaim ? "Tak (" + claimCount + ")" : "Brak"}</strong></div>
+          </div>
+        </div>
+      )}
+
+      {/* Navigation */}
+      <div className="oc-nav">
+        {step > 0 && <button className="oc-nav__back" onClick={() => setStep(s => s - 1)}>← Wstecz</button>}
+        {step < 4 ? (
+          <button className="oc-nav__next" disabled={!canNext()} onClick={() => setStep(s => s + 1)}>Dalej →</button>
+        ) : (
+          <button className="oc-nav__next" onClick={startCalc}>
+            {hadClaim && claimCount > 2 ? "Wyślij zapytanie" : "Porównaj oferty ubezpieczycieli"}
+          </button>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function InsuranceV2View() {
+  return (
+    <div style={{ maxWidth: 680 }}>
+      <div style={{ marginBottom: 20 }}>
+        <h2 style={{ fontSize: 20, fontWeight: 700, margin: "0 0 4px" }}>OC lekarskie</h2>
+        <p className="text-sm text-muted">Porównaj oferty Ergo Hestia i INTER Polska w jednym formularzu.</p>
+      </div>
+      <div style={{ display: "flex", alignItems: "center", gap: 20, marginBottom: 20, padding: "12px 16px", background: "var(--color-bg-subtle)", borderRadius: 10 }}>
+        <span className="text-sm text-muted">Ubezpieczyciele:</span>
+        <img src="../ubezpieczenia/loga/ergohestia.png" alt="Ergo Hestia" style={{ height: 28 }} />
+        <img src="../ubezpieczenia/loga/inter logo.webp" alt="INTER" style={{ height: 22 }} />
+      </div>
+      <OcFormV2 />
     </div>
   );
 }
@@ -4004,7 +4940,8 @@ const VIEWS = {
   "discounts-v3": DiscountsV3View,
   "discounts-v4": DiscountsV4View,
   advisors:       AdvisorsView,
-  insurance:   InsuranceView,
+  insurance:      InsuranceView,
+  "insurance-v2": InsuranceV2View,
   investments: InvestmentsView,
   profile:     ProfileView,
 };

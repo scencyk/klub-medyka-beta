@@ -5242,3 +5242,100 @@ img { display: block; max-width: 100%; }
 .ob-option--compact .ob-option__sub {
   font-size: 11px;
 }
+
+/* ── OC FORM V2 — insurer badges & INTER section ───── */
+
+.oc-insurer-badge {
+  display: inline-flex;
+  align-items: center;
+  height: 14px;
+  max-width: 60px;
+  margin-left: 6px;
+  opacity: 0.55;
+  vertical-align: middle;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+.oc-insurer-badge img {
+  display: block;
+  height: 12px !important;
+  max-height: 12px !important;
+  width: auto !important;
+  max-width: 60px !important;
+  object-fit: contain;
+}
+
+.oc-field--inter {
+  border-left: 2px solid #6366f1;
+  padding-left: 12px;
+  margin-left: -2px;
+}
+.oc-field--ergo {
+  border-left: 2px solid #059669;
+  padding-left: 12px;
+  margin-left: -2px;
+}
+
+.oc-inter-section {
+  margin-top: 16px;
+  border: 1.5px solid var(--color-border);
+  border-radius: 10px;
+  overflow: hidden;
+}
+.oc-inter-section summary {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 14px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-fg);
+  cursor: pointer;
+  transition: background 0.15s;
+  list-style: none;
+}
+.oc-inter-section summary::-webkit-details-marker { display: none; }
+.oc-inter-section summary::before {
+  content: "▸";
+  font-size: 11px;
+  color: var(--color-muted);
+  transition: transform 0.2s;
+}
+.oc-inter-section[open] summary::before {
+  transform: rotate(90deg);
+}
+.oc-inter-section summary:hover {
+  background: var(--color-bg-subtle);
+}
+.oc-inter-section__logo {
+  height: 14px;
+  width: auto;
+  object-fit: contain;
+  opacity: 0.6;
+}
+.oc-inter-section[open] {
+  border-color: #6366f1;
+}
+.oc-inter-section > div {
+  padding: 0 14px 14px;
+}
+
+.oc-skip-btn {
+  display: block;
+  width: 100%;
+  margin-top: 20px;
+  padding: 10px 20px;
+  border-radius: 8px;
+  border: 1.5px dashed var(--color-border);
+  background: var(--color-bg);
+  color: var(--color-muted);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  text-align: center;
+  transition: all 0.15s;
+}
+.oc-skip-btn:hover {
+  border-color: #a1a1aa;
+  color: var(--color-fg);
+}
