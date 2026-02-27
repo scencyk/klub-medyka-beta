@@ -607,7 +607,7 @@ const NAV_SECTIONS = [
       { id: "discounts-v2", label: "Zniżki v2",     icon: "discounts" },
       { id: "discounts-v3", label: "Zniżki v3",     icon: "discounts" },
       // { id: "discounts-v4", label: "Zniżki v4",     icon: "discounts" },
-      { id: "packages",    label: "Usługi",        icon: "packages",    soon: true },
+      { id: "packages",    label: "Usługi",        icon: "packages" },
       { id: "advisors",    label: "Twoi doradcy",  icon: "advisors"  },
       { id: "investments", label: "Inwestycje",    icon: "investments", soon: true },
     ],
