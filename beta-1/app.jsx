@@ -4947,7 +4947,7 @@ const VIEWS = {
 };
 
 function App() {
-  const [onboarded, setOnboarded] = useState(true); // TODO: zmień na false aby włączyć onboarding
+  const [onboarded, setOnboarded] = useState(false);
   const [active,    setActive_]   = useState("overview");
   const [navKey,    setNavKey]    = useState(0);
   const [cart,      setCart]      = useState([]);
