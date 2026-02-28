@@ -624,7 +624,7 @@ const INSURANCE_CATEGORIES = [
   { id: "oc",     name: "OC lekarskie",   icon: "shield", tag: "Obowiązkowe", tagVariant: "red",  priceLabel: "od 69 zł/mies.",    desc: "Odpowiedzialność cywilna za błędy w sztuce lekarskiej. Wymagane prawnie.", noMissing: false },
   { id: "income", name: "Utrata dochodu", icon: "wallet", tag: "Zalecane",    tagVariant: "warn", priceLabel: "~80–350 zł/mies.",  desc: "Ochrona przychodu przy chorobie lub wypadku.", noMissing: false },
   { id: "life",   name: "Na życie",       icon: "heart",  tag: null,          tagVariant: null,   priceLabel: "~60–400 zł/mies.",  desc: "Ochrona rodziny na wypadek śmierci lub niezdolności do pracy.", noMissing: false },
-  { id: "travel", name: "Podróże",        icon: "plane",  tag: null,          tagVariant: null,   priceLabel: "od 19 zł/mies.",    desc: "Roczna polisa — podróże prywatne i konferencje medyczne.", provider: "INTER", noMissing: true },
+  { id: "travel", name: "Podróże",        icon: "plane",  tag: "Wkrótce",     tagVariant: "muted", priceLabel: "od 19 zł/mies.",   desc: "Roczna polisa — podróże prywatne i konferencje medyczne.", provider: "INTER", noMissing: true, disabled: true },
   { id: "other",  name: "Inne",           icon: "list",   tag: null,          tagVariant: null,   priceLabel: null,                desc: "NNW, mieszkanie, auto, OC prywatne.", noMissing: true },
 ];
 
@@ -4447,10 +4447,10 @@ function InsuranceView() {
           const daysLeft = expiry ? Math.max(0, Math.ceil((new Date(expiry) - new Date()) / 86400000)) : null;
 
           return (
-            <div key={cat.id} className={`ins-card ins-card--status ${status ? "ins-card--covered" : cat.noMissing ? "" : "ins-card--missing"}`}>
+            <div key={cat.id} className={`ins-card ins-card--status ${cat.disabled ? "ins-card--disabled" : status ? "ins-card--covered" : cat.noMissing ? "" : "ins-card--missing"}`}>
               <div className="ins-card__icon">
                 <InsIcon id={cat.icon} />
-                {status && (
+                {status && !cat.disabled && (
                   <span className="ins-card__check">
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M20 6L9 17l-5-5"/></svg>
                   </span>
@@ -4460,11 +4460,12 @@ function InsuranceView() {
                 <div className="ins-card__top">
                   <span className="ins-card__name">{cat.name}</span>
                   {cat.tag && <Pill variant={cat.tagVariant}>{cat.tag}</Pill>}
-                  {status === "km" && <span className="ins-card__status-badge ins-card__status-badge--active">Aktywne</span>}
+                  {status === "km" && !cat.disabled && <span className="ins-card__status-badge ins-card__status-badge--active">Aktywne</span>}
                   {isExternal && <span className="ins-card__status-badge ins-card__status-badge--ext">Polisa zewnętrzna</span>}
                 </div>
-                {!status && cat.priceLabel && <span className="ins-card__price">{cat.priceLabel}</span>}
-                {!status && !cat.priceLabel && <span className="ins-card__price ins-card__price--muted">Wycena indywidualna</span>}
+                {!status && !cat.disabled && cat.priceLabel && <span className="ins-card__price">{cat.priceLabel}</span>}
+                {!status && !cat.disabled && !cat.priceLabel && <span className="ins-card__price ins-card__price--muted">Wycena indywidualna</span>}
+                {cat.disabled && <span className="ins-card__price ins-card__price--muted">{cat.desc}</span>}
                 {status === "km" && daysLeft !== null && (
                   <span className="ins-card__expiry">
                     <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
@@ -4479,7 +4480,7 @@ function InsuranceView() {
                 )}
               </div>
               <div className="ins-card__actions">
-                {!status && (
+                {!status && !cat.disabled && (
                   <>
                     <button className="ins-card__btn ins-card__btn--primary" onClick={() => setSelected(cat)}>
                       Znajdź ofertę

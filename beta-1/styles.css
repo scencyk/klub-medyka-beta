@@ -158,6 +158,7 @@ img { display: block; max-width: 100%; }
 .pill--warn    { color: var(--color-warn);  background: var(--color-warn-bg); }
 .pill--accent  { color: var(--color-accent); background: #EEF2FF; }
 .pill--red     { color: var(--color-red);   background: var(--color-red-bg); }
+.pill--muted   { color: #a1a1aa; background: #f4f4f5; }
 
 /* ─── FORM INPUTS ───────────────────────────────────────────────────────── */
 
@@ -1180,6 +1181,20 @@ img { display: block; max-width: 100%; }
 .ins-card--missing:hover .ins-card__name {
   color: var(--color-foreground);
 }
+.ins-card--disabled {
+  border: 1.5px solid #e5e7eb;
+  background: #f9fafb;
+  opacity: 0.55;
+  pointer-events: none;
+}
+.ins-card--disabled .ins-card__icon {
+  opacity: 0.35;
+  filter: grayscale(100%);
+}
+.ins-card--disabled .ins-card__name {
+  color: #a1a1aa;
+}
+
 .ins-card--covered {
   border: 1.5px solid #bbf7d0;
   background: #f8fdf9;
