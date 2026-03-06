@@ -1498,7 +1498,7 @@ function Overview({ setActive, profile, setProfile }) {
           <div className="scroll-row" style={{ minWidth: 0 }}>
             {recommendedProducts.map(p => (
               <div key={p.id} className="scroll-row__item card" style={{ overflow: "hidden", cursor: "pointer" }} onClick={() => setActive("purchases")}>
-                <div style={{ aspectRatio: "4/3", background: "var(--color-secondary)", display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden" }}>
+                <div style={{ aspectRatio: "4/3", background: "#fff", display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden" }}>
                   {p.photo
                     ? <img src={p.photo} alt={p.model} style={{ width: "100%", height: "100%", objectFit: "contain", padding: 12 }} />
                     : <span style={{ fontSize: 32 }}>{p.emoji}</span>
