@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback, useMemo, useId } from 'react';
 import { createRoot } from 'react-dom/client';
 import { createPortal } from 'react-dom';
-import { motion, AnimatePresence, useSpring, useTransform, motionValue } from 'motion/react';
+import { motion, AnimatePresence, useSpring, useTransform, motionValue, useInView } from 'motion/react';
 import useMeasure from 'react-use-measure';
 import './styles.css';
 
@@ -734,7 +734,7 @@ const CARS_CATALOG = [
     specs: { fuel: "Elektryczny", engine: "Dual Motor", power: "366 KM", torque: "493 Nm", transmission: "1-biegowa", drive: "AWD", acceleration: "4,4 s (0–100)", topSpeed: "201 km/h", consumption: "14,4 kWh/100 km", co2: "0 g/km", range: "602 km (WLTP)", trunk: "561 L", seats: 5, year: 2025, type: "Wynajem d\u0142ugoterminowy", duration: "24 mies.", mileage: "25 000 km/rok" } },
   { id: "vehis", brand: "VEHIS", model: "Wirtualny salon", desc: "Konfiguruj i zam\u00f3w online bez wychodzenia", price: "wycena online", priceOld: null, priceNote: null, emoji: "🛒", photo: "https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?w=600&h=450&fit=crop",
     specs: null },
-  { id: "mooveno", brand: "Mooveno", model: "Elastyczny wynajem", desc: "Od 1 miesi\u0105ca \u00b7 r\u00f3\u017cne marki", price: "od 1 800 z\u0142/mies.", priceOld: null, priceNote: "Rata netto", emoji: "🔑", photo: "https://images.unsplash.com/photo-1549317661-bd32c8ce0afa?w=600&h=450&fit=crop",
+  { id: "mooveno", brand: "Mooveno", model: "Elastyczny wynajem", desc: "Od 1 miesi\u0105ca \u00b7 r\u00f3\u017cne marki", price: "od 1 800 z\u0142/mies.", priceOld: null, priceNote: "Rata netto", emoji: "🔑", photo: "https://images.unsplash.com/photo-1552519507-da3b142c6e3d?w=600&h=450&fit=crop&q=80",
     specs: null },
 ];
 
@@ -1117,10 +1117,9 @@ const NAV_SECTIONS = [
     items: [
       { id: "overview",    label: "Panel główny",  icon: "overview"  },
       { id: "purchases",   label: "Zakupy",        icon: "purchases" },
-      { id: "cars",        label: "Samochody",     icon: "cars" },
       { id: "discounts",   label: "Zniżki",        icon: "discounts" },
+      { id: "cars",        label: "Samochody",     icon: "cars" },
       { id: "packages",    label: "Usługi",        icon: "packages", soon: true },
-      { id: "advisors",    label: "Twoi doradcy",  icon: "advisors"  },
       { id: "investments", label: "Inwestycje",    icon: "investments", soon: true },
       { id: "insurance",   label: "Ubezpieczenia", icon: "insurance", soon: true },
     ],
@@ -1129,6 +1128,7 @@ const NAV_SECTIONS = [
     header: "Konto",
     items: [
       { id: "profile", label: "Mój profil", icon: "profile", badge: 2 },
+      { id: "advisors",    label: "Twoi doradcy",  icon: "advisors"  },
     ],
   },
 ];
@@ -1398,6 +1398,23 @@ const OB_INTERESTS = [
 ];
 
 // ─── SHARED COMPONENTS ────────────────────────────────────────────────────────
+
+function InView({ children, className, style }) {
+  const ref = useRef(null);
+  const isInView = useInView(ref, { once: true, margin: "-80px" });
+  return (
+    <motion.div
+      ref={ref}
+      className={className}
+      style={style}
+      initial={{ opacity: 0, y: 24 }}
+      animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 24 }}
+      transition={{ duration: 0.5, ease: [0.25, 0.46, 0.45, 0.94] }}
+    >
+      {children}
+    </motion.div>
+  );
+}
 
 function Pill({ children, variant = "default" }) {
   return <span className={`pill pill--${variant}`}>{children}</span>;
@@ -1703,7 +1720,17 @@ function Sidebar({ active, setActive, theme, setTheme, profile }) {
               return (
                 <button key={item.id} onClick={() => !item.soon && setActive(item.id)} className={cls}>
                   <span className="sidebar__link-left">
-                    {item.icon && ICONS[item.icon]}
+                    {item.icon && (
+                      <motion.span
+                        key={isActive ? "active" : "idle"}
+                        initial={isActive ? { scale: 0.6, rotate: -15 } : false}
+                        animate={isActive ? { scale: 1, rotate: 0 } : { scale: 1, rotate: 0 }}
+                        transition={{ type: "spring", stiffness: 400, damping: 15 }}
+                        style={{ display: "inline-flex" }}
+                      >
+                        {ICONS[item.icon]}
+                      </motion.span>
+                    )}
                     {item.label}
                   </span>
                   {item.badge && !isActive && (
@@ -1722,8 +1749,6 @@ function Sidebar({ active, setActive, theme, setTheme, profile }) {
         ))}
       </nav>
 
-      <ThemeToggle theme={theme} setTheme={setTheme} />
-
       {/* User profile */}
       <div className="sidebar__profile" onClick={() => setActive("profile")}>
         <img className="sidebar__profile-avatar" src={USER_AVATAR} alt={displayName} />
@@ -1738,9 +1763,15 @@ function Sidebar({ active, setActive, theme, setTheme, profile }) {
 
 // ─── TOP BAR ──────────────────────────────────────────────────────────────────
 
-function TopBar({ active, setActive, cart, onCartClick, onNotifClick }) {
+function TopBar({ active, setActive, cart, onCartClick, onNotifClick, theme, setTheme }) {
   const label = NAV_SECTIONS.flatMap(s => s.items).find(i => i.id === active)?.label || "";
   const cartCount = cart ? cart.reduce((s, i) => s + i.qty, 0) : 0;
+  const [themeOpen, setThemeOpen] = useState(false);
+  const themeIconPaths = theme === "dark"
+    ? <g transform="translate(11,11) scale(0.75)"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z" stroke="var(--color-fg)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" fill="none"/></g>
+    : theme === "light"
+    ? <g transform="translate(11,11) scale(0.75)"><circle cx="12" cy="12" r="5" stroke="var(--color-fg)" strokeWidth="1.8" fill="none"/><line x1="12" y1="1" x2="12" y2="3" stroke="var(--color-fg)" strokeWidth="1.8" strokeLinecap="round"/><line x1="12" y1="21" x2="12" y2="23" stroke="var(--color-fg)" strokeWidth="1.8" strokeLinecap="round"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64" stroke="var(--color-fg)" strokeWidth="1.8" strokeLinecap="round"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78" stroke="var(--color-fg)" strokeWidth="1.8" strokeLinecap="round"/><line x1="1" y1="12" x2="3" y2="12" stroke="var(--color-fg)" strokeWidth="1.8" strokeLinecap="round"/><line x1="21" y1="12" x2="23" y2="12" stroke="var(--color-fg)" strokeWidth="1.8" strokeLinecap="round"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36" stroke="var(--color-fg)" strokeWidth="1.8" strokeLinecap="round"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22" stroke="var(--color-fg)" strokeWidth="1.8" strokeLinecap="round"/></g>
+    : <g transform="translate(11,11) scale(0.75)"><circle cx="12" cy="12" r="9" stroke="var(--color-fg)" strokeWidth="1.8" fill="none"/><path d="M12 3a9 9 0 010 18" fill="var(--color-fg)"/></g>;
   return (
     <header className="topbar">
       <span className="topbar__title"></span>
@@ -1765,6 +1796,33 @@ function TopBar({ active, setActive, cart, onCartClick, onNotifClick }) {
           </svg>
           {cartCount > 0 && <span className="topbar__cart-badge">{cartCount}</span>}
         </button>
+        <div style={{ position: "relative" }}>
+          <button className="topbar__icon-btn" onClick={() => setThemeOpen(!themeOpen)} title="Motyw">
+            <svg width="40" height="40" viewBox="0 0 40 40" fill="none">
+              <rect width="40" height="40" rx="20" fill="var(--color-secondary)"/>
+              {themeIconPaths}
+            </svg>
+          </button>
+          <AnimatePresence>
+            {themeOpen && (
+              <>
+                <div style={{ position: "fixed", inset: 0, zIndex: 9 }} onClick={() => setThemeOpen(false)} />
+                <motion.div className="theme-dropdown" initial={{ opacity: 0, scale: 0.9, y: -4 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.9, y: -4 }} transition={{ duration: 0.15 }}>
+                  {[
+                    { id: "light", label: "Jasny", icon: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg> },
+                    { id: "dark", label: "Ciemny", icon: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg> },
+                    { id: "system", label: "Auto", icon: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg> },
+                  ].map(m => (
+                    <button key={m.id} className={`theme-dropdown__item${theme === m.id ? " theme-dropdown__item--active" : ""}`} onClick={() => { setTheme(m.id); setThemeOpen(false); }}>
+                      {m.icon}
+                      {m.label}
+                    </button>
+                  ))}
+                </motion.div>
+              </>
+            )}
+          </AnimatePresence>
+        </div>
         <a href="https://remedium.md" target="_blank" rel="noopener noreferrer" className="topbar__remedium">
           <svg className="topbar__remedium-avatar" width="24" height="24" viewBox="0 0 24 24" fill="none">
             <rect width="24" height="24" rx="12" fill="white"/>
@@ -1835,11 +1893,14 @@ function getRelevantAdvisors(profile) {
 
 // ─── Overview component ───
 
-function Overview({ setActive, profile, setProfile }) {
-  const [contactDropdown, setContactDropdown] = useState(null);
+function Overview({ setActive, profile, setProfile, unlockedDiscounts, unlockDiscount }) {
+  const [advisorsOpen, setAdvisorsOpen] = useState(false);
+  const [bookingDropdown, setBookingDropdown] = useState(null);
   const [contactBooked, setContactBooked] = useState({});
   const [advisorQuestions, setAdvisorQuestions] = useState({});
   const [selectedDiscount, setSelectedDiscount] = useState(null);
+  const [discountTab, setDiscountTab] = useState("forYou");
+  const [prefsOpen, setPrefsOpen] = useState(false);
 
   const toggleInterest = (id) => {
     setProfile(prev => ({
@@ -1849,6 +1910,11 @@ function Overview({ setActive, profile, setProfile }) {
   };
 
   const personalizedDiscounts = useMemo(() => getPersonalizedDiscounts(profile), [profile]);
+  const newestDiscounts = useMemo(() => [...DISCOUNTS].sort((a, b) => {
+    const numA = parseInt(a.id.replace("d", ""), 10);
+    const numB = parseInt(b.id.replace("d", ""), 10);
+    return numB - numA;
+  }).slice(0, 6), []);
   const recommendedProducts = useMemo(() => getRecommendedProducts(profile), [profile]);
   const relevantAdvisors = useMemo(() => getRelevantAdvisors(profile), [profile]);
   const showCars = profile.interests.includes("car") || profile.role === "specialist" || profile.role === "senior";
@@ -1866,20 +1932,46 @@ function Overview({ setActive, profile, setProfile }) {
       <div>
         <div className="text-xs font-semibold text-muted" style={{ letterSpacing: "0.05em", textTransform: "uppercase", marginBottom: 8 }}>{monthLabel.toUpperCase()}</div>
         <h1 style={{ fontSize: 30, fontWeight: 700, letterSpacing: "-0.04em", lineHeight: 1.15, margin: 0 }}>
-          Dzień dobry,<br />dr {displayName}.
+          <TextEffect per="char" preset="fade-in-blur" delay={0.1} as="span">{`Dzień dobry, ${displayName}.`}</TextEffect>
         </h1>
         {roleLabel && (
-          <div className="text-sm text-muted" style={{ marginTop: 8, display: "flex", alignItems: "center", gap: 6 }}>
-            <span style={{ display: "inline-block", width: 6, height: 6, borderRadius: "50%", background: "var(--color-accent)", flexShrink: 0 }} />
+          <button className="role-btn" onClick={() => setPrefsOpen(true)}>
+            <span className="role-btn__dot" />
             {roleLabel}
-          </div>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+          </button>
         )}
       </div>
 
+      {/* Preferences dialog */}
+      <AnimatePresence>
+        {prefsOpen && (
+          <>
+            <motion.div className="prefs-backdrop" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setPrefsOpen(false)} />
+            <motion.div className="prefs-dialog" initial={{ opacity: 0, scale: 0.95, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95, y: 20 }} transition={{ type: "spring", stiffness: 400, damping: 30 }}>
+              <div className="prefs-dialog__header">
+                <h3 className="prefs-dialog__title">Co Cię interesuje?</h3>
+                <button className="drawer__close" onClick={() => setPrefsOpen(false)}>
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                </button>
+              </div>
+              <p className="text-sm text-muted" style={{ margin: "0 0 16px" }}>Zaznacz tematy — dopasujemy oferty i zniżki do Ciebie.</p>
+              <div className="prefs-dialog__chips">
+                {OB_INTERESTS.map(n => (
+                  <button key={n.id}
+                    className={`interest-chip${profile.interests.includes(n.id) ? " interest-chip--selected" : ""}`}
+                    onClick={() => toggleInterest(n.id)}>
+                    <span style={{ marginRight: 6 }}>{n.icon}</span> {n.label}
+                  </button>
+                ))}
+              </div>
+              <button className="prefs-dialog__done" onClick={() => setPrefsOpen(false)}>Gotowe</button>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
 
-
-
-      {/* 5. Co Cię interesuje? */}
+      {/* 5. Co Cię interesuje? — wyłączone tymczasowo
       <div>
         <SectionHeader title="Co Cię interesuje?" />
         <p className="text-sm text-muted mb-2">Zaznacz tematy — dopasujemy oferty i zniżki do Ciebie.</p>
@@ -1893,32 +1985,68 @@ function Overview({ setActive, profile, setProfile }) {
           ))}
         </div>
       </div>
+      */}
 
-      {/* 6. Personalized discounts */}
-      {personalizedDiscounts.length > 0 && (
-        <div>
-          <SectionHeader title="Dopasowane zniżki" action="Wszystkie" onAction={() => setActive("discounts")} />
-          <div className="discount-grid" style={{ gridTemplateColumns: "repeat(3, 1fr)" }}>
-            {personalizedDiscounts.map(d => (
-              <div key={d.id} className="discount-card" onClick={() => setSelectedDiscount(d)}>
-                <div className="discount-card__hero">
-                  <img src={d.hero} alt={d.partner} className="discount-card__hero-img" />
-                  <span className="discount-card__badge">{d.badge}</span>
-                </div>
-                <div className="discount-card__body">
-                  <img src={d.logo} alt={d.partner} className="discount-card__logo" />
-                  <div className="discount-card__title">{d.title}</div>
-                </div>
-              </div>
+      {/* 6. Discounts — tabbed: Dla Ciebie / Nowości */}
+      <InView>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
+          <div className="discount-tabs">
+            {[{ id: "forYou", label: "Dla Ciebie" }, { id: "new", label: "Nowości" }].map(tab => (
+              <button
+                key={tab.id}
+                className={`discount-tabs__btn${discountTab === tab.id ? " discount-tabs__btn--active" : ""}`}
+                onClick={() => setDiscountTab(tab.id)}
+              >
+                {tab.label}
+                {discountTab === tab.id && (
+                  <motion.div className="discount-tabs__indicator" layoutId="discountTabIndicator" transition={{ type: "spring", stiffness: 500, damping: 35 }} />
+                )}
+              </button>
             ))}
           </div>
-          {selectedDiscount && <DiscountDrawer discount={selectedDiscount} onClose={() => setSelectedDiscount(null)} />}
+          <button className="section-header__action" onClick={() => setActive("discounts")}>Wszystkie</button>
         </div>
-      )}
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={discountTab}
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -8 }}
+            transition={{ duration: 0.2 }}
+          >
+            <div className="discount-grid" style={{ gridTemplateColumns: "repeat(3, 1fr)" }}>
+              {(discountTab === "forYou" ? personalizedDiscounts : newestDiscounts).map(d => (
+                <TiltCard key={d.id} className="discount-card" onClick={() => setSelectedDiscount(d)}>
+                  <div className="discount-card__hero">
+                    <img src={d.hero} alt={d.partner} className="discount-card__hero-img" />
+                    <span className="discount-card__badge">{d.badge}</span>
+                    {unlockedDiscounts.has(d.id) && (
+                      <span className="discount-card__unlocked">
+                        <svg width="20" height="20" viewBox="0 0 23 23" fill="none">
+                          <path d="M19.9652 0H2.85217C1.27696 0 0 1.27696 0 2.85217V19.9652C0 21.5404 1.27696 22.8173 2.85217 22.8173H19.9652C21.5404 22.8173 22.8173 21.5404 22.8173 19.9652V2.85217C22.8173 1.27696 21.5404 0 19.9652 0Z" fill="#18181B"/>
+                          <path d="M11.5447 11.0658L16.8498 7.54338L14.6465 3.75L5.96875 9.24042L5.99014 9.27607C5.99014 9.27607 5.97588 9.27607 5.96875 9.27607V13.6613C8.89222 13.6613 11.2667 16.0928 11.2667 19.0733H15.6519C15.6519 15.7719 14.0261 12.8484 11.5447 11.0729V11.0658Z" fill="#CEFF3E"/>
+                        </svg>
+                      </span>
+                    )}
+                  </div>
+                  <div className="discount-card__body">
+                    <div className="discount-card__brand">
+                      <img src={d.logo} alt={d.partner} className="discount-card__logo" />
+                      <span className="discount-card__partner">{d.partner}</span>
+                    </div>
+                    <div className="discount-card__title">{d.title}</div>
+                  </div>
+                </TiltCard>
+              ))}
+            </div>
+          </motion.div>
+        </AnimatePresence>
+        {selectedDiscount && <DiscountDrawer discount={selectedDiscount} onClose={() => setSelectedDiscount(null)} isUnlocked={unlockedDiscounts.has(selectedDiscount.id)} onUnlock={unlockDiscount} />}
+      </InView>
 
       {/* 7. Recommended products */}
       {recommendedProducts.length > 0 && (
-        <div>
+        <InView>
           <SectionHeader title="Polecane produkty" action="Sklep" onAction={() => setActive("purchases")} />
           <div className="scroll-row" style={{ minWidth: 0 }}>
             {recommendedProducts.map(p => (
@@ -1939,15 +2067,14 @@ function Overview({ setActive, profile, setProfile }) {
               </div>
             ))}
           </div>
-        </div>
+        </InView>
       )}
 
       {/* 8. Advisors */}
-      <div>
+      <InView>
         <SectionHeader title="Twoi doradcy" />
         <div className="advisor-grid">
           {relevantAdvisors.map(a => {
-            const openId = contactDropdown === a.id;
             const booked = contactBooked[a.id];
             const question = advisorQuestions[a.id] || "";
             return (
@@ -1958,6 +2085,9 @@ function Overview({ setActive, profile, setProfile }) {
                     <div className="text-sm font-semibold" style={{ lineHeight: 1.35 }}>{a.name}</div>
                     <div className="text-xs text-muted">{a.role}</div>
                   </div>
+                  <button className="advisor-tile__calendar-btn" onClick={() => setAdvisorsOpen(prev => !prev)} title="Umów kontakt">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                  </button>
                 </div>
                 {a.tags && a.tags.length > 0 && (
                   <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
@@ -1966,55 +2096,69 @@ function Overview({ setActive, profile, setProfile }) {
                     ))}
                   </div>
                 )}
-                <a href={`tel:${a.phone}`} className="advisor-tile__phone">{a.phone}</a>
-                <div style={{ position: "relative" }}>
-                  {booked ? (
-                    <div className="contact-booked">
-                      <span className="text-green">✓</span> {booked}
-                      {question && <div className="text-xs text-muted" style={{ marginTop: 4 }}>{question}</div>}
-                      <button className="contact-booked__change" onClick={() => {
-                        setContactBooked(prev => { const n = { ...prev }; delete n[a.id]; return n; });
-                        setAdvisorQuestions(prev => { const n = { ...prev }; delete n[a.id]; return n; });
-                      }}>Zmień</button>
-                    </div>
-                  ) : (
-                    <React.Fragment>
-                      <textarea
-                        className="advisor-question"
-                        placeholder="Napisz krótkie pytanie (opcjonalnie)..."
-                        rows={2}
-                        value={question}
-                        onChange={(e) => setAdvisorQuestions(prev => ({ ...prev, [a.id]: e.target.value }))}
-                      />
-                      <button className="btn btn--outline btn--sm contact-request-btn" onClick={() => setContactDropdown(openId ? null : a.id)}>
-                        Zamów kontakt
-                      </button>
-                    </React.Fragment>
+                <AnimatePresence>
+                  {advisorsOpen && (
+                    <motion.div
+                      initial={{ height: 0, opacity: 0 }}
+                      animate={{ height: "auto", opacity: 1 }}
+                      exit={{ height: 0, opacity: 0 }}
+                      transition={{ duration: 0.25, ease: [0.25, 0.46, 0.45, 0.94] }}
+                      style={{ overflow: "hidden" }}
+                    >
+                      <div className="advisor-tile__contact">
+                        <a href={`tel:${a.phone}`} className="advisor-tile__phone">{a.phone}</a>
+                        {booked ? (
+                          <div className="contact-booked">
+                            <span className="text-green">✓</span> {booked}
+                            {question && <div className="text-xs text-muted" style={{ marginTop: 4 }}>{question}</div>}
+                            <button className="contact-booked__change" onClick={() => {
+                              setContactBooked(prev => { const n = { ...prev }; delete n[a.id]; return n; });
+                              setAdvisorQuestions(prev => { const n = { ...prev }; delete n[a.id]; return n; });
+                            }}>Zmień</button>
+                          </div>
+                        ) : (
+                          <React.Fragment>
+                            <textarea
+                              className="advisor-question"
+                              placeholder="Napisz krótkie pytanie (opcjonalnie)..."
+                              rows={2}
+                              value={question}
+                              onChange={(e) => setAdvisorQuestions(prev => ({ ...prev, [a.id]: e.target.value }))}
+                            />
+                            <div style={{ position: "relative" }}>
+                              <button className="btn btn--outline btn--sm contact-request-btn" onClick={() => setBookingDropdown(bookingDropdown === a.id ? null : a.id)}>
+                                Zamów kontakt
+                              </button>
+                              {bookingDropdown === a.id && (
+                                <div className="contact-dropdown">
+                                  <div className="contact-dropdown__label">Kiedy mamy zadzwonić?</div>
+                                  {CONTACT_SLOTS.map(slot => (
+                                    <button key={slot.id} className="contact-dropdown__item" onClick={() => {
+                                      setContactBooked(prev => ({ ...prev, [a.id]: slot.label }));
+                                      setBookingDropdown(null);
+                                    }}>
+                                      {slot.label}
+                                    </button>
+                                  ))}
+                                </div>
+                              )}
+                            </div>
+                          </React.Fragment>
+                        )}
+                      </div>
+                    </motion.div>
                   )}
-                  {openId && (
-                    <div className="contact-dropdown">
-                      <div className="contact-dropdown__label">Kiedy mamy zadzwonić?</div>
-                      {CONTACT_SLOTS.map(slot => (
-                        <button key={slot.id} className="contact-dropdown__item" onClick={() => {
-                          setContactBooked(prev => ({ ...prev, [a.id]: slot.label }));
-                          setContactDropdown(null);
-                        }}>
-                          {slot.label}
-                        </button>
-                      ))}
-                    </div>
-                  )}
-                </div>
+                </AnimatePresence>
               </div>
             );
           })}
         </div>
-      </div>
+      </InView>
 
 
       {/* 10. Cars spotlight (conditional) */}
       {showCars && CARS_CATALOG.length > 0 && (
-        <div>
+        <InView>
           <SectionHeader title="Samochody" action="Wszystkie" onAction={() => setActive("cars")} />
           <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 12 }}>
             {CARS_CATALOG.filter(c => c.photo).slice(0, 2).map(c => (
@@ -2030,7 +2174,7 @@ function Overview({ setActive, profile, setProfile }) {
               </div>
             ))}
           </div>
-        </div>
+        </InView>
       )}
     </div>
   );
@@ -3089,11 +3233,51 @@ function TiltCard({ children, className, onClick }) {
   );
 }
 
-function DiscountDrawer({ discount: d, onClose }) {
+function UnlockIcon() {
+  const [showLock, setShowLock] = useState(false);
+  useEffect(() => {
+    const timer = setInterval(() => setShowLock(v => !v), 1800);
+    return () => clearInterval(timer);
+  }, []);
+  return (
+    <div style={{ width: 64, height: 64, position: "relative" }}>
+      <svg width="64" height="64" viewBox="0 0 23 23" fill="none" style={{ display: "block" }}>
+        <path d="M19.9652 0H2.85217C1.27696 0 0 1.27696 0 2.85217V19.9652C0 21.5404 1.27696 22.8173 2.85217 22.8173H19.9652C21.5404 22.8173 22.8173 21.5404 22.8173 19.9652V2.85217C22.8173 1.27696 21.5404 0 19.9652 0Z" fill="#18181B"/>
+      </svg>
+      <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center" }}>
+        <AnimatePresence mode="wait">
+          {showLock ? (
+            <motion.svg key="lock" width="30" height="30" viewBox="0 0 24 24" fill="none"
+              initial={{ opacity: 0, scale: 0.4, rotate: -30 }}
+              animate={{ opacity: 1, scale: 1, rotate: [0, -12, 12, -6, 0] }}
+              exit={{ opacity: 0, scale: 0.4, rotate: 30 }}
+              transition={{ duration: 0.25, rotate: { delay: 0.2, duration: 0.5 } }}>
+              <rect x="3" y="11" width="18" height="11" rx="2" ry="2" stroke="#CEFF3E" strokeWidth="1.8" fill="none"/>
+              <path d="M7 11V7a5 5 0 0 1 10 0v4" stroke="#CEFF3E" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
+            </motion.svg>
+          ) : (
+            <motion.svg key="sygnet" width="44" height="44" viewBox="0 0 23 23" fill="none"
+              initial={{ opacity: 0, scale: 0.4, rotate: 30 }}
+              animate={{ opacity: 1, scale: 1, rotate: 0 }}
+              exit={{ opacity: 0, scale: 0.4, rotate: -30 }}
+              transition={{ duration: 0.25 }}>
+              <path d="M11.5447 11.0658L16.8498 7.54338L14.6465 3.75L5.96875 9.24042L5.99014 9.27607C5.99014 9.27607 5.97588 9.27607 5.96875 9.27607V13.6613C8.89222 13.6613 11.2667 16.0928 11.2667 19.0733H15.6519C15.6519 15.7719 14.0261 12.8484 11.5447 11.0729V11.0658Z" fill="#CEFF3E"/>
+            </motion.svg>
+          )}
+        </AnimatePresence>
+      </div>
+    </div>
+  );
+}
+
+function DiscountDrawer({ discount: d, onClose, isUnlocked, onUnlock }) {
   const [generatedCode, setGeneratedCode] = useState(null);
   const [copied, setCopied] = useState(false);
   const [showFullDesc, setShowFullDesc] = useState(false);
   const [closing, setClosing] = useState(false);
+  const [unlockPhase, setUnlockPhase] = useState("idle"); // "idle" | "loading" | "success"
+  const [showUnlockToast, setShowUnlockToast] = useState(false);
+
   const generateCode = () => {
     const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
     let code = "REMTD";
@@ -3109,7 +3293,28 @@ function DiscountDrawer({ discount: d, onClose }) {
     setTimeout(() => setCopied(false), 3000);
   };
   const handleClose = () => { setClosing(true); setTimeout(onClose, 250); };
+
+  const handleUnlock = () => {
+    setUnlockPhase("loading");
+    setTimeout(() => {
+      setUnlockPhase("success");
+      setShowUnlockToast(true);
+      setTimeout(() => setShowUnlockToast(false), 4000);
+      setTimeout(() => { if (onUnlock) onUnlock(d.id); }, 600);
+    }, 1500);
+  };
+
   if (!d) return null;
+
+  const unlocked = isUnlocked || unlockPhase === "success";
+
+  const KMSygnet = ({ size = 56, spinning = false }) => (
+    <svg width={size} height={size} viewBox="0 0 23 23" fill="none" className={spinning ? "drawer__unlock-spin" : ""}>
+      <path d="M19.9652 0H2.85217C1.27696 0 0 1.27696 0 2.85217V19.9652C0 21.5404 1.27696 22.8173 2.85217 22.8173H19.9652C21.5404 22.8173 22.8173 21.5404 22.8173 19.9652V2.85217C22.8173 1.27696 21.5404 0 19.9652 0Z" fill="#18181B"/>
+      <path d="M11.5447 11.0658L16.8498 7.54338L14.6465 3.75L5.96875 9.24042L5.99014 9.27607C5.99014 9.27607 5.97588 9.27607 5.96875 9.27607V13.6613C8.89222 13.6613 11.2667 16.0928 11.2667 19.0733H15.6519C15.6519 15.7719 14.0261 12.8484 11.5447 11.0729V11.0658Z" fill="#CEFF3E"/>
+    </svg>
+  );
+
   return (
     <React.Fragment>
       <div className={`drawer-overlay${closing ? " drawer-overlay--closing" : ""}`} onClick={handleClose}></div>
@@ -3126,76 +3331,130 @@ function DiscountDrawer({ discount: d, onClose }) {
         </div>
 
         <div className="drawer__content">
-          {/* Hero — mniejszy */}
-          <div className="drawer__hero drawer__hero--compact">
-            <img src={d.hero} alt={d.partner} className="drawer__hero-img" />
-          </div>
-
-          {/* Tytuł + krótki opis */}
-          <div className="drawer__title">{d.title}</div>
-          <p className="drawer__desc-short">{d.desc}</p>
-
-          {/* Sekcja kodu — tylko jeśli needsCode */}
-          {d.needsCode && (
-            <div className="drawer__code-box">
-              <div className="drawer__code-box-label">Kod zniżkowy</div>
-              {generatedCode ? (
-                <div>
-                  <div className="drawer__code-row">
-                    <div className="drawer__code-value">{generatedCode}</div>
-                    <button className="drawer__code-copy" onClick={copyCode} title="Kopiuj">
-                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
-                    </button>
-                    <button className="drawer__code-refresh" onClick={generateCode} title="Nowy kod">
-                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/></svg>
-                    </button>
+          <AnimatePresence mode="wait">
+            {!unlocked ? (
+              <motion.div key="locked" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0, y: -12 }} transition={{ duration: 0.2 }}>
+                {/* Ekran odblokowania */}
+                <div className="drawer__unlock-hero">
+                  <img src={d.hero} alt={d.partner} className="drawer__hero-img" />
+                  <div className="drawer__unlock-overlay">
+                    <UnlockIcon />
                   </div>
-                  {copied && <div className="drawer__code-toast">Kod skopiowany do schowka</div>}
                 </div>
-              ) : (
-                <button className="drawer__btn-primary" onClick={generateCode}>
-                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M5.99479 6.0026H6.00146M9.99479 6.0026L5.99479 10.0026M9.99479 10.0026H10.0015M1.32812 6.0026C1.85856 6.0026 2.36727 6.21332 2.74234 6.58839C3.11741 6.96346 3.32813 7.47217 3.32813 8.0026C3.32813 8.53304 3.11741 9.04175 2.74234 9.41682C2.36727 9.79189 1.85856 10.0026 1.32812 10.0026L1.32812 11.3359C1.32812 11.6896 1.4686 12.0287 1.71865 12.2787C1.9687 12.5288 2.30784 12.6693 2.66146 12.6693L13.3281 12.6693C13.6817 12.6693 14.0209 12.5288 14.2709 12.2787C14.521 12.0287 14.6615 11.6896 14.6615 11.3359V10.0026C14.131 10.0026 13.6223 9.79189 13.2472 9.41682C12.8722 9.04175 12.6615 8.53304 12.6615 8.0026C12.6615 7.47217 12.8722 6.96346 13.2472 6.58839C13.6223 6.21332 14.131 6.0026 14.6615 6.0026V4.66927C14.6615 4.31565 14.521 3.97651 14.2709 3.72646C14.0209 3.47641 13.6817 3.33594 13.3281 3.33594L2.66146 3.33594C2.30784 3.33594 1.9687 3.47641 1.71865 3.72646C1.4686 3.97651 1.32813 4.31565 1.32812 4.66927L1.32812 6.0026Z" stroke="currentColor" strokeWidth="1.33" strokeLinecap="round" strokeLinejoin="round"/></svg>
-                  Wygeneruj kod zniżkowy
-                </button>
-              )}
-            </div>
-          )}
 
-          {/* Jak skorzystać — kroki */}
-          {d.howToUse && d.howToUse.length > 0 && (
-            <div className="drawer__how-to-use">
-              <div className="drawer__how-to-use-label">Jak skorzystać</div>
-              <ol className="drawer__how-to-use-steps">
-                {d.howToUse.map((step, i) => <li key={i}>{step}</li>)}
-              </ol>
-            </div>
-          )}
+                <div className="drawer__unlock-info">
+                  <div className="drawer__unlock-partner">{d.partner}</div>
+                  <div className="drawer__title">{d.title}</div>
+                  <p className="drawer__desc-short drawer__desc-short--clamp">{d.desc}</p>
 
-          {/* Szczegóły — rozwijane */}
-          {d.fullDesc && (
-            <React.Fragment>
-              <button className="drawer__details-toggle" onClick={() => setShowFullDesc(!showFullDesc)}>
-                Szczegóły oferty
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ transform: showFullDesc ? "rotate(180deg)" : "", transition: "transform 0.2s" }}><polyline points="6 9 12 15 18 9"/></svg>
-              </button>
-              {showFullDesc && <p className="drawer__desc-full">{d.fullDesc}</p>}
-            </React.Fragment>
-          )}
+                  <button
+                    className={`drawer__unlock-btn${unlockPhase === "loading" ? " drawer__unlock-btn--loading" : ""}${unlockPhase === "success" ? " drawer__unlock-btn--success" : ""}`}
+                    onClick={handleUnlock}
+                    disabled={unlockPhase !== "idle"}
+                  >
+                    {unlockPhase === "idle" && (
+                      <>
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                        Odblokuj zniżkę
+                      </>
+                    )}
+                    {unlockPhase === "loading" && (
+                      <>
+                        <KMSygnet size={20} spinning />
+                        Odblokowywanie...
+                      </>
+                    )}
+                    {unlockPhase === "success" && (
+                      <>
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                        Zniżka odblokowana!
+                      </>
+                    )}
+                  </button>
 
-          {/* Link do partnera */}
-          {d.url && (
-            <a href={d.url} target="_blank" rel="noopener noreferrer" className="drawer__btn-outline">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
-              Przejdź na stronę partnera
-            </a>
-          )}
+                  <p className="drawer__unlock-note">Zniżka zostanie przypisana do Twojego konta w Klubie Medyka</p>
+                </div>
+              </motion.div>
+            ) : (
+              <motion.div key="unlocked" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.25 }} style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+                {/* Pełny widok — odblokowany */}
+                <div className="drawer__hero drawer__hero--compact">
+                  <img src={d.hero} alt={d.partner} className="drawer__hero-img" />
+                </div>
+
+                <div className="drawer__title">{d.title}</div>
+                <p className="drawer__desc-short">{d.desc}</p>
+
+                {d.needsCode && (
+                  <div className="drawer__code-box">
+                    <div className="drawer__code-box-label">Kod zniżkowy</div>
+                    {generatedCode ? (
+                      <div>
+                        <div className="drawer__code-row">
+                          <div className="drawer__code-value">{generatedCode}</div>
+                          <button className="drawer__code-copy" onClick={copyCode} title="Kopiuj">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                          </button>
+                          <button className="drawer__code-refresh" onClick={generateCode} title="Nowy kod">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/></svg>
+                          </button>
+                        </div>
+                        {copied && <div className="drawer__code-toast">Kod skopiowany do schowka</div>}
+                      </div>
+                    ) : (
+                      <button className="drawer__btn-primary" onClick={generateCode}>
+                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M5.99479 6.0026H6.00146M9.99479 6.0026L5.99479 10.0026M9.99479 10.0026H10.0015M1.32812 6.0026C1.85856 6.0026 2.36727 6.21332 2.74234 6.58839C3.11741 6.96346 3.32813 7.47217 3.32813 8.0026C3.32813 8.53304 3.11741 9.04175 2.74234 9.41682C2.36727 9.79189 1.85856 10.0026 1.32812 10.0026L1.32812 11.3359C1.32812 11.6896 1.4686 12.0287 1.71865 12.2787C1.9687 12.5288 2.30784 12.6693 2.66146 12.6693L13.3281 12.6693C13.6817 12.6693 14.0209 12.5288 14.2709 12.2787C14.521 12.0287 14.6615 11.6896 14.6615 11.3359V10.0026C14.131 10.0026 13.6223 9.79189 13.2472 9.41682C12.8722 9.04175 12.6615 8.53304 12.6615 8.0026C12.6615 7.47217 12.8722 6.96346 13.2472 6.58839C13.6223 6.21332 14.131 6.0026 14.6615 6.0026V4.66927C14.6615 4.31565 14.521 3.97651 14.2709 3.72646C14.0209 3.47641 13.6817 3.33594 13.3281 3.33594L2.66146 3.33594C2.30784 3.33594 1.9687 3.47641 1.71865 3.72646C1.4686 3.97651 1.32813 4.31565 1.32812 4.66927L1.32812 6.0026Z" stroke="currentColor" strokeWidth="1.33" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                        Wygeneruj kod zniżkowy
+                      </button>
+                    )}
+                  </div>
+                )}
+
+                {d.howToUse && d.howToUse.length > 0 && (
+                  <div className="drawer__how-to-use">
+                    <div className="drawer__how-to-use-label">Jak skorzystać</div>
+                    <ol className="drawer__how-to-use-steps">
+                      {d.howToUse.map((step, i) => <li key={i}>{step}</li>)}
+                    </ol>
+                  </div>
+                )}
+
+                {d.fullDesc && (
+                  <React.Fragment>
+                    <button className="drawer__details-toggle" onClick={() => setShowFullDesc(!showFullDesc)}>
+                      Szczegóły oferty
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ transform: showFullDesc ? "rotate(180deg)" : "", transition: "transform 0.2s" }}><polyline points="6 9 12 15 18 9"/></svg>
+                    </button>
+                    {showFullDesc && <p className="drawer__desc-full">{d.fullDesc}</p>}
+                  </React.Fragment>
+                )}
+
+                {d.url && (
+                  <a href={d.url} target="_blank" rel="noopener noreferrer" className="drawer__btn-outline">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+                    Przejdź na stronę partnera
+                  </a>
+                )}
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
       </div>
+      {showUnlockToast && createPortal(
+        <div className="unlock-toast">
+          <svg width="20" height="20" viewBox="0 0 23 23" fill="none">
+            <path d="M19.9652 0H2.85217C1.27696 0 0 1.27696 0 2.85217V19.9652C0 21.5404 1.27696 22.8173 2.85217 22.8173H19.9652C21.5404 22.8173 22.8173 21.5404 22.8173 19.9652V2.85217C22.8173 1.27696 21.5404 0 19.9652 0Z" fill="#18181B"/>
+            <path d="M11.5447 11.0658L16.8498 7.54338L14.6465 3.75L5.96875 9.24042L5.99014 9.27607C5.99014 9.27607 5.97588 9.27607 5.96875 9.27607V13.6613C8.89222 13.6613 11.2667 16.0928 11.2667 19.0733H15.6519C15.6519 15.7719 14.0261 12.8484 11.5447 11.0729V11.0658Z" fill="#CEFF3E"/>
+          </svg>
+          Zniżka przypisana do Twojego konta!
+        </div>,
+        document.body
+      )}
     </React.Fragment>
   );
 }
 
-function DiscountsView() {
+function DiscountsView({ unlockedDiscounts, unlockDiscount }) {
   const [filter, setFilter] = useState("all");
   const [selectedDiscount, setSelectedDiscount] = useState(null);
   const [viewMode, setViewMode] = useState("cards");
@@ -3246,9 +3505,20 @@ function DiscountsView() {
               <div className="discount-card__hero">
                 <img src={d.hero} alt={d.partner} className="discount-card__hero-img" />
                 <span className="discount-card__badge">{d.badge}</span>
+                {unlockedDiscounts.has(d.id) && (
+                  <span className="discount-card__unlocked">
+                    <svg width="20" height="20" viewBox="0 0 23 23" fill="none">
+                      <path d="M19.9652 0H2.85217C1.27696 0 0 1.27696 0 2.85217V19.9652C0 21.5404 1.27696 22.8173 2.85217 22.8173H19.9652C21.5404 22.8173 22.8173 21.5404 22.8173 19.9652V2.85217C22.8173 1.27696 21.5404 0 19.9652 0Z" fill="#18181B"/>
+                      <path d="M11.5447 11.0658L16.8498 7.54338L14.6465 3.75L5.96875 9.24042L5.99014 9.27607C5.99014 9.27607 5.97588 9.27607 5.96875 9.27607V13.6613C8.89222 13.6613 11.2667 16.0928 11.2667 19.0733H15.6519C15.6519 15.7719 14.0261 12.8484 11.5447 11.0729V11.0658Z" fill="#CEFF3E"/>
+                    </svg>
+                  </span>
+                )}
               </div>
               <div className="discount-card__body">
-                <img src={d.logo} alt={d.partner} className="discount-card__logo" />
+                <div className="discount-card__brand">
+                  <img src={d.logo} alt={d.partner} className="discount-card__logo" />
+                  <span className="discount-card__partner">{d.partner}</span>
+                </div>
                 <div className="discount-card__title">{d.title}</div>
                 <p className="discount-card__desc">{d.desc}</p>
               </div>
@@ -3263,7 +3533,7 @@ function DiscountsView() {
         </div>
       )}
 
-      {selectedDiscount && <DiscountDrawer discount={selectedDiscount} onClose={() => setSelectedDiscount(null)} />}
+      {selectedDiscount && <DiscountDrawer discount={selectedDiscount} onClose={() => setSelectedDiscount(null)} isUnlocked={unlockedDiscounts?.has(selectedDiscount.id)} onUnlock={unlockDiscount} />}
     </div>
   );
 }
@@ -4982,9 +5252,7 @@ function InvestmentsView() {
 
 // ─── PROFILE VIEW ─────────────────────────────────────────────────────────────
 
-function ProfileView({ profile, setProfile }) {
-  const [claimedIds, setClaimedIds] = useState({});
-  const [copiedId,   setCopiedId]   = useState(null);
+function ProfileView({ profile, setProfile, unlockedDiscounts, setActive }) {
   const [editing,    setEditing]    = useState(false);
   const [draft, setDraft] = useState(profile);
 
@@ -4998,10 +5266,7 @@ function ProfileView({ profile, setProfile }) {
   const roleLabel = OB_ROLES.find(r => r.id === profile.role)?.label || "";
   const workLabels = profile.work.map(w => OB_WORK.find(o => o.id === w)?.label).filter(Boolean);
 
-  const perks = [
-    { id: "cinema",  title: "2× bilet do kina",  brand: "Cinema City", value: "2 × 35 zł", code: "MEDYK-CC-0224", expires: "11 dni" },
-    { id: "massage", title: "Voucher na masaż",   brand: "Zdrovit Spa", value: "120 zł",     code: "KLUB-SPA-0224", expires: "11 dni" },
-  ];
+  const unlockedList = DISCOUNTS.filter(d => unlockedDiscounts?.has(d.id));
 
   return (
     <div style={{ maxWidth: 560, display: "flex", flexDirection: "column", gap: 32 }}>
@@ -5118,41 +5383,26 @@ function ProfileView({ profile, setProfile }) {
       </div>
 
       <div>
-        <SectionHeader title="Świadczenia — Luty 2026" />
-        <div className="card">
-          {perks.map(p => (
-            <div key={p.id} style={{ borderBottom: "1px solid var(--color-border)", opacity: claimedIds[p.id] ? 0.48 : 1 }}>
-              <div style={{ padding: "16px 20px" }}>
-                <div className="flex" style={{ justifyContent: "space-between", alignItems: "flex-start", marginBottom: 10 }}>
-                  <div>
-                    <div className="font-semibold" style={{ fontSize: 13 }}>{p.title}</div>
-                    <div className="text-xs text-muted mt-2">{p.brand} · wygasa za {p.expires}</div>
-                  </div>
-                  <span className="font-bold" style={{ fontSize: 14 }}>{p.value}</span>
+        <SectionHeader title="Odblokowane zniżki" action={unlockedList.length > 0 ? "Wszystkie zniżki" : undefined} onAction={() => setActive("discounts")} />
+        {unlockedList.length > 0 ? (
+          <div className="card" style={{ padding: 0 }}>
+            {unlockedList.map((d, i) => (
+              <div key={d.id} className="profile-discount" style={{ borderBottom: i < unlockedList.length - 1 ? "1px solid var(--color-border)" : "none" }}>
+                <img src={d.logo} alt={d.partner} className="profile-discount__logo" />
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div className="text-sm font-semibold" style={{ lineHeight: 1.3 }}>{d.title}</div>
+                  <div className="text-xs text-muted">{d.partner}</div>
                 </div>
-                <div className="ticket__tear" style={{ margin: 0, paddingTop: 12 }}>
-                  <div className="ticket__notch ticket__notch--left" style={{ left: -26 }} />
-                  <div className="ticket__notch ticket__notch--right" style={{ right: -26 }} />
-                  <div className="flex items-center" style={{ justifyContent: "space-between", paddingTop: 12 }}>
-                    <span className="font-mono font-bold text-muted" style={{ fontSize: 12, letterSpacing: "0.05em" }}>{p.code}</span>
-                    {claimedIds[p.id] ? (
-                      <span className="text-sm font-semibold text-green">✓ Odebrano</span>
-                    ) : (
-                      <div className="flex" style={{ gap: 8 }}>
-                        <button onClick={() => { setCopiedId(p.id); setTimeout(() => setCopiedId(null), 2000); }}
-                          className="section-header__action" style={{ fontSize: 12, fontWeight: 600, color: copiedId === p.id ? "var(--color-green)" : undefined }}>
-                          {copiedId === p.id ? "✓ Skopiowano" : "Kopiuj"}
-                        </button>
-                        <Btn variant="primary" onClick={() => setClaimedIds(c => ({ ...c, [p.id]: true }))} className="btn--sm">Odbierz</Btn>
-                      </div>
-                    )}
-                  </div>
-                </div>
+                <span className="profile-discount__badge">{d.badge}</span>
               </div>
-            </div>
-          ))}
-        </div>
-        <div className="text-xs text-muted mt-2">Nowe świadczenia 1. dnia każdego miesiąca.</div>
+            ))}
+          </div>
+        ) : (
+          <div className="card" style={{ padding: "32px 20px", textAlign: "center" }}>
+            <p className="text-sm text-muted">Nie masz jeszcze odblokowanych zniżek.</p>
+            <button className="section-header__action" style={{ marginTop: 8 }} onClick={() => setActive("discounts")}>Przeglądaj zniżki</button>
+          </div>
+        )}
       </div>
     </div>
   );
@@ -5637,6 +5887,9 @@ function Preloader({ onDone }) {
       <div className="preloader__bar">
         <div className="preloader__bar-fill" />
       </div>
+      <div className="preloader__powered">
+        <img src="/powered-by-white.svg" alt="Wykonał remedium" />
+      </div>
     </div>
   );
 }
@@ -5653,6 +5906,8 @@ function App() {
   const [cart,      setCart]      = useState([]);
   const [cartOpen,  setCartOpen]  = useState(false);
   const [notifOpen, setNotifOpen] = useState(false);
+  const [unlockedDiscounts, setUnlockedDiscounts] = useState(new Set());
+  const unlockDiscount = (id) => setUnlockedDiscounts(prev => new Set(prev).add(id));
 
   const setActive = (id) => { setActive_(id); setNavKey(k => k + 1); };
 
@@ -5712,9 +5967,9 @@ function App() {
     <div className="app-layout">
       <Sidebar active={active} setActive={setActive} theme={theme} setTheme={setTheme} profile={profile} />
       <div className={`main${topbarHidden ? " main--topbar-hidden" : ""}`}>
-        <TopBar active={active} setActive={setActive} cart={cart} onCartClick={() => setCartOpen(true)} onNotifClick={() => setNotifOpen(true)} />
+        <TopBar active={active} setActive={setActive} cart={cart} onCartClick={() => setCartOpen(true)} onNotifClick={() => setNotifOpen(true)} theme={theme} setTheme={setTheme} />
         <main className="main__content" ref={scrollRef}>
-          <View key={navKey} setActive={setActive} addToCart={addToCart} cart={cart} removeFromCart={removeFromCart} profile={profile} setProfile={setProfile} />
+          <View key={navKey} setActive={setActive} addToCart={addToCart} cart={cart} removeFromCart={removeFromCart} profile={profile} setProfile={setProfile} unlockedDiscounts={unlockedDiscounts} unlockDiscount={unlockDiscount} />
         </main>
       </div>
       {notifOpen && <NotificationsDrawer onClose={() => setNotifOpen(false)} profile={profile} />}
