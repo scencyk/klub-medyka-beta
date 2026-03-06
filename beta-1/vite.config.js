@@ -7,5 +7,9 @@ export default defineConfig({
     port: 8080,
     open: '/beta-1/',
   },
-  base: './',
+  base: '/klub-medyka-beta/',
+  build: {
+    outDir: '../docs',
+    emptyOutDir: true,
+  },
 });
