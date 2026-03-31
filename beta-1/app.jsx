@@ -1120,7 +1120,6 @@ const NAV_SECTIONS = [
       { id: "discounts",   label: "Zniżki",        icon: "discounts" },
       { id: "cars",        label: "Samochody",     icon: "cars" },
       { id: "packages",    label: "Usługi",        icon: "packages" },
-      { id: "investments", label: "Inwestycje",    icon: "investments", soon: true },
       { id: "insurance",   label: "Ubezpieczenia", icon: "insurance" },
     ],
   },
@@ -5745,7 +5744,7 @@ function App() {
     try { const s = localStorage.getItem(PROFILE_KEY); return s ? !!JSON.parse(s).role : false; } catch { return false; }
   });
   const [loading,   setLoading]   = useState(true);
-  const [active,    setActive_]   = useState("insurance");
+  const [active,    setActive_]   = useState("overview");
   const [navKey,    setNavKey]    = useState(0);
   const [cart,      setCart]      = useState([]);
   const [cartOpen,  setCartOpen]  = useState(false);
