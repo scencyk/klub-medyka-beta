@@ -1119,9 +1119,9 @@ const NAV_SECTIONS = [
       { id: "purchases",   label: "Zakupy",        icon: "purchases" },
       { id: "discounts",   label: "Zniżki",        icon: "discounts" },
       { id: "cars",        label: "Samochody",     icon: "cars" },
-      { id: "packages",    label: "Usługi",        icon: "packages", soon: true },
+      { id: "packages",    label: "Usługi",        icon: "packages" },
       { id: "investments", label: "Inwestycje",    icon: "investments", soon: true },
-      { id: "insurance",   label: "Ubezpieczenia", icon: "insurance", soon: true },
+      { id: "insurance",   label: "Ubezpieczenia", icon: "insurance" },
     ],
   },
   {
@@ -1136,9 +1136,6 @@ const NAV_SECTIONS = [
 const INSURANCE_CATEGORIES = [
   { id: "oc",     name: "OC lekarskie",   icon: "shield", tag: "Obowiązkowe", tagVariant: "red",  priceLabel: "od 69 zł/mies.",    desc: "Odpowiedzialność cywilna za błędy w sztuce lekarskiej. Wymagane prawnie.", noMissing: false },
   { id: "income", name: "Utrata dochodu", icon: "wallet", tag: "Zalecane",    tagVariant: "warn", priceLabel: "~80–350 zł/mies.",  desc: "Ochrona przychodu przy chorobie lub wypadku.", noMissing: false },
-  { id: "life",   name: "Na życie",       icon: "heart",  tag: null,          tagVariant: null,   priceLabel: "~60–400 zł/mies.",  desc: "Ochrona rodziny na wypadek śmierci lub niezdolności do pracy.", noMissing: false },
-  { id: "travel", name: "Podróże",        icon: "plane",  tag: "Wkrótce",     tagVariant: "muted", priceLabel: "od 19 zł/mies.",   desc: "Roczna polisa — podróże prywatne i konferencje medyczne.", provider: "INTER", noMissing: true, disabled: true },
-  { id: "other",  name: "Inne",           icon: "list",   tag: null,          tagVariant: null,   priceLabel: null,                desc: "NNW, mieszkanie, auto, OC prywatne.", noMissing: true },
 ];
 
 /* ── OC DATA ─────────────────────────────────────────── */
@@ -1367,9 +1364,7 @@ function interCalc(d) {
 }
 
 const INS_PARTNERS = [
-  { name: "PZU",                 logo: "ubezpieczenia/loga/PZU_logo.png",   h: 36 },
   { name: "Ergo Hestia",        logo: "ubezpieczenia/loga/ergohestia.png",  h: 34 },
-  { name: "INTER Ubezpieczenia", logo: "ubezpieczenia/loga/inter logo.webp", h: 26 },
   { name: "Lloyd's",            logo: "ubezpieczenia/loga/lloyds.png",      h: 18 },
 ];
 
@@ -4490,74 +4485,7 @@ function InsuranceDetail({ cat, onBack }) {
       {/* Utrata dochodu — formularz */}
       {cat.id === "income" && <IncomeForm />}
 
-      {/* Podróże — INTER */}
-      {cat.id === "travel" && (
-        <div className="ins-section">
-          <div className="ins-partner">
-            <Pill variant="accent">Partner: INTER</Pill>
-            <p className="text-sm" style={{ marginTop: 8, lineHeight: 1.6 }}>
-              Roczna polisa podróżna od INTER Ubezpieczenia — obejmuje podróże prywatne i wyjazdy na konferencje medyczne. Koszty leczenia, NNW, bagaż, OC w życiu prywatnym.
-            </p>
-          </div>
-          <div className="ins-estimate">
-            <span className="ins-estimate__label">Składka roczna</span>
-            <span className="ins-estimate__value">od 19 zł/mies.</span>
-          </div>
-          <p className="text-sm text-muted" style={{ marginTop: 8 }}>
-            Możliwość połączenia w pakiecie z OC lekarskim — zapytaj doradcę o cenę łączną.
-          </p>
-        </div>
-      )}
-
-      {/* Na życie — szacunek */}
-      {cat.id === "life" && (
-        <div className="ins-section">
-          <div className="ins-estimate">
-            <span className="ins-estimate__label">Szacunkowa składka</span>
-            <span className="ins-estimate__value">60–400 zł/mies.</span>
-          </div>
-          <p className="text-sm text-muted" style={{ marginTop: 12, lineHeight: 1.6 }}>
-            Ochrona finansowa rodziny na wypadek śmierci, niezdolności do pracy lub poważnej choroby. Stawka zależy od wieku, sumy ubezpieczenia i zakresu ochrony. Doradca dopasuje wariant do Twojej sytuacji.
-          </p>
-        </div>
-      )}
-
-      {/* Inne */}
-      {cat.id === "other" && (
-        <div className="ins-section">
-          <p className="text-sm" style={{ lineHeight: 1.6, marginBottom: 12 }}>Pomagamy też z innymi ubezpieczeniami:</p>
-          <ul className="ins-other-list">
-            <li>NNW (następstwa nieszczęśliwych wypadków)</li>
-            <li>Ubezpieczenie mieszkania / domu</li>
-            <li>Ubezpieczenie samochodu (AC/OC)</li>
-            <li>OC w życiu prywatnym</li>
-            <li>Ubezpieczenie sprzętu medycznego</li>
-          </ul>
-        </div>
-      )}
-
       {/* CTA + upload (not for OC/income — have own forms) */}
-      {cat.id !== "oc" && cat.id !== "income" && <div className="ins-cta">
-        {!requested ? (
-          <Btn variant="primary" style={{ width: "100%" }} onClick={() => setRequested(true)}>
-            {cat.id === "other" ? "Skontaktuj się z doradcą" : "Poproś o ofertę"}
-          </Btn>
-        ) : (
-          <div className="ins-cta__done">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
-            <span>Zgłoszenie wysłane — doradca odezwie się wkrótce</span>
-          </div>
-        )}
-        {cat.id !== "other" && (
-          <div className="ins-upload">
-            <span className="text-sm text-muted">Masz obecną polisę? Dołącz ją, a porównamy warunki.</span>
-            {uploaded
-              ? <span className="text-sm font-semibold text-green">Przesłano</span>
-              : <button className="ins-upload__btn" onClick={() => setUploaded(true)}>Załącz plik</button>
-            }
-          </div>
-        )}
-      </div>}
     </div>
   );
 }
@@ -4798,9 +4726,7 @@ function OcrModal({ catId, onConfirm, onCancel }) {
 
 // ─── INSURANCE DASHBOARD ──────────────────────────────────────────────────────
 
-const INS_DASH_DEFAULT_POLICIES = {
-  life: { source: "km", provider: "Ergo Hestia", policyNumber: "EH/2025/ZYC-4821", expiryDate: "2026-09-14", sumInsured: "200 000 zł" }
-};
+const INS_DASH_DEFAULT_POLICIES = {};
 
 function InsuranceDashView() {
   const [policies, setPolicies] = useState(() => {
@@ -4883,166 +4809,77 @@ function InsuranceDashView() {
   return (
     <div className="ins-dash">
       {/* Header */}
-      <div className="ins-dash__header">
-        <div>
-          <h2 className="ins-dash__title">Twoje ubezpieczenia</h2>
-          <p className="ins-dash__subtitle">Zarządzaj swoimi polisami w jednym miejscu</p>
-        </div>
-        <span className="ins-dash__badge">{coveredCount} z {totalCount}</span>
+      <div className="ins-dash__header" style={{ textAlign: "center", display: "flex", flexDirection: "column", alignItems: "center" }}>
+        <h2 className="ins-dash__title">Wybierz ubezpieczenie</h2>
+        <p className="ins-dash__subtitle">Oferty od Ergo Hestii i Lloyd's — dopasowane do lekarzy</p>
       </div>
 
-      {/* Progress bar */}
-      <div className="ins-dash__progress">
-        {activeCats.map(c => (
-          <div key={c.id} className={`ins-dash__progress-seg${policies[c.id] ? " ins-dash__progress-seg--filled" : ""}`} title={c.name} />
-        ))}
-      </div>
-
-      {/* Cards */}
-      <div className="ins-dash__list">
+      {/* Two main product cards */}
+      <div className="ins-pick">
         {INSURANCE_CATEGORIES.map(cat => {
           const policy = policies[cat.id];
           const days = policy ? daysLeft(policy.expiryDate) : null;
           const isCovered = !!policy;
-          const isKm = policy?.source === "km";
           const isExternal = policy?.source === "external";
+          const iconMap = { shield: (
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+          ), wallet: (
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><path d="M1 10h22"/></svg>
+          ) };
 
           return (
-            <div key={cat.id} className={`ins-dash__card${isCovered ? " ins-dash__card--covered" : cat.disabled ? " ins-dash__card--disabled" : cat.noMissing ? "" : " ins-dash__card--missing"}`}>
-              <div className="ins-dash__card-top">
-                <div className="ins-dash__card-icon"><InsIcon id={cat.icon} size={22} /></div>
-                <div className="ins-dash__card-info">
-                  <div className="ins-dash__card-header">
-                    <span className="ins-dash__card-name">{cat.name}</span>
-                    {cat.tag && <Pill variant={cat.tagVariant}>{cat.tag}</Pill>}
-                    {isKm && <span className="ins-dash__status ins-dash__status--km">Aktywne</span>}
-                    {isExternal && <span className="ins-dash__status ins-dash__status--ext">Polisa zewnętrzna</span>}
-                  </div>
-
-                  {/* Covered: show details */}
-                  {isCovered && (
-                    <div className="ins-dash__card-meta">
-                      {policy.provider && <span>{policy.provider}</span>}
-                      {policy.policyNumber && <span className="text-muted"> · Nr {policy.policyNumber}</span>}
-                      {policy.sumInsured && <span className="text-muted"> · Suma: {policy.sumInsured}</span>}
-                    </div>
-                  )}
-
-                  {/* Expiry bar */}
-                  {isCovered && days !== null && (
-                    <div className="ins-dash__expiry">
-                      <div className="ins-dash__expiry-bar">
-                        <div
-                          className={`ins-dash__expiry-fill${days < 30 ? " ins-dash__expiry-fill--urgent" : days < 90 ? " ins-dash__expiry-fill--warn" : ""}`}
-                          style={{ width: `${Math.min(100, (days / 365) * 100)}%` }}
-                        />
-                      </div>
-                      <span className={`ins-dash__expiry-label${days < 30 ? " ins-dash__expiry-label--urgent" : days < 90 ? " ins-dash__expiry-label--warn" : ""}`}>
-                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
-                        {days === 0 ? "Wygasła" : `Wygasa za ${days} dni`} ({policy.expiryDate && new Date(policy.expiryDate).toLocaleDateString("pl-PL")})
-                      </span>
-                    </div>
-                  )}
-
-                  {/* Not covered: show desc + price */}
-                  {!isCovered && !cat.disabled && (
-                    <div className="ins-dash__card-desc">
-                      <span>{cat.desc}</span>
-                      {cat.priceLabel && <span className="ins-dash__card-price">{cat.priceLabel}</span>}
-                    </div>
-                  )}
-
-                  {/* Disabled */}
-                  {cat.disabled && <span className="ins-dash__card-desc text-muted">{cat.desc}</span>}
-                </div>
+            <div key={cat.id} className={`ins-pick__card${isCovered ? " ins-pick__card--covered" : ""}`}>
+              <div className="ins-pick__icon">
+                {cat.id === "oc" && <img src="ubezpieczenia/loga/ergohestia.png" alt="Ergo Hestia" style={{ height: 28, objectFit: "contain" }} />}
+                {cat.id === "income" && <img src="ubezpieczenia/loga/lloyds.png" alt="Lloyd's" style={{ height: 16, objectFit: "contain" }} />}
               </div>
+              <h3 className="ins-pick__name">{cat.name}</h3>
+              {cat.tag && <Pill variant={cat.tagVariant}>{cat.tag}</Pill>}
+              <p className="ins-pick__desc">{cat.desc}</p>
+
+              {/* Covered state */}
+              {isCovered && (
+                <div className="ins-pick__policy">
+                  {isExternal && <span className="ins-dash__status ins-dash__status--ext" style={{ marginBottom: 6 }}>Polisa zewnętrzna</span>}
+                  {policy.provider && <span className="ins-pick__meta">{policy.provider}</span>}
+                  {policy.policyNumber && <span className="ins-pick__meta text-muted">Nr {policy.policyNumber}</span>}
+                  {days !== null && (
+                    <span className={`ins-pick__meta${days < 30 ? " ins-pick__meta--urgent" : days < 90 ? " ins-pick__meta--warn" : ""}`}>
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+                      {days === 0 ? "Wygasła" : `Wygasa za ${days} dni`}
+                    </span>
+                  )}
+                </div>
+              )}
+
+              {/* Price label when not covered */}
+              {!isCovered && cat.priceLabel && <span className="ins-pick__price">{cat.priceLabel}</span>}
 
               {/* Actions */}
-              {!cat.disabled && (
-                <div className="ins-dash__card-actions">
-                  {!isCovered && (
-                    <>
-                      <button className="ins-dash__btn ins-dash__btn--primary" onClick={() => setSelectedCat(cat)}>
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-                        Znajdź ofertę
-                      </button>
-                      <button className="ins-dash__btn ins-dash__btn--ghost" onClick={() => { setAddFormOpen(addFormOpen === cat.id ? null : cat.id); setOcrModal(null); }}>
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
-                        Mam polisę
-                      </button>
-                    </>
-                  )}
-                  {isCovered && (
-                    <>
-                      <button className="ins-dash__btn ins-dash__btn--outline" onClick={() => setSelectedCat(cat)}>
-                        {isExternal ? "Szczegóły" : "Zarządzaj"}
-                      </button>
-                      <button className="ins-dash__btn ins-dash__btn--ghost" onClick={() => { setContactOpen(contactOpen === cat.id ? null : cat.id); setContactSlot(null); }}>
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
-                        Kontakt
-                      </button>
-                      {isExternal && (
-                        <button className="ins-dash__btn ins-dash__btn--ghost ins-dash__btn--danger" onClick={() => setRemoveConfirm(cat.id)} title="Usuń polisę">
-                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
-                        </button>
-                      )}
-                    </>
+              {!isCovered ? (
+                <button className="ins-pick__btn" onClick={() => setSelectedCat(cat)}>
+                  Sprawdź ofertę
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14"/><path d="M12 5l7 7-7 7"/></svg>
+                </button>
+              ) : (
+                <div style={{ display: "flex", gap: 8, width: "100%", marginTop: "auto" }}>
+                  <button className="ins-pick__btn ins-pick__btn--outline" onClick={() => setSelectedCat(cat)} style={{ flex: 1 }}>
+                    {isExternal ? "Szczegóły" : "Zarządzaj"}
+                  </button>
+                  {isExternal && (
+                    <button className="ins-pick__btn ins-pick__btn--ghost" onClick={() => setRemoveConfirm(cat.id)} title="Usuń">
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                    </button>
                   )}
                 </div>
               )}
 
               {/* Remove confirmation */}
               {removeConfirm === cat.id && (
-                <div className="ins-dash__confirm">
+                <div className="ins-dash__confirm" style={{ marginTop: 8 }}>
                   <span>Usunąć polisę?</span>
                   <button className="ins-dash__btn ins-dash__btn--danger-sm" onClick={() => handleRemove(cat.id)}>Tak, usuń</button>
                   <button className="ins-dash__btn ins-dash__btn--ghost" onClick={() => setRemoveConfirm(null)}>Anuluj</button>
-                </div>
-              )}
-
-              {/* Inline contact */}
-              {contactOpen === cat.id && !contactSent[cat.id] && (
-                <div className="ins-dash__contact">
-                  <p className="ins-dash__contact-label">Kiedy możemy zadzwonić?</p>
-                  <div className="ins-dash__contact-slots">
-                    {CONTACT_SLOTS.map(s => (
-                      <button key={s.id} className={`ins-dash__slot${contactSlot === s.id ? " ins-dash__slot--active" : ""}`} onClick={() => setContactSlot(s.id)}>
-                        {s.label}
-                      </button>
-                    ))}
-                  </div>
-                  <button className="ins-dash__btn ins-dash__btn--primary" onClick={() => handleContactSend(cat.id)} disabled={!contactSlot}>
-                    Wyślij prośbę o kontakt
-                  </button>
-                </div>
-              )}
-              {contactSent[cat.id] && contactOpen === cat.id && (
-                <div className="ins-dash__contact-done">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#16a34a" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 6L9 17l-5-5"/></svg>
-                  Prośba wysłana — odezwiemy się wkrótce
-                </div>
-              )}
-
-              {/* Inline add form */}
-              {addFormOpen === cat.id && (
-                <div className="ins-dash__add-form">
-                  <p className="ins-dash__add-form-label">Dodaj polisę ręcznie lub skanuj dokument</p>
-                  <div className="ins-dash__add-form-row">
-                    <button className="ins-dash__btn ins-dash__btn--outline" onClick={() => { setOcrModal(cat.id); setAddFormOpen(null); }}>
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M16 13H8"/><path d="M16 17H8"/><path d="M10 9H8"/></svg>
-                      Skanuj dokument (OCR)
-                    </button>
-                  </div>
-                  <div className="ins-dash__add-form-divider">lub wpisz dane ręcznie</div>
-                  <div className="ins-dash__add-form-fields">
-                    <input type="text" placeholder="Ubezpieczyciel (np. PZU)" value={addForm.provider} onChange={e => setAddForm(f => ({ ...f, provider: e.target.value }))} className="ins-dash__input" />
-                    <input type="text" placeholder="Numer polisy" value={addForm.policyNumber} onChange={e => setAddForm(f => ({ ...f, policyNumber: e.target.value }))} className="ins-dash__input" />
-                    <input type="date" placeholder="Data wygaśnięcia" value={addForm.expiryDate} onChange={e => setAddForm(f => ({ ...f, expiryDate: e.target.value }))} className="ins-dash__input" />
-                    <input type="text" placeholder="Suma ubezpieczenia" value={addForm.sumInsured} onChange={e => setAddForm(f => ({ ...f, sumInsured: e.target.value }))} className="ins-dash__input" />
-                  </div>
-                  <button className="ins-dash__btn ins-dash__btn--primary" onClick={() => handleAddFormSubmit(cat.id)} disabled={!addForm.provider && !addForm.policyNumber}>
-                    Dodaj polisę
-                  </button>
                 </div>
               )}
             </div>
@@ -5050,35 +4887,42 @@ function InsuranceDashView() {
         })}
       </div>
 
-      {/* Renewals */}
-      {renewals.length > 0 && (
-        <div className="ins-dash__renewals">
-          <h3 className="ins-dash__renewals-title">Zbliżające się odnowienia</h3>
-          {renewals.map(r => (
-            <div key={r.cat.id} className={`ins-dash__renewal-row${r.days < 30 ? " ins-dash__renewal-row--urgent" : r.days < 60 ? " ins-dash__renewal-row--warn" : ""}`}>
-              <InsIcon id={r.cat.icon} size={16} />
-              <span className="ins-dash__renewal-name">{r.cat.name}</span>
-              <span className="ins-dash__renewal-days">{r.days} dni</span>
-              <span className="ins-dash__renewal-date">{new Date(r.policy.expiryDate).toLocaleDateString("pl-PL")}</span>
-            </div>
-          ))}
+      {/* Divider */}
+      <div className="ins-divider">
+        <span className="ins-divider__line" />
+        <span className="ins-divider__text">lub</span>
+        <span className="ins-divider__line" />
+      </div>
+
+      {/* Scan existing policy — secondary option */}
+      <div className="ins-scan">
+        <div className="ins-scan__icon">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M16 13H8"/><path d="M16 17H8"/><path d="M10 9H8"/></svg>
         </div>
-      )}
+        <div className="ins-scan__content">
+          <h3 className="ins-scan__title">Masz już ubezpieczenie?</h3>
+          <p className="ins-scan__desc">Zeskanuj obecną polisę — odczytamy datę wygaśnięcia i przypomnimy o odnowieniu z lepszą ofertą.</p>
+        </div>
+        <div className="ins-scan__actions">
+          <button className="ins-scan__btn" onClick={() => setOcrModal("oc")}>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+            Skanuj polisę OC
+          </button>
+          <button className="ins-scan__btn" onClick={() => setOcrModal("income")}>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+            Skanuj polisę od utraty dochodu
+          </button>
+        </div>
+      </div>
 
       {/* Partners */}
-      <div className="ins-partners" style={{ marginTop: 24 }}>
-        <span className="ins-partners__label">Chronimy medyków z</span>
+      <div className="ins-partners" style={{ marginTop: 32 }}>
+        <span className="ins-partners__label">Ubezpieczamy z</span>
         <div className="ins-partners__logos">
           {INS_PARTNERS.map(p => (
             <img key={p.name} src={p.logo} alt={p.name} className="ins-partners__logo" title={p.name} style={{ height: p.h }} />
           ))}
         </div>
-      </div>
-
-      {/* Hint */}
-      <div className="ins-hint" style={{ marginTop: 16 }}>
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
-        <p>Masz ubezpieczenie wykupione gdzie indziej? Kliknij „Mam polisę", aby dodać ją do swojego panelu — ręcznie lub skanując dokument.</p>
       </div>
 
       {/* OCR Modal */}
@@ -5092,12 +4936,12 @@ function InsuranceDashView() {
 function InsuranceView() {
   const [selected, setSelected] = useState(null);
   // status: null = brak, "km" = kupione w KM, "external" = dodane z zewnątrz
-  const [statuses, setStatuses] = useState({ life: "km" });
+  const [statuses, setStatuses] = useState({});
   const [uploadedFiles, setUploadedFiles] = useState({});
   const [policyData, setPolicyData] = useState({});
   const [ocrModal, setOcrModal] = useState(null); // catId or null
   // daty wygaśnięcia polis kuponych w KM
-  const expiryDates = { life: "2026-09-14" };
+  const expiryDates = {};
 
   if (selected) {
     return <InsuranceDetail cat={selected} onBack={() => setSelected(null)} />;
@@ -5901,7 +5745,7 @@ function App() {
     try { const s = localStorage.getItem(PROFILE_KEY); return s ? !!JSON.parse(s).role : false; } catch { return false; }
   });
   const [loading,   setLoading]   = useState(true);
-  const [active,    setActive_]   = useState("overview");
+  const [active,    setActive_]   = useState("insurance");
   const [navKey,    setNavKey]    = useState(0);
   const [cart,      setCart]      = useState([]);
   const [cartOpen,  setCartOpen]  = useState(false);
