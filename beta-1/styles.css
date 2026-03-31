@@ -1891,6 +1891,156 @@ img { display: block; max-width: 100%; }
 }
 .ins-scan__btn:hover { border-color: var(--color-accent); background: var(--color-bg); }
 
+/* ── Insurance toggle ── */
+.ins-toggle {
+  display: flex;
+  background: var(--color-secondary);
+  border-radius: 12px;
+  padding: 3px;
+  margin-bottom: 24px;
+}
+.ins-toggle__btn {
+  flex: 1;
+  padding: 10px 16px;
+  font-size: 13px; font-weight: 500;
+  border: none; border-radius: 10px;
+  background: transparent;
+  color: var(--color-muted);
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s, box-shadow 0.2s;
+  font-family: inherit;
+}
+.ins-toggle__btn--active {
+  background: var(--color-bg);
+  color: var(--color-fg);
+  font-weight: 600;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+}
+.ins-toggle__btn:not(.ins-toggle__btn--active):hover {
+  color: var(--color-fg);
+}
+
+/* ── Insurance tracker (existing customer) ── */
+.ins-tracker {
+  display: flex; flex-direction: column; gap: 12px;
+  margin-top: 20px;
+}
+.ins-tracker__card {
+  border: 1px solid var(--color-border);
+  border-radius: 14px;
+  background: var(--color-bg);
+  overflow: hidden;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+.ins-tracker__card:hover { box-shadow: 0 2px 12px rgba(0,0,0,0.05); }
+.ins-tracker__card--warn { border-color: #f59e0b44; }
+.ins-tracker__card--urgent { border-color: #ef444444; }
+
+.ins-tracker__header {
+  display: flex; align-items: center; justify-content: space-between;
+  width: 100%; padding: 14px 16px;
+  background: transparent; border: none; cursor: pointer;
+  font-family: inherit; text-align: left;
+  gap: 12px;
+}
+.ins-tracker__left {
+  display: flex; align-items: center; gap: 12px;
+}
+.ins-tracker__logo {
+  width: 40px; height: 40px; border-radius: 10px;
+  background: var(--color-secondary);
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+.ins-tracker__name {
+  display: block; font-size: 14px; font-weight: 600; color: var(--color-fg);
+}
+.ins-tracker__nr {
+  display: block; font-size: 11px; color: var(--color-muted); margin-top: 1px;
+}
+.ins-tracker__right {
+  display: flex; align-items: center; gap: 10px; flex-shrink: 0;
+}
+.ins-tracker__status {
+  font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 10px;
+  background: #16a34a1a; color: #16a34a;
+}
+.ins-tracker__days {
+  font-size: 12px; font-weight: 600; color: var(--color-muted);
+}
+.ins-tracker__days--warn { color: #f59e0b; }
+.ins-tracker__days--urgent { color: #ef4444; }
+
+.ins-tracker__chevron {
+  transition: transform 0.2s; color: var(--color-muted);
+}
+.ins-tracker__chevron--open { transform: rotate(180deg); }
+
+/* Progress bar */
+.ins-tracker__bar {
+  height: 3px; background: var(--color-border); margin: 0 16px;
+}
+.ins-tracker__bar-fill {
+  height: 100%; border-radius: 2px; background: #16a34a;
+  transition: width 0.4s;
+}
+.ins-tracker__bar-fill--warn { background: #f59e0b; }
+.ins-tracker__bar-fill--urgent { background: #ef4444; }
+
+/* Details panel */
+.ins-tracker__details {
+  padding: 16px;
+  border-top: 1px solid var(--color-border);
+}
+.ins-tracker__grid {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 12px;
+}
+@media (max-width: 420px) { .ins-tracker__grid { grid-template-columns: 1fr; } }
+
+.ins-tracker__field { display: flex; flex-direction: column; gap: 2px; }
+.ins-tracker__label { font-size: 11px; font-weight: 500; color: var(--color-muted); text-transform: uppercase; letter-spacing: 0.03em; }
+.ins-tracker__value { font-size: 14px; font-weight: 500; color: var(--color-fg); }
+
+.ins-tracker__extras { margin-top: 12px; }
+.ins-tracker__extras-list {
+  list-style: none; padding: 0; margin: 6px 0 0;
+  display: flex; flex-direction: column; gap: 4px;
+}
+.ins-tracker__extras-list li {
+  display: flex; align-items: center; gap: 6px;
+  font-size: 13px; color: var(--color-fg);
+}
+
+.ins-tracker__actions {
+  margin-top: 16px;
+  display: flex; gap: 8px; flex-wrap: wrap;
+}
+.ins-tracker__contact {
+  width: 100%; display: flex; flex-direction: column; gap: 10px;
+}
+.ins-tracker__contact-label {
+  font-size: 13px; font-weight: 500; color: var(--color-fg); margin: 0;
+}
+.ins-tracker__contact-slots {
+  display: flex; gap: 6px; flex-wrap: wrap;
+}
+.ins-tracker__slot {
+  font-size: 12px; padding: 6px 12px; border-radius: 8px;
+  border: 1px solid var(--color-border); background: var(--color-bg);
+  color: var(--color-muted); cursor: pointer; font-family: inherit;
+  transition: border-color 0.15s, color 0.15s, background 0.15s;
+}
+.ins-tracker__slot:hover { border-color: var(--color-accent); color: var(--color-fg); }
+.ins-tracker__slot--active {
+  border-color: var(--color-accent); background: var(--color-accent);
+  color: #fff; font-weight: 500;
+}
+.ins-tracker__contact-done {
+  display: flex; align-items: center; gap: 8px;
+  font-size: 13px; font-weight: 500; color: #16a34a;
+  padding: 10px 0;
+}
+
 /* ─── INSURANCE DASHBOARD ──────────────────────────────────────────────── */
 
 .ins-dash { max-width: 900px; }
