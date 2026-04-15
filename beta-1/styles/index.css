@@ -27,44 +27,44 @@
 
 /* Tokens (defines @theme block + dark mode overrides) */
 @import './tokens.css';
-@import './base.css';
+@import './base.css' layer(base);
 
-/* Components (atoms) */
-@import './components/cards.css';
-@import './components/alerts.css';
-@import './components/ticket.css';
-@import './components/tabs.css';
-@import './components/table-header.css';
-@import './components/checkbox-item.css';
-@import './components/nudge-bar.css';
-@import './components/accordion.css';
-@import './components/placeholder.css';
-@import './components/utility.css';
-@import './components/scroll-row.css';
-@import './components/car-club-badge.css';
-@import './components/drawer.css';
-@import './components/theme-toggle.css';
-@import './components/preloader.css';
+/* Components (atoms) — layered so Tailwind utilities win in cascade */
+@import './components/cards.css' layer(components);
+@import './components/alerts.css' layer(components);
+@import './components/ticket.css' layer(components);
+@import './components/tabs.css' layer(components);
+@import './components/table-header.css' layer(components);
+@import './components/checkbox-item.css' layer(components);
+@import './components/nudge-bar.css' layer(components);
+@import './components/accordion.css' layer(components);
+@import './components/placeholder.css' layer(components);
+@import './components/utility.css' layer(components);
+@import './components/scroll-row.css' layer(components);
+@import './components/car-club-badge.css' layer(components);
+@import './components/drawer.css' layer(components);
+@import './components/theme-toggle.css' layer(components);
+@import './components/preloader.css' layer(components);
 
 /* Layout */
-@import './layout/app-layout.css';
-@import './layout/topbar.css';
-@import './layout/main-content.css';
+@import './layout/app-layout.css' layer(components);
+@import './layout/topbar.css' layer(components);
+@import './layout/main-content.css' layer(components);
 
 /* Views (in source order) */
-@import './views/dashboard-insurance-widget.css';
-@import './views/insurance-hub.css';
-@import './views/insurance-dashboard.css';
-@import './views/oc-form.css';
-@import './views/advisors.css';
-@import './views/interests.css';
-@import './views/marketplace.css';
-@import './views/product-detail.css';
-@import './views/discounts-legacy.css';
-@import './views/discounts-v2.css';
-@import './views/discounts-v3.css';
-@import './views/discounts-v4.css';
-@import './views/cart-drawer.css';
-@import './views/profile.css';
-@import './views/oc-form-v2.css';
-@import './views/ocr-modal.css';
+@import './views/dashboard-insurance-widget.css' layer(components);
+@import './views/insurance-hub.css' layer(components);
+@import './views/insurance-dashboard.css' layer(components);
+@import './views/oc-form.css' layer(components);
+@import './views/advisors.css' layer(components);
+@import './views/interests.css' layer(components);
+@import './views/marketplace.css' layer(components);
+@import './views/product-detail.css' layer(components);
+@import './views/discounts-legacy.css' layer(components);
+@import './views/discounts-v2.css' layer(components);
+@import './views/discounts-v3.css' layer(components);
+@import './views/discounts-v4.css' layer(components);
+@import './views/cart-drawer.css' layer(components);
+@import './views/profile.css' layer(components);
+@import './views/oc-form-v2.css' layer(components);
+@import './views/ocr-modal.css' layer(components);
