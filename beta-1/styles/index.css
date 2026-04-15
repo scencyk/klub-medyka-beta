@@ -2,12 +2,30 @@
    KLUB MEDYKA BETA-1 — STYLES INDEX
    Orchestrator — imports all modular CSS files in correct order.
    Split from monolithic styles.css on 2026-04-15.
+   Migrated to Tailwind v4 on 2026-04-15.
    ═══════════════════════════════════════════════════════════════════════════ */
 
-/* @import statements MUST come first (CSS spec).
-   postcss-import inlines them at build time. */
+/* Tailwind v4 layers — skip preflight (we have our own reset in base.css) */
+@layer theme, base, components, utilities;
 
-/* Tokens + base */
+/* Tailwind theme + utilities (preflight intentionally omitted) */
+@import 'tailwindcss/theme.css' layer(theme);
+@import 'tailwindcss/utilities.css' layer(utilities);
+
+/* Custom dark variant — matches our [data-theme="dark"] setup
+   (also responds to [data-theme="system"] when prefers-color-scheme is dark) */
+@custom-variant dark {
+  &:where([data-theme='dark'], [data-theme='dark'] *) {
+    @slot;
+  }
+  @media (prefers-color-scheme: dark) {
+    &:where([data-theme='system'], [data-theme='system'] *) {
+      @slot;
+    }
+  }
+}
+
+/* Tokens (defines @theme block + dark mode overrides) */
 @import './tokens.css';
 @import './base.css';
 
@@ -34,12 +52,10 @@
 
 /* Layout */
 @import './layout/app-layout.css';
-@import './layout/sidebar.css';
 @import './layout/topbar.css';
 @import './layout/main-content.css';
 
 /* Views (in source order) */
-@import './views/onboarding.css';
 @import './views/dashboard-insurance-widget.css';
 @import './views/insurance-hub.css';
 @import './views/insurance-dashboard.css';
@@ -56,8 +72,3 @@
 @import './views/profile.css';
 @import './views/oc-form-v2.css';
 @import './views/ocr-modal.css';
-
-/* Tailwind (available for new components — utilities have highest specificity) */
-@tailwind base;
-@tailwind components;
-@tailwind utilities;

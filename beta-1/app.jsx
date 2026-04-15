@@ -1470,20 +1470,20 @@ function Onboarding({ onComplete, setProfile }) {
   const progress = step >= 1 && step <= 2 ? step / TOTAL_STEPS : 0;
 
   return (
-    <div className="onboarding">
-      <div className="onboarding__inner">
+    <div className="flex min-h-screen items-center justify-center bg-bg p-6">
+      <div className="w-full max-w-[480px]">
 
         {/* Logo */}
-        <div className="onboarding__logo">
-          <img src="Logo.png" alt="Klub Medyka" />
+        <div className="mb-10 flex items-center gap-2">
+          <img src="Logo.png" alt="Klub Medyka" className="h-7 w-auto" />
         </div>
 
         {/* Progress bar — visible in steps 1–2 */}
         {step >= 1 && step <= 2 && (
           <React.Fragment>
-            <div className="onboarding__step-label">Krok {step} z {TOTAL_STEPS}</div>
-            <div className="onboarding__progress">
-              <div className="onboarding__progress-bar" style={{ width: `${progress * 100}%` }} />
+            <div className="mb-2 text-[11px] font-semibold uppercase tracking-wider text-muted">Krok {step} z {TOTAL_STEPS}</div>
+            <div className="mb-10 h-0.5 overflow-hidden rounded-[2px] bg-border">
+              <div className="h-full rounded-[2px] bg-primary transition-[width] duration-300 ease-out" style={{ width: `${progress * 100}%` }} />
             </div>
           </React.Fragment>
         )}
@@ -1491,26 +1491,26 @@ function Onboarding({ onComplete, setProfile }) {
         {/* ── STEP 0: Intro ── */}
         {step === 0 && (
           <div>
-            <h1 className="onboarding__title onboarding__title--lg">
+            <h1 className="mb-3 text-[32px] font-bold leading-[1.15] tracking-[-0.03em] text-fg">
               Witaj w<br/>Klub Medyka.
             </h1>
-            <p className="onboarding__subtitle">
+            <p className="mb-6 text-sm leading-[1.6] text-muted">
               Platforma benefitów dla lekarzy — ubezpieczenia, narzędzia do JDG, leasing, zniżki i doradcy dostępni bezpośrednio.
             </p>
-            <div className="onboarding__benefits">
+            <div className="mb-8 flex flex-col gap-[10px]">
               {[
                 "Doradca przypisany do Ciebie od razu",
                 "Ubezpieczenia OC, NNW, podróżne i życiowe",
                 "Narzędzia do działalności — InFakt, Autenti i więcej",
                 "Samochody, elektronika, catering dietetyczny",
               ].map(t => (
-                <div key={t} className="onboarding__benefit">
-                  <div className="onboarding__benefit-check">✓</div>
+                <div key={t} className="flex items-center gap-[10px] text-sm text-muted">
+                  <div className="flex h-[18px] w-[18px] shrink-0 items-center justify-center rounded-full border border-green-border bg-green-bg text-[10px] font-bold text-green">✓</div>
                   {t}
                 </div>
               ))}
             </div>
-            <div className="onboarding__actions">
+            <div className="flex gap-[10px]">
               <Btn variant="primary" onClick={() => setStep(1)} className="btn--full">Załóż konto</Btn>
               <Btn variant="outline" onClick={() => { setProfile({ ...DEFAULT_PROFILE, role: "specialist", work: ["private"], firstName: "Anna", lastName: "Kowalska" }); onComplete(); }}>Mam już konto</Btn>
             </div>
@@ -1520,42 +1520,44 @@ function Onboarding({ onComplete, setProfile }) {
         {/* ── STEP 1: Dane + PWZ ── */}
         {step === 1 && (
           <div>
-            <h1 className="onboarding__title">Twoje dane</h1>
-            <div className="onboarding__form">
-              <div className="onboarding__form-row">
+            <h1 className="mb-3 text-[28px] font-bold leading-[1.15] tracking-[-0.03em] text-fg">Twoje dane</h1>
+            <div className="flex flex-col gap-4">
+              <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <div className="onboarding__field-label">Imię *</div>
+                  <div className="mb-1.5 text-[11px] font-semibold uppercase tracking-wider text-muted">Imię *</div>
                   <input className="input" value={form.firstName} onChange={e => set("firstName", e.target.value)}
                     placeholder="Anna" type="text" />
                 </div>
                 <div>
-                  <div className="onboarding__field-label">Nazwisko</div>
+                  <div className="mb-1.5 text-[11px] font-semibold uppercase tracking-wider text-muted">Nazwisko</div>
                   <input className="input" value={form.lastName} onChange={e => set("lastName", e.target.value)}
                     placeholder="Kowalska" type="text" />
                 </div>
               </div>
               <div>
-                <div className="onboarding__field-label">E-mail *</div>
+                <div className="mb-1.5 text-[11px] font-semibold uppercase tracking-wider text-muted">E-mail *</div>
                 <input className="input" value={form.email} onChange={e => set("email", e.target.value)}
                   placeholder="anna@szpital.pl" type="email" />
               </div>
               <div>
-                <div className="onboarding__field-label">Telefon <span>(opcjonalnie)</span></div>
+                <div className="mb-1.5 text-[11px] font-semibold uppercase tracking-wider text-muted">
+                  Telefon <span className="font-normal normal-case tracking-normal">(opcjonalnie)</span>
+                </div>
                 <input className="input" value={form.phone} onChange={e => set("phone", e.target.value)}
                   placeholder="+48 600 000 000" type="tel" />
               </div>
               <div>
-                <div className="onboarding__field-label">Numer PWZ *</div>
+                <div className="mb-1.5 text-[11px] font-semibold uppercase tracking-wider text-muted">Numer PWZ *</div>
                 <input className="input" value={form.pwz} onChange={e => set("pwz", e.target.value.replace(/\D/g, "").slice(0, 7))}
                   placeholder="1234567" type="text" inputMode="numeric" maxLength={7} />
-                <div className="text-xs text-muted mt-2" style={{ lineHeight: 1.5 }}>
+                <div className="mt-2 text-xs leading-[1.5] text-muted">
                   7-cyfrowy numer prawa wykonywania zawodu lekarza
                 </div>
               </div>
-              <p className="onboarding__legal">
+              <p className="mt-1 text-xs leading-[1.6] text-muted">
                 Kontynuując akceptujesz{" "}
-                <a href="#">regulamin</a> i{" "}
-                <a href="#">politykę prywatności</a>.
+                <a href="#" className="cursor-pointer text-accent">regulamin</a> i{" "}
+                <a href="#" className="cursor-pointer text-accent">politykę prywatności</a>.
               </p>
             </div>
           </div>
@@ -1564,33 +1566,35 @@ function Onboarding({ onComplete, setProfile }) {
         {/* ── STEP 2: Kim jesteś + Jak pracujesz (combined) ── */}
         {step === 2 && (
           <div>
-            <h1 className="onboarding__title">Kim jesteś?</h1>
-            <p className="onboarding__subtitle">Dobierzemy doradcę i oferty do Twojego etapu kariery.</p>
-            <div style={{ display: "flex", flexDirection: "column", gap: 7 }}>
+            <h1 className="mb-3 text-[28px] font-bold leading-[1.15] tracking-[-0.03em] text-fg">Kim jesteś?</h1>
+            <p className="mb-6 text-sm leading-[1.6] text-muted">Dobierzemy doradcę i oferty do Twojego etapu kariery.</p>
+            <div className="flex flex-col gap-[7px]">
               {OB_ROLES.map(r => {
                 const sel = form.role === r.id;
                 return (
                   <button key={r.id} onClick={() => set("role", r.id)}
-                    className={`ob-option${sel ? " ob-option--selected" : ""}`}>
-                    <span className="ob-option__label">{r.label}</span>
-                    <span className="ob-option__sub">{r.sub}</span>
+                    className={`flex w-full cursor-pointer items-center justify-between rounded-xl border-[1.5px] px-4 py-[14px] text-left transition-all duration-150 ${sel ? "border-primary bg-primary" : "border-border bg-bg"}`}>
+                    <span className={`text-sm ${sel ? "font-semibold text-white" : "font-normal text-fg"}`}>{r.label}</span>
+                    <span className={`text-xs ${sel ? "text-white/55" : "text-muted"}`}>{r.sub}</span>
                   </button>
                 );
               })}
             </div>
 
-            <div style={{ marginTop: 32 }}>
-              <div className="onboarding__field-label" style={{ marginBottom: 12 }}>Jak pracujesz? <span>(opcjonalnie, można wybrać kilka)</span></div>
-              <div style={{ display: "flex", flexDirection: "column", gap: 7 }}>
+            <div className="mt-8">
+              <div className="mb-3 text-[11px] font-semibold uppercase tracking-wider text-muted">
+                Jak pracujesz? <span className="font-normal normal-case tracking-normal">(opcjonalnie, można wybrać kilka)</span>
+              </div>
+              <div className="flex flex-col gap-[7px]">
                 {OB_WORK.map(w => {
                   const sel = form.work.includes(w.id);
                   return (
                     <button key={w.id} onClick={() => toggleWork(w.id)}
-                      className={`ob-check${sel ? " ob-check--selected" : ""}`}>
-                      <div className="ob-check__box">
+                      className={`flex w-full cursor-pointer items-center gap-[13px] rounded-xl border-[1.5px] px-4 py-[14px] text-left transition-all duration-150 ${sel ? "border-primary bg-primary" : "border-border bg-bg"}`}>
+                      <div className={`flex h-[17px] w-[17px] shrink-0 items-center justify-center rounded-sm border-[1.5px] text-[10px] font-bold text-primary ${sel ? "border-white bg-bg" : "border-muted bg-transparent"}`}>
                         {sel && "✓"}
                       </div>
-                      <span className="ob-check__label">{w.label}</span>
+                      <span className={`text-sm ${sel ? "font-semibold text-white" : "text-fg"}`}>{w.label}</span>
                     </button>
                   );
                 })}
@@ -1602,18 +1606,18 @@ function Onboarding({ onComplete, setProfile }) {
         {/* ── STEP 3: Done ── */}
         {step === 3 && (
           <div>
-            <div className="onboarding__check-icon">✓</div>
-            <h1 className="onboarding__title">
+            <div className="mb-6 flex h-12 w-12 items-center justify-center rounded-full border border-green-border bg-green-bg text-[22px]">✓</div>
+            <h1 className="mb-3 text-[28px] font-bold leading-[1.15] tracking-[-0.03em] text-fg">
               Konto gotowe,<br/>dr {form.firstName || "Kowalska"}.
             </h1>
-            <p className="onboarding__subtitle">
+            <p className="mb-6 text-sm leading-[1.6] text-muted">
               Przypisujemy Ci doradcę — odezwie się w ciągu 24 godzin. Możesz już przeglądać platformę.
             </p>
-            <div className="advisor-card">
-              <div className="advisor-card__avatar">MK</div>
-              <div className="advisor-card__info">
-                <div className="advisor-card__name">Marta Kowalczyk</div>
-                <div className="advisor-card__role">Twój doradca ubezpieczeniowy</div>
+            <div className="mb-7 flex items-center gap-[14px] rounded-xl border border-border bg-bg px-[18px] py-4">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary text-[13px] font-bold text-white">MK</div>
+              <div className="flex-1">
+                <div className="text-sm font-semibold text-fg">Marta Kowalczyk</div>
+                <div className="mt-0.5 text-xs text-muted">Twój doradca ubezpieczeniowy</div>
               </div>
               <Pill variant="green">Dostępna</Pill>
             </div>
@@ -1628,8 +1632,8 @@ function Onboarding({ onComplete, setProfile }) {
 
         {/* Navigation buttons — steps 1–2 */}
         {step >= 1 && step <= 2 && (
-          <div className="onboarding__nav">
-            <button className="onboarding__back" onClick={() => setStep(s => s - 1)}>
+          <div className="mt-8 flex items-center justify-between">
+            <button className="border-none bg-transparent p-0 text-[13px] text-muted" onClick={() => setStep(s => s - 1)}>
               ← Wróć
             </button>
             <Btn variant="primary"
@@ -1639,7 +1643,7 @@ function Onboarding({ onComplete, setProfile }) {
             </Btn>
           </div>
         )}
-        <div className="onboarding__powered">
+        <div className="mt-auto flex justify-center pt-8 [&_svg]:h-[14px] [&_svg]:w-auto">
           <svg width="205" height="18" viewBox="0 0 205 18" fill="none" xmlns="http://www.w3.org/2000/svg">
             <path d="M119.945 9.25593V7.64731H118.442V14.7002H119.945V11.4848C119.945 10.7269 120.268 9.98875 120.871 9.5294C121.494 9.05396 122.332 8.81803 123.273 8.81803V7.5061C121.82 7.5061 120.51 8.12453 119.945 9.25593V9.25593Z" fill="#2E35FF"/><path d="M128.135 7.37679C125.424 7.37679 123.804 8.84421 123.804 11.1857C123.804 13.5271 125.423 14.9695 128.237 14.9695C129.883 14.9695 131.103 14.5709 132.067 13.7076L131.192 12.7675C130.422 13.4502 129.611 13.7845 128.314 13.7845C126.54 13.7845 125.423 13.0374 125.282 11.5056H132.272C132.297 11.4287 132.311 11.3376 132.311 11.1714C132.311 8.69943 130.666 7.375 128.135 7.375V7.37679ZM125.348 10.4403C125.63 9.19275 126.672 8.56181 128.15 8.56181C129.538 8.56181 130.539 9.14091 130.861 10.4278L125.348 10.4403Z" fill="#2E35FF"/><path d="M144.615 7.38953C143.125 7.38953 141.917 8.16167 141.403 9.3449C141.042 8.18669 140.143 7.38953 138.563 7.38953C137.214 7.38953 136.109 8.02046 135.556 9.01066V7.64691H134.053V14.6998H135.556V11.2395C135.556 9.83285 136.673 8.65319 138.078 8.63889C138.09 8.63889 138.101 8.63889 138.114 8.63889C139.488 8.63889 140.105 9.43605 140.105 10.7373V14.7016H141.595L141.585 11.2449C141.581 9.89004 142.615 8.72111 143.966 8.64604C144.032 8.64247 144.098 8.64068 144.165 8.64068C145.54 8.64068 146.157 9.43784 146.157 10.739V14.7034H147.635V10.6497C147.635 8.82299 146.735 7.3931 144.615 7.3931V7.38953Z" fill="#2E35FF"/><path d="M153.73 7.37679C151.019 7.37679 149.398 8.84421 149.398 11.1857C149.398 13.5271 151.017 14.9695 153.832 14.9695C155.477 14.9695 156.698 14.5709 157.661 13.7076L156.787 12.7675C156.016 13.4502 155.206 13.7845 153.908 13.7845C152.134 13.7845 151.017 13.0374 150.876 11.5056H157.867C157.892 11.4287 157.906 11.3376 157.906 11.1714C157.906 8.69943 156.26 7.375 153.73 7.375V7.37679ZM150.942 10.4403C151.224 9.19275 152.266 8.56181 153.744 8.56181C155.133 8.56181 156.134 9.14091 156.455 10.4278L150.942 10.4403V10.4403Z" fill="#2E35FF"/><path d="M166.199 8.90681C165.596 8.0185 164.464 7.38756 162.96 7.38756C160.672 7.38756 159.157 8.89251 159.157 11.1839C159.157 13.4753 160.674 14.9552 162.96 14.9552C164.463 14.9552 165.594 14.3243 166.199 13.4503V14.6979H167.702V5.1748H166.199V8.90681ZM164.438 13.5414C164.095 13.638 163.729 13.6809 163.345 13.6809C161.598 13.6809 160.622 12.78 160.622 11.1839C160.622 9.5878 161.598 8.67446 163.345 8.67446C163.724 8.67446 164.086 8.71557 164.425 8.80851C165.482 9.09449 166.199 10.0811 166.199 11.1768C166.199 12.2688 165.487 13.2483 164.438 13.5414Z" fill="#2E35FF"/><path d="M171.554 7.64758H170.064V14.7005H171.554V7.64758Z" fill="#2E35FF"/><path d="M170.794 5.00818C170.241 5.00818 169.831 5.35671 169.831 5.84466C169.831 6.30759 170.241 6.68115 170.794 6.68115C171.348 6.68115 171.746 6.30759 171.746 5.84466C171.746 5.35493 171.348 5.00818 170.794 5.00818Z" fill="#2E35FF"/><path d="M180.246 11.1401C180.246 11.9998 179.819 12.8148 179.086 13.2635C178.598 13.562 178.033 13.7085 177.417 13.7085C176.016 13.7085 175.309 12.9614 175.309 11.5726V7.64758H173.819V11.6763C173.819 13.5816 174.886 14.9579 177.031 14.9579C178.47 14.9579 179.626 14.4556 180.244 13.4529V14.7005H181.747V7.64758H180.244V11.1419L180.246 11.1401Z" fill="#2E35FF"/><path d="M194.63 7.38953C193.14 7.38953 191.932 8.16167 191.418 9.3449C191.057 8.18669 190.158 7.38953 188.578 7.38953C187.229 7.38953 186.125 8.02046 185.571 9.01066V7.64691H184.069V14.6998H185.571V11.2395C185.571 9.83285 186.689 8.65319 188.093 8.63889C188.106 8.63889 188.116 8.63889 188.129 8.63889C189.503 8.63889 190.12 9.43605 190.12 10.7373V14.7016H191.611L191.6 11.2449C191.596 9.89004 192.63 8.72111 193.981 8.64604C194.047 8.64247 194.113 8.64068 194.181 8.64068C195.555 8.64068 196.172 9.43784 196.172 10.739V14.7034H197.65V10.6497C197.65 8.82299 196.75 7.3931 194.63 7.3931V7.38953Z" fill="#2E35FF"/><path d="M204.767 3.33522C202.931 3.33522 201.437 1.83919 201.437 0H200.188C200.188 1.83919 198.694 3.33522 196.857 3.33522V4.58637C198.694 4.58637 200.188 6.08239 200.188 7.92158H201.437C201.437 6.08239 202.931 4.58637 204.767 4.58637V3.33522ZM200.812 5.6141C200.414 4.93133 199.843 4.35937 199.161 3.96079C199.843 3.56042 200.412 2.99025 200.812 2.30748C201.212 2.99025 201.781 3.56042 202.463 3.96079C201.781 4.36116 201.212 4.93133 200.812 5.6141Z" fill="#2E35FF"/>
             <path d="M103.801 14.7718C103.164 14.7718 102.602 14.6111 102.115 14.2896C101.628 13.9648 101.247 13.5074 100.972 12.9174C100.697 12.3241 100.559 11.6231 100.559 10.8144C100.559 10.0123 100.697 9.31632 100.972 8.72636C101.247 8.1364 101.63 7.68067 102.12 7.35918C102.611 7.03768 103.177 6.87693 103.82 6.87693C104.318 6.87693 104.71 6.95979 104.999 7.12551C105.29 7.28792 105.512 7.47352 105.665 7.68233C105.821 7.88782 105.942 8.05686 106.028 8.18943H106.127V4.43091H107.301V14.6127H106.167V13.4394H106.028C105.942 13.5786 105.819 13.7543 105.66 13.9664C105.501 14.1752 105.274 14.3625 104.979 14.5282C104.684 14.6906 104.291 14.7718 103.801 14.7718ZM103.96 13.7178C104.43 13.7178 104.828 13.5952 105.153 13.3499C105.478 13.1014 105.725 12.7583 105.894 12.3208C106.063 11.88 106.147 11.3712 106.147 10.7945C106.147 10.2245 106.064 9.72565 105.899 9.2981C105.733 8.86723 105.488 8.53247 105.163 8.29383C104.838 8.05188 104.437 7.93091 103.96 7.93091C103.462 7.93091 103.048 8.05851 102.717 8.31372C102.389 8.56562 102.142 8.90865 101.976 9.34284C101.814 9.77371 101.732 10.2576 101.732 10.7945C101.732 11.3381 101.815 11.8319 101.981 12.2761C102.15 12.7169 102.399 13.0682 102.727 13.3301C103.058 13.5886 103.469 13.7178 103.96 13.7178Z" fill="#4B5563"/>
@@ -1667,11 +1671,11 @@ function Sidebar({ active, setActive, theme, setTheme, profile }) {
   const displayName = profile && profile.firstName ? `Dr ${profile.firstName} ${profile.lastName}` : "Dr Kowalska";
   const roleLabel = profile && profile.role ? (OB_ROLES.find(r => r.id === profile.role)?.label || "") : "Rezydent";
   return (
-    <aside className="sidebar">
+    <aside className="sticky top-0 flex h-screen w-60 shrink-0 flex-col bg-bg">
       {/* Logo */}
-      <div className="sidebar__header">
-        <div className="sidebar__logo" onClick={() => setActive("overview")} style={{ cursor: "pointer" }}>
-          <svg className="sidebar__logo-light" viewBox="0 0 178 31" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <div className="px-5 pb-4 pt-7">
+        <div className="mb-3.5 flex cursor-pointer items-center [&_svg]:h-[22px] [&_svg]:w-auto" onClick={() => setActive("overview")}>
+          <svg className="block dark:hidden" viewBox="0 0 178 31" fill="none" xmlns="http://www.w3.org/2000/svg">
             <path d="M27.125 0H3.875C1.7349 0 0 1.7349 0 3.875V27.125C0 29.2651 1.7349 31 3.875 31H27.125C29.2651 31 31 29.2651 31 27.125V3.875C31 1.7349 29.2651 0 27.125 0Z" fill="#0E0E10"/>
             <path d="M15.6838 15.0354L22.8913 10.2498L19.8979 5.09602L8.10822 12.5554L8.13728 12.6038C8.13728 12.6038 8.1179 12.6038 8.10822 12.6038V18.5616C12.0801 18.5616 15.306 21.8651 15.306 25.9145H21.2638C21.2638 21.4291 19.0551 17.4573 15.6838 15.0451V15.0354Z" fill="#CEFF3E"/>
             <path d="M170.654 23.3242C169.89 23.3242 169.201 23.1881 168.589 22.9159C167.982 22.6384 167.5 22.2301 167.144 21.691C166.794 21.1518 166.618 20.487 166.618 19.6966C166.618 19.0161 166.744 18.4534 166.995 18.0084C167.246 17.5635 167.589 17.2075 168.024 16.9406C168.458 16.6736 168.948 16.4721 169.492 16.336C170.042 16.1946 170.61 16.0925 171.196 16.0297C171.903 15.9564 172.476 15.891 172.915 15.8334C173.355 15.7706 173.674 15.6764 173.873 15.5508C174.078 15.4199 174.18 15.2184 174.18 14.9462V14.899C174.18 14.3075 174.004 13.8495 173.654 13.525C173.303 13.2004 172.798 13.0381 172.138 13.0381C171.442 13.0381 170.89 13.1899 170.481 13.4935C170.078 13.7972 169.806 14.1557 169.665 14.5693L167.011 14.1924C167.22 13.4595 167.566 12.8471 168.047 12.355C168.529 11.8577 169.118 11.4861 169.814 11.24C170.51 10.9888 171.28 10.8631 172.122 10.8631C172.703 10.8631 173.282 10.9312 173.858 11.0673C174.433 11.2034 174.96 11.4285 175.436 11.7426C175.912 12.0514 176.294 12.4728 176.582 13.0067C176.875 13.5407 177.022 14.2081 177.022 15.009V23.0808H174.29V21.424H174.195C174.023 21.759 173.779 22.0731 173.465 22.3662C173.156 22.6542 172.766 22.8871 172.295 23.0651C171.829 23.2378 171.282 23.3242 170.654 23.3242ZM171.392 21.2356C171.963 21.2356 172.457 21.123 172.876 20.8979C173.295 20.6676 173.617 20.364 173.842 19.9871C174.072 19.6102 174.187 19.1993 174.187 18.7544V17.3332C174.098 17.4064 173.947 17.4745 173.732 17.5373C173.523 17.6001 173.287 17.6551 173.025 17.7022C172.764 17.7493 172.505 17.7912 172.248 17.8278C171.992 17.8645 171.769 17.8959 171.581 17.922C171.157 17.9796 170.777 18.0738 170.442 18.2047C170.107 18.3356 169.843 18.5188 169.649 18.7544C169.455 18.9847 169.359 19.283 169.359 19.6495C169.359 20.1729 169.55 20.5682 169.932 20.8351C170.314 21.1021 170.801 21.2356 171.392 21.2356Z" fill="#0E0E10"/>
@@ -1685,7 +1689,7 @@ function Sidebar({ active, setActive, theme, setTheme, profile }) {
             <path d="M62.3121 7V23.0808H59.4697V7H62.3121Z" fill="#0E0E10"/>
             <path d="M45 23.0808V7H47.9131V14.3887H48.1094L54.3831 7H57.94L51.7213 14.2159L57.995 23.0808H54.493L49.6955 16.1868L47.9131 18.2911V23.0808H45Z" fill="#0E0E10"/>
           </svg>
-          <svg className="sidebar__logo-dark" viewBox="0 0 178 31" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <svg className="hidden dark:block" viewBox="0 0 178 31" fill="none" xmlns="http://www.w3.org/2000/svg">
             <path d="M27.125 0C29.2651 0 31 1.7349 31 3.875V27.125C31 29.2651 29.2651 31 27.125 31H3.875C1.7349 31 0 29.2651 0 27.125V3.875C0 1.7349 1.7349 0 3.875 0H27.125ZM8.1084 12.5557L8.1377 12.6035C8.1377 12.6035 8.11814 12.6035 8.1084 12.6035V18.5615C12.0801 18.5616 15.3055 21.8649 15.3057 25.9141H21.2637C21.2635 21.4289 19.0547 17.457 15.6836 15.0449V15.0352L22.8916 10.25L19.8975 5.0957L8.1084 12.5557Z" fill="#CEFF3E"/>
             <path d="M170.654 23.3242C169.89 23.3242 169.201 23.1881 168.589 22.9159C167.982 22.6384 167.5 22.2301 167.144 21.691C166.794 21.1518 166.618 20.487 166.618 19.6966C166.618 19.0161 166.744 18.4534 166.995 18.0084C167.246 17.5635 167.589 17.2075 168.024 16.9406C168.458 16.6736 168.948 16.4721 169.492 16.336C170.042 16.1946 170.61 16.0925 171.196 16.0297C171.903 15.9564 172.476 15.891 172.915 15.8334C173.355 15.7706 173.674 15.6764 173.873 15.5508C174.078 15.4199 174.18 15.2184 174.18 14.9462V14.899C174.18 14.3075 174.004 13.8495 173.654 13.525C173.303 13.2004 172.798 13.0381 172.138 13.0381C171.442 13.0381 170.89 13.1899 170.481 13.4935C170.078 13.7972 169.806 14.1557 169.665 14.5693L167.011 14.1924C167.22 13.4595 167.566 12.8471 168.047 12.355C168.529 11.8577 169.118 11.4861 169.814 11.24C170.51 10.9888 171.28 10.8631 172.122 10.8631C172.703 10.8631 173.282 10.9312 173.858 11.0673C174.433 11.2034 174.96 11.4285 175.436 11.7426C175.912 12.0514 176.294 12.4728 176.582 13.0067C176.875 13.5407 177.022 14.2081 177.022 15.009V23.0808H174.29V21.424H174.195C174.023 21.759 173.779 22.0731 173.465 22.3662C173.156 22.6542 172.766 22.8871 172.295 23.0651C171.829 23.2378 171.282 23.3242 170.654 23.3242ZM171.392 21.2356C171.963 21.2356 172.457 21.123 172.876 20.8979C173.295 20.6676 173.617 20.364 173.842 19.9871C174.072 19.6102 174.187 19.1993 174.187 18.7544V17.3332C174.098 17.4064 173.947 17.4745 173.732 17.5373C173.523 17.6001 173.287 17.6551 173.025 17.7022C172.764 17.7493 172.505 17.7912 172.248 17.8278C171.992 17.8645 171.769 17.8959 171.581 17.922C171.157 17.9796 170.777 18.0738 170.442 18.2047C170.107 18.3356 169.843 18.5188 169.649 18.7544C169.455 18.9847 169.359 19.283 169.359 19.6495C169.359 20.1729 169.55 20.5682 169.932 20.8351C170.314 21.1021 170.801 21.2356 171.392 21.2356Z" fill="white"/>
             <path d="M157.555 19.2962L157.547 15.8649H158.002L162.336 11.0202H165.658L160.326 16.9563H159.737L157.555 19.2962ZM154.963 23.0808V7H157.806V23.0808H154.963ZM162.533 23.0808L158.607 17.5923L160.523 15.59L165.933 23.0808H162.533Z" fill="white"/>
@@ -1702,18 +1706,23 @@ function Sidebar({ active, setActive, theme, setTheme, profile }) {
       </div>
 
       {/* Nav */}
-      <nav className="sidebar__nav">
+      <nav className="flex-1 overflow-y-auto px-2.5 py-3.5">
         {NAV_SECTIONS.map((section, si) => (
-          <div key={si} className="sidebar__section">
+          <div key={si} className="mb-6">
             {section.header && (
-              <div className="sidebar__section-label">{section.header}</div>
+              <div className="mb-2 px-2.5 text-[10px] font-semibold uppercase tracking-[0.07em] text-muted">{section.header}</div>
             )}
             {section.items.map(item => {
               const isActive = active === item.id;
-              const cls = `sidebar__link${isActive ? " sidebar__link--active" : ""}${item.soon ? " sidebar__link--disabled" : ""}`;
+              const baseCls = "mb-1 flex w-full items-center justify-between rounded-md border-none px-2.5 py-2.5 text-left text-[13px] transition-[background,color] duration-100";
+              const stateCls = item.soon
+                ? "cursor-default bg-transparent font-normal text-muted opacity-60 hover:bg-transparent hover:text-muted"
+                : isActive
+                  ? "bg-accent-bg font-semibold text-accent [&_svg]:opacity-100"
+                  : "bg-transparent font-normal text-fg hover:bg-secondary hover:text-fg";
               return (
-                <button key={item.id} onClick={() => !item.soon && setActive(item.id)} className={cls}>
-                  <span className="sidebar__link-left">
+                <button key={item.id} onClick={() => !item.soon && setActive(item.id)} className={`${baseCls} ${stateCls}`}>
+                  <span className="flex items-center gap-2.5 [&_svg]:shrink-0 [&_svg]:opacity-70">
                     {item.icon && (
                       <motion.span
                         key={isActive ? "active" : "idle"}
@@ -1728,13 +1737,13 @@ function Sidebar({ active, setActive, theme, setTheme, profile }) {
                     {item.label}
                   </span>
                   {item.badge && !isActive && (
-                    <span className="sidebar__badge">{item.badge}</span>
+                    <span className="flex h-[18px] w-[18px] items-center justify-center rounded-full bg-warn-bg text-[10px] font-bold text-warn">{item.badge}</span>
                   )}
                   {item.tag && (
-                    <span className="sidebar__tag">{item.tag}</span>
+                    <span className="rounded-[10px] bg-lime px-2 py-0.5 text-[9px] font-semibold tracking-[0.02em] text-lime-fg">{item.tag}</span>
                   )}
                   {item.soon && (
-                    <span className="sidebar__soon">wkrótce</span>
+                    <span className="rounded-[10px] bg-secondary px-[7px] py-px text-[9px] text-muted">wkrótce</span>
                   )}
                 </button>
               );
@@ -1744,11 +1753,11 @@ function Sidebar({ active, setActive, theme, setTheme, profile }) {
       </nav>
 
       {/* User profile */}
-      <div className="sidebar__profile" onClick={() => setActive("profile")}>
-        <img className="sidebar__profile-avatar" src={USER_AVATAR} alt={displayName} />
-        <div className="sidebar__profile-info">
-          <div className="sidebar__profile-name">{displayName}</div>
-          <div className="sidebar__profile-role">{roleLabel}</div>
+      <div className="flex cursor-pointer items-center gap-2.5 px-4 py-3.5 transition-colors duration-150 hover:bg-secondary" onClick={() => setActive("profile")}>
+        <img className="h-9 w-9 shrink-0 rounded-full object-cover" src={USER_AVATAR} alt={displayName} />
+        <div className="min-w-0 flex-1">
+          <div className="truncate text-[13px] font-semibold text-fg">{displayName}</div>
+          <div className="text-[11px] text-muted">{roleLabel}</div>
         </div>
       </div>
     </aside>
@@ -1767,31 +1776,31 @@ function TopBar({ active, setActive, cart, onCartClick, onNotifClick, theme, set
     ? <g transform="translate(11,11) scale(0.75)"><circle cx="12" cy="12" r="5" stroke="var(--color-fg)" strokeWidth="1.8" fill="none"/><line x1="12" y1="1" x2="12" y2="3" stroke="var(--color-fg)" strokeWidth="1.8" strokeLinecap="round"/><line x1="12" y1="21" x2="12" y2="23" stroke="var(--color-fg)" strokeWidth="1.8" strokeLinecap="round"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64" stroke="var(--color-fg)" strokeWidth="1.8" strokeLinecap="round"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78" stroke="var(--color-fg)" strokeWidth="1.8" strokeLinecap="round"/><line x1="1" y1="12" x2="3" y2="12" stroke="var(--color-fg)" strokeWidth="1.8" strokeLinecap="round"/><line x1="21" y1="12" x2="23" y2="12" stroke="var(--color-fg)" strokeWidth="1.8" strokeLinecap="round"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36" stroke="var(--color-fg)" strokeWidth="1.8" strokeLinecap="round"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22" stroke="var(--color-fg)" strokeWidth="1.8" strokeLinecap="round"/></g>
     : <g transform="translate(11,11) scale(0.75)"><circle cx="12" cy="12" r="9" stroke="var(--color-fg)" strokeWidth="1.8" fill="none"/><path d="M12 3a9 9 0 010 18" fill="var(--color-fg)"/></g>;
   return (
-    <header className="topbar">
-      <span className="topbar__title"></span>
-      <div className="topbar__actions">
-        <button className="topbar__icon-btn" onClick={() => setActive("profile")} title="Profil">
+    <header className="topbar z-10 flex h-topbar items-center justify-between bg-bg px-8 transition-[transform,margin-top] duration-300 ease-[cubic-bezier(0.4,0,0.2,1)]">
+      <span className="text-[13px] text-muted"></span>
+      <div className="flex items-center gap-2">
+        <button className="relative flex h-8 w-8 cursor-pointer items-center justify-center border-none bg-transparent p-0 transition-opacity duration-150 ease-out hover:opacity-70 [&_svg]:h-8 [&_svg]:w-8" onClick={() => setActive("profile")} title="Profil">
           <svg width="40" height="40" viewBox="0 0 40 40" fill="none">
             <rect width="40" height="40" rx="20" fill="var(--color-secondary)"/>
             <path d="M24.6668 26V24.6667C24.6668 23.9594 24.3859 23.2811 23.8858 22.781C23.3857 22.281 22.7074 22 22.0002 22H18.0002C17.2929 22 16.6146 22.281 16.1145 22.781C15.6144 23.2811 15.3335 23.9594 15.3335 24.6667V26M22.6668 16.6667C22.6668 18.1394 21.4729 19.3333 20.0002 19.3333C18.5274 19.3333 17.3335 18.1394 17.3335 16.6667C17.3335 15.1939 18.5274 14 20.0002 14C21.4729 14 22.6668 15.1939 22.6668 16.6667Z" stroke="var(--color-fg)" strokeWidth="1.33" strokeLinecap="round" strokeLinejoin="round"/>
           </svg>
         </button>
-        <button className="topbar__icon-btn" title="Powiadomienia" onClick={onNotifClick}>
+        <button className="relative flex h-8 w-8 cursor-pointer items-center justify-center border-none bg-transparent p-0 transition-opacity duration-150 ease-out hover:opacity-70 [&_svg]:h-8 [&_svg]:w-8" title="Powiadomienia" onClick={onNotifClick}>
           <svg width="40" height="40" viewBox="0 0 40 40" fill="none">
             <rect width="40" height="40" rx="20" fill="var(--color-secondary)"/>
             <path d="M18.8667 26.0002C18.9783 26.2031 19.1423 26.3724 19.3417 26.4903C19.5411 26.6082 19.7684 26.6704 20 26.6704C20.2316 26.6704 20.459 26.6082 20.6584 26.4903C20.8577 26.3724 21.0218 26.2031 21.1334 26.0002M16 17.3335C16 16.2726 16.4214 15.2552 17.1716 14.5051C17.9217 13.7549 18.9391 13.3335 20 13.3335C21.0609 13.3335 22.0783 13.7549 22.8284 14.5051C23.5786 15.2552 24 16.2726 24 17.3335C24 22.0002 26 23.3335 26 23.3335H14C14 23.3335 16 22.0002 16 17.3335Z" stroke="var(--color-fg)" strokeWidth="1.33" strokeLinecap="round" strokeLinejoin="round"/>
           </svg>
-          <span className="topbar__notification-dot" />
+          <span className="absolute right-0 top-0 h-[7px] w-[7px] rounded-full border-[1.5px] border-white bg-red" />
         </button>
-        <button className="topbar__icon-btn topbar__cart-btn" onClick={onCartClick} title="Koszyk">
+        <button className="relative flex h-8 w-8 cursor-pointer items-center justify-center border-none bg-transparent p-0 transition-opacity duration-150 ease-out hover:opacity-70 [&_svg]:h-8 [&_svg]:w-8" onClick={onCartClick} title="Koszyk">
           <svg width="40" height="40" viewBox="0 0 40 40" fill="none">
             <rect width="40" height="40" rx="20" fill="var(--color-secondary)"/>
             <path d="M13.3667 13.3667H14.7L16.4734 21.6467C16.5384 21.9499 16.7071 22.221 16.9505 22.4133C17.1939 22.6055 17.4966 22.7069 17.8067 22.7H24.3267C24.6301 22.6995 24.9244 22.5956 25.1607 22.4053C25.3971 22.215 25.5615 21.9497 25.6267 21.6534L26.7267 16.7H15.4134M18.0002 26C18.0002 26.3682 17.7017 26.6667 17.3335 26.6667C16.9653 26.6667 16.6668 26.3682 16.6668 26C16.6668 25.6318 16.9653 25.3333 17.3335 25.3333C17.7017 25.3333 18.0002 25.6318 18.0002 26ZM25.3335 26C25.3335 26.3682 25.035 26.6667 24.6668 26.6667C24.2986 26.6667 24.0002 26.3682 24.0002 26C24.0002 25.6318 24.2986 25.3333 24.6668 25.3333C25.035 25.3333 25.3335 25.6318 25.3335 26Z" stroke="var(--color-fg)" strokeWidth="1.33" strokeLinecap="round" strokeLinejoin="round"/>
           </svg>
           {cartCount > 0 && <span className="topbar__cart-badge">{cartCount}</span>}
         </button>
-        <div style={{ position: "relative" }}>
-          <button className="topbar__icon-btn" onClick={() => setThemeOpen(!themeOpen)} title="Motyw">
+        <div className="relative">
+          <button className="relative flex h-8 w-8 cursor-pointer items-center justify-center border-none bg-transparent p-0 transition-opacity duration-150 ease-out hover:opacity-70 [&_svg]:h-8 [&_svg]:w-8" onClick={() => setThemeOpen(!themeOpen)} title="Motyw">
             <svg width="40" height="40" viewBox="0 0 40 40" fill="none">
               <rect width="40" height="40" rx="20" fill="var(--color-secondary)"/>
               {themeIconPaths}
@@ -1800,14 +1809,14 @@ function TopBar({ active, setActive, cart, onCartClick, onNotifClick, theme, set
           <AnimatePresence>
             {themeOpen && (
               <>
-                <div style={{ position: "fixed", inset: 0, zIndex: 9 }} onClick={() => setThemeOpen(false)} />
-                <motion.div className="theme-dropdown" initial={{ opacity: 0, scale: 0.9, y: -4 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.9, y: -4 }} transition={{ duration: 0.15 }}>
+                <div className="fixed inset-0 z-[9]" onClick={() => setThemeOpen(false)} />
+                <motion.div className="absolute right-0 top-[calc(100%+6px)] z-50 min-w-[150px] rounded-lg border border-border bg-bg p-1 shadow-lg" initial={{ opacity: 0, scale: 0.9, y: -4 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.9, y: -4 }} transition={{ duration: 0.15 }}>
                   {[
                     { id: "light", label: "Jasny", icon: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg> },
                     { id: "dark", label: "Ciemny", icon: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg> },
                     { id: "system", label: "Auto", icon: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg> },
                   ].map(m => (
-                    <button key={m.id} className={`theme-dropdown__item${theme === m.id ? " theme-dropdown__item--active" : ""}`} onClick={() => { setTheme(m.id); setThemeOpen(false); }}>
+                    <button key={m.id} className={`flex w-full cursor-pointer items-center gap-2 rounded-md border-none bg-transparent px-3 py-2 text-[13px] text-fg transition-colors duration-150 ease-out hover:bg-secondary ${theme === m.id ? "bg-secondary font-semibold" : ""}`} onClick={() => { setTheme(m.id); setThemeOpen(false); }}>
                       {m.icon}
                       {m.label}
                     </button>
@@ -1817,8 +1826,8 @@ function TopBar({ active, setActive, cart, onCartClick, onNotifClick, theme, set
             )}
           </AnimatePresence>
         </div>
-        <a href="https://remedium.md" target="_blank" rel="noopener noreferrer" className="topbar__remedium">
-          <svg className="topbar__remedium-avatar" width="24" height="24" viewBox="0 0 24 24" fill="none">
+        <a href="https://remedium.md" target="_blank" rel="noopener noreferrer" className="ml-6 flex h-8 items-center gap-1.5 rounded-full bg-accent py-1 pl-1 pr-2 text-[13px] font-medium text-white no-underline transition-opacity duration-150 ease-out hover:opacity-90 [&_svg]:shrink-0">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" className="h-6 w-6 shrink-0">
             <rect width="24" height="24" rx="12" fill="white"/>
             <path d="M19 10.8944C15.7495 10.8944 13.1056 8.25045 13.1056 5H10.8944C10.8944 8.25045 8.25045 10.8944 5 10.8944V13.1056C8.25045 13.1056 10.8944 15.7495 10.8944 19H13.1056C13.1056 15.7495 15.7495 13.1056 19 13.1056V10.8944ZM12 14.9219C11.2956 13.7153 10.2847 12.7044 9.07807 12C10.2847 11.2924 11.2924 10.2847 12 9.07807C12.7076 10.2847 13.7153 11.2924 14.9219 12C13.7153 12.7076 12.7076 13.7153 12 14.9219Z" fill="#2E35FF"/>
           </svg>

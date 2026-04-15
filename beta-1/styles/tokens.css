@@ -6,7 +6,11 @@
 
 /* ─── DESIGN TOKENS ─────────────────────────────────────────────────────── */
 
-:root {
+/* Tailwind v4 @theme block — exposes tokens as both CSS variables AND
+   utility classes (e.g. --color-accent → bg-accent, text-accent).
+   Dark mode overrides below override the same variables, so utilities
+   automatically swap colors when [data-theme="dark"] is set on <html>. */
+@theme {
   /* Typography */
   --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
 
