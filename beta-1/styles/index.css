@@ -1,0 +1,63 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   KLUB MEDYKA BETA-1 — STYLES INDEX
+   Orchestrator — imports all modular CSS files in correct order.
+   Split from monolithic styles.css on 2026-04-15.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* @import statements MUST come first (CSS spec).
+   postcss-import inlines them at build time. */
+
+/* Tokens + base */
+@import './tokens.css';
+@import './base.css';
+
+/* Components (atoms) */
+@import './components/buttons.css';
+@import './components/pills.css';
+@import './components/forms.css';
+@import './components/section-headers.css';
+@import './components/cards.css';
+@import './components/alerts.css';
+@import './components/ticket.css';
+@import './components/tabs.css';
+@import './components/table-header.css';
+@import './components/checkbox-item.css';
+@import './components/nudge-bar.css';
+@import './components/accordion.css';
+@import './components/placeholder.css';
+@import './components/utility.css';
+@import './components/scroll-row.css';
+@import './components/car-club-badge.css';
+@import './components/drawer.css';
+@import './components/theme-toggle.css';
+@import './components/preloader.css';
+
+/* Layout */
+@import './layout/app-layout.css';
+@import './layout/sidebar.css';
+@import './layout/topbar.css';
+@import './layout/main-content.css';
+
+/* Views (in source order) */
+@import './views/onboarding.css';
+@import './views/dashboard-insurance-widget.css';
+@import './views/insurance-hub.css';
+@import './views/insurance-dashboard.css';
+@import './views/oc-form.css';
+@import './views/advisors.css';
+@import './views/interests.css';
+@import './views/marketplace.css';
+@import './views/product-detail.css';
+@import './views/discounts-legacy.css';
+@import './views/discounts-v2.css';
+@import './views/discounts-v3.css';
+@import './views/discounts-v4.css';
+@import './views/cart-drawer.css';
+@import './views/profile.css';
+@import './views/oc-form-v2.css';
+@import './views/ocr-modal.css';
+
+/* Tailwind (available for new components — utilities have highest specificity) */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;

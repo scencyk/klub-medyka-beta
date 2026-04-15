@@ -1,0 +1,114 @@
+/* ─── INTERESTS (dashboard dopytywanie) ─────────────────────────────────── */
+
+.interests {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--sp-2);
+}
+.interest-chip {
+  padding: 12px 16px;
+  border-radius: var(--radius-xl);
+  border: 1.5px solid var(--color-border);
+  background: var(--color-bg);
+  font-size: 13px;
+  color: var(--color-fg);
+  text-align: left;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.interest-chip--selected {
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+  color: var(--color-primary-fg);
+  font-weight: 600;
+}
+
+/* ─── Role button ─── */
+
+.role-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 8px;
+  padding: 0;
+  background: none;
+  border: none;
+  font-size: 14px;
+  color: var(--color-muted);
+  cursor: pointer;
+  transition: color 0.15s;
+}
+
+.role-btn:hover { color: var(--color-fg); }
+
+.role-btn__dot {
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--color-accent);
+  flex-shrink: 0;
+}
+
+/* ─── Preferences dialog ─── */
+
+.prefs-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  background: rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+}
+
+.prefs-dialog {
+  position: fixed;
+  z-index: 101;
+  inset: 0;
+  margin: auto;
+  width: 420px;
+  max-width: 90vw;
+  height: fit-content;
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-xl);
+  padding: 24px;
+  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.2);
+}
+
+.prefs-dialog__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.prefs-dialog__title {
+  font-size: 18px;
+  font-weight: 700;
+  margin: 0;
+}
+
+.prefs-dialog__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+
+.prefs-dialog__done {
+  width: 100%;
+  padding: 12px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-fg);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.prefs-dialog__done:hover {
+  background: var(--color-bg);
+}

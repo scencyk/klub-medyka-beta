@@ -1,0 +1,156 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   TOKENS — Design tokens from Figma style guide
+   CSS variables for colors, typography, spacing, radius, shadows, layout.
+   Includes light/dark theme variants.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* ─── DESIGN TOKENS ─────────────────────────────────────────────────────── */
+
+:root {
+  /* Typography */
+  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+
+  /* Colors — Base */
+  --color-bg: #FFFFFF;
+  --color-bg-subtle: #FAFAFA;
+  --color-fg: #18181B;
+  --color-primary: #18181B;
+  --color-primary-fg: #FAFAFA;
+  --color-secondary: #F4F4F5;
+  --color-secondary-fg: #18181B;
+  --color-muted: #71717A;
+  --color-border: #E4E4E7;
+  --color-input: #E4E4E7;
+
+  /* Colors — Brand */
+  --color-accent: #2E35FF;
+  --color-accent-fg: #FAFAFA;
+  --color-accent-dark: #1E1926;
+
+  /* Colors — Semantic */
+  --color-warn: #B45309;
+  --color-warn-bg: #FFFBEB;
+  --color-warn-border: #FDE68A;
+  --color-green: #059669;
+  --color-green-bg: #ECFDF5;
+  --color-green-border: #D1FAE5;
+  --color-red: #DC2626;
+  --color-red-bg: #FEF2F2;
+
+  /* Colors — Extended */
+  --color-accent-bg: #EEF2FF;
+  --color-accent-hover: #1a1fcc;
+  --color-lime: #CEFF3E;
+  --color-lime-fg: #1a1a1a;
+  --color-red-border: #FECACA;
+  --color-overlay: rgba(0,0,0,0.45);
+
+  /* Spacing (4px base) */
+  --sp-1: 4px;
+  --sp-2: 8px;
+  --sp-3: 12px;
+  --sp-4: 16px;
+  --sp-5: 20px;
+  --sp-6: 24px;
+  --sp-7: 28px;
+  --sp-8: 32px;
+  --sp-10: 40px;
+  --sp-12: 48px;
+  --sp-16: 64px;
+  --sp-24: 96px;
+
+  /* Border Radius */
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 8px;
+  --radius-xl: 12px;
+  --radius-full: 9999px;
+
+  /* Shadows */
+  --shadow-sm: 0 1px 2px rgba(0,0,0,0.05);
+  --shadow-md: 0 2px 4px -1px rgba(0,0,0,0.06), 0 4px 6px -1px rgba(0,0,0,0.1);
+  --shadow-lg: 0 4px 6px -2px rgba(0,0,0,0.05), 0 10px 15px -3px rgba(0,0,0,0.1);
+
+  /* Layout */
+  --sidebar-w: 240px;
+  --topbar-h: 56px;
+}
+
+/* ─── DARK THEME ───────────────────────────────────────────────────────── */
+
+[data-theme="dark"] {
+  --color-bg: #09090B;
+  --color-bg-subtle: #18181B;
+  --color-fg: #FAFAFA;
+  --color-primary: #FAFAFA;
+  --color-primary-fg: #18181B;
+  --color-secondary: #27272A;
+  --color-secondary-fg: #E4E4E7;
+  --color-muted: #A1A1AA;
+  --color-border: #27272A;
+  --color-input: #3F3F46;
+  --color-accent: #5B63FF;
+  --color-accent-fg: #FAFAFA;
+  --color-accent-hover: #7B82FF;
+  --color-accent-dark: #E8E0F0;
+  --color-accent-bg: #1E1B4B;
+  --color-warn: #FBBF24;
+  --color-warn-bg: #422006;
+  --color-warn-border: #92400E;
+  --color-green: #34D399;
+  --color-green-bg: #022C22;
+  --color-green-border: #065F46;
+  --color-red: #F87171;
+  --color-red-bg: #450A0A;
+  --color-red-border: #991B1B;
+  --color-lime: #CEFF3E;
+  --color-lime-fg: #1a1a1a;
+  --color-overlay: rgba(0,0,0,0.65);
+  --shadow-sm: 0 1px 2px rgba(0,0,0,0.4);
+  --shadow-md: 0 2px 4px -1px rgba(0,0,0,0.3), 0 4px 6px -1px rgba(0,0,0,0.4);
+  --shadow-lg: 0 4px 6px -2px rgba(0,0,0,0.3), 0 10px 15px -3px rgba(0,0,0,0.4);
+}
+
+@media (prefers-color-scheme: dark) {
+  [data-theme="system"] {
+    --color-bg: #09090B;
+    --color-bg-subtle: #18181B;
+    --color-fg: #FAFAFA;
+    --color-primary: #FAFAFA;
+    --color-primary-fg: #18181B;
+    --color-secondary: #27272A;
+    --color-secondary-fg: #E4E4E7;
+    --color-muted: #A1A1AA;
+    --color-border: #27272A;
+    --color-input: #3F3F46;
+    --color-accent: #5B63FF;
+    --color-accent-fg: #FAFAFA;
+    --color-accent-hover: #7B82FF;
+    --color-accent-dark: #E8E0F0;
+    --color-accent-bg: #1E1B4B;
+    --color-warn: #FBBF24;
+    --color-warn-bg: #422006;
+    --color-warn-border: #92400E;
+    --color-green: #34D399;
+    --color-green-bg: #022C22;
+    --color-green-border: #065F46;
+    --color-red: #F87171;
+    --color-red-bg: #450A0A;
+    --color-red-border: #991B1B;
+    --color-lime: #CEFF3E;
+    --color-lime-fg: #1a1a1a;
+    --color-overlay: rgba(0,0,0,0.65);
+    --shadow-sm: 0 1px 2px rgba(0,0,0,0.4);
+    --shadow-md: 0 2px 4px -1px rgba(0,0,0,0.3), 0 4px 6px -1px rgba(0,0,0,0.4);
+    --shadow-lg: 0 4px 6px -2px rgba(0,0,0,0.3), 0 10px 15px -3px rgba(0,0,0,0.4);
+  }
+}
+
+/* ─── THEME TRANSITION ─────────────────────────────────────────────────── */
+
+html.theme-transitioning,
+html.theme-transitioning *,
+html.theme-transitioning *::before,
+html.theme-transitioning *::after {
+  transition: background-color 0.3s ease, color 0.2s ease, border-color 0.3s ease, box-shadow 0.3s ease !important;
+}

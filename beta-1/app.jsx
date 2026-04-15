@@ -3,7 +3,7 @@ import { createRoot } from 'react-dom/client';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence, useSpring, useTransform, motionValue, useInView } from 'motion/react';
 import useMeasure from 'react-use-measure';
-import './styles.css';
+import './styles/index.css';
 
 // ─── TEXT ROLL ────────────────────────────────────────────────────────────────
 

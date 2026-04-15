@@ -1,0 +1,33 @@
+/* ─── ACCORDION (insurance) ─────────────────────────────────────────────── */
+
+.accordion-item {
+  border-bottom: 1px solid var(--color-border);
+}
+.accordion-item:last-child { border-bottom: none; }
+
+.accordion-trigger {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 16px 20px;
+  cursor: pointer;
+  background: var(--color-bg);
+  border: none;
+  width: 100%;
+  text-align: left;
+  transition: background 0.1s;
+}
+.accordion-trigger--open { background: var(--color-bg-subtle); }
+
+.accordion-chevron {
+  font-size: 16px;
+  color: var(--color-muted);
+  transition: transform 0.15s;
+}
+.accordion-chevron--open { transform: rotate(180deg); }
+
+.accordion-panel {
+  padding: 0 20px 20px;
+  border-top: 1px solid var(--color-border);
+  background: var(--color-bg-subtle);
+}

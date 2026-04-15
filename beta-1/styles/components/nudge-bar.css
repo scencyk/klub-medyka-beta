@@ -1,0 +1,16 @@
+/* ─── NUDGE BAR ─────────────────────────────────────────────────────────── */
+
+.nudge-bar {
+  padding: 14px 22px;
+  background: var(--color-bg-subtle);
+  border-top: 1px solid var(--color-border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-4);
+  flex-wrap: wrap;
+}
+.nudge-bar--active {
+  background: var(--color-warn-bg);
+  border-top-color: var(--color-warn-border);
+}

@@ -2,6 +2,7 @@
   "name": "beta-1",
   "version": "1.0.0",
   "main": "index.js",
+  "type": "module",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
@@ -20,6 +21,10 @@
     "vite": "^7.3.1"
   },
   "devDependencies": {
-    "react-grab": "^0.1.23"
+    "autoprefixer": "^10.5.0",
+    "postcss": "^8.5.9",
+    "postcss-import": "^16.1.1",
+    "react-grab": "^0.1.23",
+    "tailwindcss": "^3.4.19"
   }
 }

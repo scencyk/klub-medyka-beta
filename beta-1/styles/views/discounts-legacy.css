@@ -1,0 +1,261 @@
+/* ─── DISCOUNT TABS ──────────────────────────────────────────────────────── */
+
+.discount-tabs {
+  display: flex;
+  gap: 0;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.discount-tabs__btn {
+  position: relative;
+  padding: 10px 20px;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--color-muted);
+  background: none;
+  border: none;
+  cursor: pointer;
+  transition: color 0.15s;
+}
+
+.discount-tabs__btn:hover { color: var(--color-fg); }
+
+.discount-tabs__btn--active {
+  color: var(--color-fg);
+  font-weight: 600;
+}
+
+.discount-tabs__indicator {
+  position: absolute;
+  bottom: -1px;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: var(--color-fg);
+  border-radius: 1px 1px 0 0;
+}
+
+/* ─── DISCOUNT CARDS ──────────────────────────────────────────────────────── */
+
+.discount-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+}
+
+.discount-card {
+  border-radius: var(--radius-xl);
+  border: 1px solid var(--color-border);
+  overflow: hidden;
+  background: var(--color-bg);
+  display: flex;
+  flex-direction: column;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  cursor: pointer;
+}
+
+.discount-card:hover {
+  box-shadow: var(--shadow-lg);
+}
+
+.discount-card__hero {
+  position: relative;
+  aspect-ratio: 16 / 10;
+  overflow: hidden;
+}
+
+.discount-card__hero-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+}
+
+.discount-card__badge {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: var(--color-lime);
+  color: var(--color-lime-fg);
+  font-size: 13px;
+  font-weight: 700;
+  padding: 4px 12px;
+  border-radius: var(--radius-full);
+}
+
+.discount-card__body {
+  padding: 16px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.discount-card__brand {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+.discount-card__logo {
+  height: 24px;
+  width: 24px;
+  object-fit: contain;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border);
+  padding: 2px;
+  flex-shrink: 0;
+}
+
+.discount-card__partner {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-muted);
+}
+
+.discount-card__unlocked {
+  position: absolute;
+  bottom: 8px;
+  left: 8px;
+  display: flex;
+  border-radius: var(--radius-md);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.25);
+}
+
+.discount-card__title {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--color-fg);
+  line-height: 1.3;
+}
+
+.discount-card__desc {
+  font-size: 13px;
+  color: var(--color-muted);
+  line-height: 1.45;
+  display: -webkit-box;
+  -webkit-line-clamp: 4;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.discount-card__footer {
+  padding: 0 16px 16px;
+  border-top: 1px dashed var(--color-border);
+  margin-top: auto;
+}
+
+.discount-card__cta {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  padding: 10px;
+  margin-top: 16px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-bg);
+  color: var(--color-fg);
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.discount-card__cta:hover {
+  background: var(--color-secondary);
+}
+
+/* ── Discount view toggle ── */
+.discount-view-toggle {
+  display: flex;
+  gap: 2px;
+  background: var(--color-bg-secondary, #f3f4f6);
+  border-radius: 8px;
+  padding: 2px;
+  flex-shrink: 0;
+}
+.discount-view-toggle__btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--color-muted);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+.discount-view-toggle__btn:hover {
+  color: var(--color-text);
+  background: rgba(0,0,0,0.04);
+}
+.discount-view-toggle__btn--active {
+  background: var(--color-bg);
+  color: var(--color-accent);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+}
+
+/* ── Compact discount grid ── */
+.discount-grid--compact {
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+.discount-card--compact {
+  position: relative;
+  padding: 14px;
+  cursor: pointer;
+}
+.discount-card--compact .discount-card__hero,
+.discount-card--compact .discount-card__footer {
+  display: none;
+}
+.discount-card__badge--compact {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  font-size: 11px;
+  font-weight: 700;
+  background: var(--color-accent);
+  color: #fff;
+  padding: 2px 8px;
+  border-radius: 6px;
+  z-index: 1;
+}
+.discount-card--compact__body {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.discount-card__logo--compact {
+  width: 20px;
+  height: 20px;
+  border-radius: 4px;
+}
+.discount-card__title--compact {
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  padding-right: 50px;
+}
+.discount-card__desc--compact {
+  font-size: 12px;
+  color: var(--color-muted);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  margin: 0;
+}
+
+@media (max-width: 900px) {
+  .discount-grid--compact {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}

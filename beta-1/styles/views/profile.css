@@ -1,0 +1,112 @@
+/* ─── Profile: unlocked discounts ─── */
+
+.profile-discount {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 20px;
+}
+
+.profile-discount__logo {
+  width: 32px;
+  height: 32px;
+  object-fit: contain;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border);
+  padding: 2px;
+  flex-shrink: 0;
+}
+
+.profile-discount__badge {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--color-accent);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+/* ─── PROFILE ────────────────────────────────────────────────────────────────── */
+
+.profile-field {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14px 20px;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.profile-field__label {
+  font-size: 13px;
+  color: var(--color-muted);
+}
+
+.profile-field__value {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-fg);
+  display: flex;
+  align-items: center;
+}
+
+/* Profile edit form */
+.profile-form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.profile-form__row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.profile-form__field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.profile-form__label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-fg);
+}
+
+.profile-form__locked {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  background: var(--color-secondary);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-muted);
+}
+
+.profile-form__hint {
+  font-size: 11px;
+  color: var(--color-muted);
+  margin-top: 2px;
+}
+
+.profile-form__actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.ob-option--compact,
+.ob-check--compact {
+  padding: 8px 12px;
+}
+
+.ob-option--compact .ob-option__label {
+  font-size: 13px;
+}
+
+.ob-option--compact .ob-option__sub {
+  font-size: 11px;
+}

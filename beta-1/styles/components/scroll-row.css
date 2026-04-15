@@ -1,0 +1,24 @@
+/* ─── SCROLL ROW ─────────────────────────────────────────────────────────── */
+
+.scroll-row {
+  display: flex;
+  gap: 12px;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  padding-bottom: 4px;
+  max-width: 100%;
+}
+.scroll-row::-webkit-scrollbar { display: none; }
+.scroll-row__item {
+  flex: 0 0 45%;
+  min-width: 200px;
+  scroll-snap-align: start;
+}
+
+/* Card accent variant (for recommended package) */
+.card--accent {
+  background: var(--color-accent-bg);
+  border-color: var(--color-accent);
+}

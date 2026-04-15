@@ -1,0 +1,22 @@
+/* ─── UTILITY ───────────────────────────────────────────────────────────── */
+
+.text-muted { color: var(--color-muted); }
+.text-accent { color: var(--color-accent); }
+.text-warn { color: var(--color-warn); }
+.text-green { color: var(--color-green); }
+.text-sm { font-size: 12px; }
+.text-xs { font-size: 11px; }
+.font-mono { font-family: monospace; }
+.font-semibold { font-weight: 600; }
+.font-bold { font-weight: 700; }
+.line-through { text-decoration: line-through; }
+.flex { display: flex; }
+.flex-1 { flex: 1; }
+.items-center { align-items: center; }
+.gap-2 { gap: var(--sp-2); }
+.gap-4 { gap: var(--sp-4); }
+.mt-2 { margin-top: var(--sp-2); }
+.mt-4 { margin-top: var(--sp-4); }
+.mb-1 { margin-bottom: var(--sp-1); }
+.mb-2 { margin-bottom: var(--sp-2); }
+.nowrap { white-space: nowrap; }

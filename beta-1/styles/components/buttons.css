@@ -1,0 +1,53 @@
+/* ─── BUTTONS ───────────────────────────────────────────────────────────── */
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--sp-2);
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  padding: 8px 16px;
+  border-radius: var(--radius-lg);
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: opacity 0.15s, background 0.15s;
+  white-space: nowrap;
+}
+.btn:active { opacity: 0.85; }
+
+.btn--primary {
+  background: var(--color-primary);
+  color: var(--color-primary-fg);
+  border-color: var(--color-primary);
+}
+
+.btn--accent {
+  background: var(--color-accent);
+  color: var(--color-accent-fg);
+  border-color: var(--color-accent);
+}
+
+.btn--outline {
+  background: var(--color-bg);
+  color: var(--color-fg);
+  border-color: var(--color-input);
+}
+
+.btn--ghost {
+  background: none;
+  color: var(--color-muted);
+  border-color: var(--color-border);
+}
+
+.btn--warn {
+  background: none;
+  color: var(--color-warn);
+  border-color: var(--color-warn);
+}
+
+.btn--sm { height: 36px; padding: 8px 12px; font-size: 14px; }
+.btn--lg { height: 44px; padding: 10px 20px; font-size: 15px; }
+.btn--full { width: 100%; }
+.btn--disabled { opacity: 0.38; cursor: default; pointer-events: none; }

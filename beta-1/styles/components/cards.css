@@ -1,0 +1,25 @@
+/* ─── CARDS ─────────────────────────────────────────────────────────────── */
+
+.card {
+  border-radius: var(--radius-xl);
+  border: 1px solid var(--color-border);
+  overflow: hidden;
+  background: var(--color-bg);
+}
+
+.card__row {
+  display: flex;
+  align-items: center;
+  padding: 14px 20px;
+  border-bottom: 1px solid var(--color-border);
+  gap: var(--sp-4);
+}
+.card__row:last-child { border-bottom: none; }
+
+.card__footer {
+  padding: 11px 20px;
+  background: var(--color-bg-subtle);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}

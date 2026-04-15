@@ -1,0 +1,17 @@
+/* ─── PLACEHOLDER / EMPTY STATE ─────────────────────────────────────────── */
+
+.empty-state {
+  text-align: center;
+  padding: 56px 0;
+  color: var(--color-muted);
+}
+.empty-state__icon { font-size: 32px; margin-bottom: var(--sp-3); }
+.empty-state__text { font-size: 14px; }
+
+.coming-soon {
+  border-radius: var(--radius-xl);
+  border: 1.5px dashed var(--color-border);
+  padding: 56px 40px;
+  text-align: center;
+  background: var(--color-bg);
+}

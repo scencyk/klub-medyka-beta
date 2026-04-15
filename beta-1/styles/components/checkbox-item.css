@@ -1,0 +1,37 @@
+/* ─── CHECKBOX ITEM (services) ──────────────────────────────────────────── */
+
+.check-item {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 13px 22px;
+  border-bottom: 1px solid var(--color-border);
+  cursor: pointer;
+  transition: background 0.1s;
+}
+.check-item:last-child { border-bottom: none; }
+.check-item--selected { background: var(--color-accent-bg); }
+.check-item--purchased { cursor: default; }
+
+.check-item__box {
+  width: 17px;
+  height: 17px;
+  border-radius: var(--radius-sm);
+  border: 1.5px solid var(--color-border);
+  background: transparent;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  font-size: 10px;
+  font-weight: 700;
+  color: white;
+}
+.check-item__box--selected {
+  background: var(--color-accent);
+  border-color: var(--color-accent);
+}
+.check-item__box--purchased {
+  background: var(--color-green);
+  border-color: var(--color-green);
+}
