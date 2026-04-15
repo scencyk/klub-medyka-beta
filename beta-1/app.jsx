@@ -1410,8 +1410,21 @@ function InView({ children, className, style }) {
   );
 }
 
+const PILL_VARIANTS = {
+  default: "text-muted bg-secondary",
+  green:   "text-green bg-green-bg",
+  warn:    "text-warn bg-warn-bg",
+  accent:  "text-accent bg-accent-bg",
+  red:     "text-red bg-red-bg",
+  muted:   "text-muted bg-secondary",
+};
+
 function Pill({ children, variant = "default" }) {
-  return <span className={`pill pill--${variant}`}>{children}</span>;
+  return (
+    <span className={`inline-flex items-center whitespace-nowrap rounded-full px-2 py-0.5 text-[11px] font-semibold leading-[1.4] ${PILL_VARIANTS[variant] || PILL_VARIANTS.default}`}>
+      {children}
+    </span>
+  );
 }
 
 function StatusPill({ status }) {
@@ -1420,10 +1433,28 @@ function StatusPill({ status }) {
   return                             <Pill variant="green">Aktywna</Pill>;
 }
 
-function Btn({ children, variant = "primary", onClick, className = "", disabled = false, style }) {
+const BTN_VARIANTS = {
+  primary: "bg-primary text-primary-fg border-primary",
+  accent:  "bg-accent text-accent-fg border-accent",
+  outline: "bg-bg text-fg border-input",
+  ghost:   "bg-transparent text-muted border-border",
+  warn:    "bg-transparent text-warn border-warn",
+};
+
+const BTN_SIZES = {
+  sm: "h-9 px-3 py-2 text-sm",
+  md: "px-4 py-2 text-sm",        // default
+  lg: "h-11 px-5 py-2.5 text-[15px]",
+};
+
+function Btn({ children, variant = "primary", size = "md", onClick, className = "", disabled = false, style }) {
+  const base = "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-lg border font-medium leading-5 cursor-pointer transition-[opacity,background] duration-150 active:opacity-85";
+  const variantCls = BTN_VARIANTS[variant] || BTN_VARIANTS.primary;
+  const sizeCls = BTN_SIZES[size] || BTN_SIZES.md;
+  const disabledCls = disabled ? "pointer-events-none cursor-default opacity-[0.38]" : "";
   return (
     <button
-      className={`btn btn--${variant}${disabled ? " btn--disabled" : ""}${className ? " " + className : ""}`}
+      className={`${base} ${variantCls} ${sizeCls} ${disabledCls} ${className}`.trim()}
       onClick={disabled ? undefined : onClick}
       style={style}
     >
@@ -1434,10 +1465,10 @@ function Btn({ children, variant = "primary", onClick, className = "", disabled 
 
 function SectionHeader({ title, action, onAction }) {
   return (
-    <div className="section-header">
-      <span className="section-header__title">{title}</span>
+    <div className="mb-4 flex items-baseline justify-between">
+      <span className="text-[13px] font-semibold text-fg">{title}</span>
       {action && (
-        <button className="section-header__action" onClick={onAction}>
+        <button className="inline-flex cursor-pointer items-center gap-1 border-none bg-transparent p-0 text-xs text-accent" onClick={onAction}>
           {action}
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
         </button>
@@ -1511,7 +1542,7 @@ function Onboarding({ onComplete, setProfile }) {
               ))}
             </div>
             <div className="flex gap-[10px]">
-              <Btn variant="primary" onClick={() => setStep(1)} className="btn--full">Załóż konto</Btn>
+              <Btn variant="primary" onClick={() => setStep(1)} className="w-full">Załóż konto</Btn>
               <Btn variant="outline" onClick={() => { setProfile({ ...DEFAULT_PROFILE, role: "specialist", work: ["private"], firstName: "Anna", lastName: "Kowalska" }); onComplete(); }}>Mam już konto</Btn>
             </div>
           </div>
@@ -1525,30 +1556,30 @@ function Onboarding({ onComplete, setProfile }) {
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <div className="mb-1.5 text-[11px] font-semibold uppercase tracking-wider text-muted">Imię *</div>
-                  <input className="input" value={form.firstName} onChange={e => set("firstName", e.target.value)}
+                  <input className="w-full rounded-lg border border-input bg-bg px-3.5 py-2.5 text-sm text-fg outline-none transition-colors duration-150 placeholder:text-muted focus:border-primary" value={form.firstName} onChange={e => set("firstName", e.target.value)}
                     placeholder="Anna" type="text" />
                 </div>
                 <div>
                   <div className="mb-1.5 text-[11px] font-semibold uppercase tracking-wider text-muted">Nazwisko</div>
-                  <input className="input" value={form.lastName} onChange={e => set("lastName", e.target.value)}
+                  <input className="w-full rounded-lg border border-input bg-bg px-3.5 py-2.5 text-sm text-fg outline-none transition-colors duration-150 placeholder:text-muted focus:border-primary" value={form.lastName} onChange={e => set("lastName", e.target.value)}
                     placeholder="Kowalska" type="text" />
                 </div>
               </div>
               <div>
                 <div className="mb-1.5 text-[11px] font-semibold uppercase tracking-wider text-muted">E-mail *</div>
-                <input className="input" value={form.email} onChange={e => set("email", e.target.value)}
+                <input className="w-full rounded-lg border border-input bg-bg px-3.5 py-2.5 text-sm text-fg outline-none transition-colors duration-150 placeholder:text-muted focus:border-primary" value={form.email} onChange={e => set("email", e.target.value)}
                   placeholder="anna@szpital.pl" type="email" />
               </div>
               <div>
                 <div className="mb-1.5 text-[11px] font-semibold uppercase tracking-wider text-muted">
                   Telefon <span className="font-normal normal-case tracking-normal">(opcjonalnie)</span>
                 </div>
-                <input className="input" value={form.phone} onChange={e => set("phone", e.target.value)}
+                <input className="w-full rounded-lg border border-input bg-bg px-3.5 py-2.5 text-sm text-fg outline-none transition-colors duration-150 placeholder:text-muted focus:border-primary" value={form.phone} onChange={e => set("phone", e.target.value)}
                   placeholder="+48 600 000 000" type="tel" />
               </div>
               <div>
                 <div className="mb-1.5 text-[11px] font-semibold uppercase tracking-wider text-muted">Numer PWZ *</div>
-                <input className="input" value={form.pwz} onChange={e => set("pwz", e.target.value.replace(/\D/g, "").slice(0, 7))}
+                <input className="w-full rounded-lg border border-input bg-bg px-3.5 py-2.5 text-sm text-fg outline-none transition-colors duration-150 placeholder:text-muted focus:border-primary" value={form.pwz} onChange={e => set("pwz", e.target.value.replace(/\D/g, "").slice(0, 7))}
                   placeholder="1234567" type="text" inputMode="numeric" maxLength={7} />
                 <div className="mt-2 text-xs leading-[1.5] text-muted">
                   7-cyfrowy numer prawa wykonywania zawodu lekarza
@@ -1624,7 +1655,7 @@ function Onboarding({ onComplete, setProfile }) {
             <Btn variant="primary" onClick={() => {
               setProfile({ firstName: form.firstName, lastName: form.lastName, email: form.email, phone: form.phone, pwz: form.pwz, role: form.role, work: form.work, interests: [] });
               onComplete();
-            }} className="btn--full btn--lg">
+            }} size="lg" className="w-full">
               Przejdź do platformy →
             </Btn>
           </div>
@@ -2007,7 +2038,7 @@ function Overview({ setActive, profile, setProfile, unlockedDiscounts, unlockDis
               </button>
             ))}
           </div>
-          <button className="section-header__action" onClick={() => setActive("discounts")}>Wszystkie</button>
+          <button className="inline-flex cursor-pointer items-center gap-1 border-none bg-transparent p-0 text-xs text-accent" onClick={() => setActive("discounts")}>Wszystkie</button>
         </div>
         <AnimatePresence mode="wait">
           <motion.div
@@ -2129,7 +2160,7 @@ function Overview({ setActive, profile, setProfile, unlockedDiscounts, unlockDis
                               onChange={(e) => setAdvisorQuestions(prev => ({ ...prev, [a.id]: e.target.value }))}
                             />
                             <div style={{ position: "relative" }}>
-                              <button className="btn btn--outline btn--sm contact-request-btn" onClick={() => setBookingDropdown(bookingDropdown === a.id ? null : a.id)}>
+                              <Btn variant="outline" size="sm" className="contact-request-btn" onClick={() => setBookingDropdown(bookingDropdown === a.id ? null : a.id)}>
                                 Zamów kontakt
                               </button>
                               {bookingDropdown === a.id && (
@@ -2524,7 +2555,7 @@ function ProductDetail({ product: p, cat, defaultSelections, onBack, addToCart }
 
           {/* CTA buttons */}
           <div className="pdp__actions">
-            <button className="btn btn--accent pdp__btn-primary" onClick={() => addToCart && addToCart(p, { computedNet: totalNet, computedGross: totalGross, selections: variantSel, clientProductId, contractMonths, selectedServices })}>
+            <Btn variant="accent" className="pdp__btn-primary" onClick={() => addToCart && addToCart(p, { computedNet: totalNet, computedGross: totalGross, selections: variantSel, clientProductId, contractMonths, selectedServices })}>
               <svg width="20" height="20" viewBox="0 0 16 16" fill="none" style={{marginRight:8}}><path d="M1.36646 1.3667H2.69979L4.47312 9.6467C4.53817 9.94994 4.7069 10.221 4.95026 10.4133C5.19362 10.6055 5.49639 10.7069 5.80646 10.7H12.3265C12.6299 10.6995 12.9241 10.5956 13.1605 10.4053C13.3968 10.215 13.5612 9.94972 13.6265 9.65337L14.7265 4.70003H3.41312M5.99992 14C5.99992 14.3682 5.70144 14.6667 5.33325 14.6667C4.96506 14.6667 4.66659 14.3682 4.66659 14C4.66659 13.6318 4.96506 13.3333 5.33325 13.3333C5.70144 13.3333 5.99992 13.6318 5.99992 14ZM13.3333 14C13.3333 14.3682 13.0348 14.6667 12.6666 14.6667C12.2984 14.6667 11.9999 14.3682 11.9999 14C11.9999 13.6318 12.2984 13.3333 12.6666 13.3333C13.0348 13.3333 13.3333 13.6318 13.3333 14Z" stroke="currentColor" strokeWidth="1.33" strokeLinecap="round" strokeLinejoin="round"/></svg>
               Dodaj do koszyka — <SlidingNumber value={priceMode === "business" ? totalNet : totalGross} suffix=" zł/mies." />
             </button>
@@ -2656,7 +2687,7 @@ function ProductDetail({ product: p, cat, defaultSelections, onBack, addToCart }
             </div>
             {priceReady && (
               <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.6, duration: 0.3 }}>
-                <button className="btn btn--accent pdp__sticky-bar-cta" onClick={() => addToCart && addToCart(p, { computedNet: totalNet, computedGross: totalGross, selections: variantSel, clientProductId, contractMonths, selectedServices })}>
+                <Btn variant="accent" className="pdp__sticky-bar-cta" onClick={() => addToCart && addToCart(p, { computedNet: totalNet, computedGross: totalGross, selections: variantSel, clientProductId, contractMonths, selectedServices })}>
                   <svg width="18" height="18" viewBox="0 0 16 16" fill="none" style={{marginRight:6}}><path d="M1.36646 1.3667H2.69979L4.47312 9.6467C4.53817 9.94994 4.7069 10.221 4.95026 10.4133C5.19362 10.6055 5.49639 10.7069 5.80646 10.7H12.3265C12.6299 10.6995 12.9241 10.5956 13.1605 10.4053C13.3968 10.215 13.5612 9.94972 13.6265 9.65337L14.7265 4.70003H3.41312M5.99992 14C5.99992 14.3682 5.70144 14.6667 5.33325 14.6667C4.96506 14.6667 4.66659 14.3682 4.66659 14C4.66659 13.6318 4.96506 13.3333 5.33325 13.3333C5.70144 13.3333 5.99992 13.6318 5.99992 14ZM13.3333 14C13.3333 14.3682 13.0348 14.6667 12.6666 14.6667C12.2984 14.6667 11.9999 14.3682 11.9999 14C11.9999 13.6318 12.2984 13.3333 12.6666 13.3333C13.0348 13.3333 13.3333 13.6318 13.3333 14Z" stroke="currentColor" strokeWidth="1.33" strokeLinecap="round" strokeLinejoin="round"/></svg>
                   Dodaj do koszyka
                 </button>
@@ -2759,7 +2790,7 @@ function CarDetail({ car, onBack }) {
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 24, maxWidth: 720 }}>
-      <button onClick={onBack} className="btn btn--ghost btn--sm" style={{ alignSelf: "flex-start", gap: 6 }}>
+      <Btn variant="ghost" size="sm" onClick={onBack} className="self-start" style={{ gap: 6 }}>
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m15 18-6-6 6-6"/></svg>
         Wróć
       </button>
@@ -2828,7 +2859,7 @@ function CarDetail({ car, onBack }) {
       )}
 
       {/* CTA */}
-      <button className="btn btn--lime" style={{ width: "100%", justifyContent: "center", gap: 8 }}>
+      <button className="inline-flex w-full cursor-pointer items-center justify-center gap-2 whitespace-nowrap rounded-lg border border-lime bg-lime px-4 py-2 text-sm font-medium leading-5 text-lime-fg transition-[opacity,background] duration-150 active:opacity-85">
         <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M1.36646 1.3667H2.69979L4.47312 9.6467C4.53817 9.94994 4.7069 10.221 4.95026 10.4133C5.19362 10.6055 5.49639 10.7069 5.80646 10.7H12.3265C12.6299 10.6995 12.9241 10.5956 13.1605 10.4053C13.3968 10.215 13.5612 9.94972 13.6265 9.65337L14.7265 4.70003H3.41312M5.99992 14C5.99992 14.3682 5.70144 14.6667 5.33325 14.6667C4.96506 14.6667 4.66659 14.3682 4.66659 14C4.66659 13.6318 4.96506 13.3333 5.33325 13.3333C5.70144 13.3333 5.99992 13.6318 5.99992 14ZM13.3333 14C13.3333 14.3682 13.0348 14.6667 12.6666 14.6667C12.2984 14.6667 11.9999 14.3682 11.9999 14C11.9999 13.6318 12.2984 13.3333 12.6666 13.3333C13.0348 13.3333 13.3333 13.6318 13.3333 14Z" stroke="currentColor" strokeWidth="1.33" strokeLinecap="round" strokeLinejoin="round"/></svg>
         Zapytaj o ofertę
       </button>
@@ -2955,7 +2986,7 @@ function PurchasesView({ addToCart, cart, removeFromCart }) {
             <h2 style={{ fontSize: 20, fontWeight: 700, marginBottom: 4 }}>Moje zamówienia</h2>
             <p className="text-sm text-muted">Historia Twoich zakupów.</p>
           </div>
-          <button className="section-header__action" onClick={() => setView("shop")}>← Wróć do sklepu</button>
+          <button className="inline-flex cursor-pointer items-center gap-1 border-none bg-transparent p-0 text-xs text-accent" onClick={() => setView("shop")}>← Wróć do sklepu</button>
         </div>
         {MY_PURCHASES.length === 0 ? (
           <div className="empty-state">
@@ -2993,7 +3024,7 @@ function PurchasesView({ addToCart, cart, removeFromCart }) {
           <h2 style={{ fontSize: 20, fontWeight: 700, marginBottom: 4 }}>Zakupy</h2>
           <p className="text-sm text-muted">Wynajem sprzętu dla lekarzy — subskrypcja miesięczna, bez zobowiązań jednorazowych.</p>
         </div>
-        <button className="section-header__action" onClick={() => setView("orders")}>Moje zamówienia →</button>
+        <button className="inline-flex cursor-pointer items-center gap-1 border-none bg-transparent p-0 text-xs text-accent" onClick={() => setView("orders")}>Moje zamówienia →</button>
       </div>
 
       {/* Filter pills */}
@@ -3012,7 +3043,7 @@ function PurchasesView({ addToCart, cart, removeFromCart }) {
         <div key={cat.id} className="product-section">
           <div className="product-section__head">
             <h3 className="font-bold" style={{ fontSize: 16 }}>{cat.label}</h3>
-            <button className="section-header__action">Zobacz wszystko →</button>
+            <button className="inline-flex cursor-pointer items-center gap-1 border-none bg-transparent p-0 text-xs text-accent">Zobacz wszystko →</button>
           </div>
           <div className="product-grid">
             {cat.items.map(item => (
@@ -3194,9 +3225,9 @@ function ServicesView() {
                   )}
                 </div>
                 <div className="flex" style={{ gap: 8, flexShrink: 0 }}>
-                  <Btn variant="outline" className="btn--sm">Kup wybrane</Btn>
+                  <Btn variant="outline" size="sm">Kup wybrane</Btn>
                   {nudge && (
-                    <Btn variant="accent" onClick={() => buyPackage(pkg.id)} className="btn--sm">
+                    <Btn variant="accent" onClick={() => buyPackage(pkg.id)} size="sm">
                       Weź pakiet — oszczędzasz {save} zł →
                     </Btn>
                   )}
@@ -5217,7 +5248,7 @@ function ProfileView({ profile, setProfile, unlockedDiscounts, setActive }) {
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
           <SectionHeader title="Dane profilu" />
           {!editing && (
-            <button className="section-header__action" onClick={() => setEditing(true)}>Edytuj</button>
+            <button className="inline-flex cursor-pointer items-center gap-1 border-none bg-transparent p-0 text-xs text-accent" onClick={() => setEditing(true)}>Edytuj</button>
           )}
         </div>
 
@@ -5227,20 +5258,20 @@ function ProfileView({ profile, setProfile, unlockedDiscounts, setActive }) {
               <div className="profile-form__row">
                 <div className="profile-form__field">
                   <label className="profile-form__label">Imię</label>
-                  <input className="input" value={draft.firstName} onChange={e => setDraftField("firstName", e.target.value)} />
+                  <input className="w-full rounded-lg border border-input bg-bg px-3.5 py-2.5 text-sm text-fg outline-none transition-colors duration-150 placeholder:text-muted focus:border-primary" value={draft.firstName} onChange={e => setDraftField("firstName", e.target.value)} />
                 </div>
                 <div className="profile-form__field">
                   <label className="profile-form__label">Nazwisko</label>
-                  <input className="input" value={draft.lastName} onChange={e => setDraftField("lastName", e.target.value)} />
+                  <input className="w-full rounded-lg border border-input bg-bg px-3.5 py-2.5 text-sm text-fg outline-none transition-colors duration-150 placeholder:text-muted focus:border-primary" value={draft.lastName} onChange={e => setDraftField("lastName", e.target.value)} />
                 </div>
               </div>
               <div className="profile-form__field">
                 <label className="profile-form__label">E-mail</label>
-                <input className="input" type="email" value={draft.email} onChange={e => setDraftField("email", e.target.value)} />
+                <input className="w-full rounded-lg border border-input bg-bg px-3.5 py-2.5 text-sm text-fg outline-none transition-colors duration-150 placeholder:text-muted focus:border-primary" type="email" value={draft.email} onChange={e => setDraftField("email", e.target.value)} />
               </div>
               <div className="profile-form__field">
                 <label className="profile-form__label">Telefon</label>
-                <input className="input" type="tel" value={draft.phone} onChange={e => setDraftField("phone", e.target.value)} />
+                <input className="w-full rounded-lg border border-input bg-bg px-3.5 py-2.5 text-sm text-fg outline-none transition-colors duration-150 placeholder:text-muted focus:border-primary" type="tel" value={draft.phone} onChange={e => setDraftField("phone", e.target.value)} />
               </div>
               <div className="profile-form__field">
                 <label className="profile-form__label">Numer PWZ</label>
@@ -5334,7 +5365,7 @@ function ProfileView({ profile, setProfile, unlockedDiscounts, setActive }) {
         ) : (
           <div className="card" style={{ padding: "32px 20px", textAlign: "center" }}>
             <p className="text-sm text-muted">Nie masz jeszcze odblokowanych zniżek.</p>
-            <button className="section-header__action" style={{ marginTop: 8 }} onClick={() => setActive("discounts")}>Przeglądaj zniżki</button>
+            <button className="mt-2 inline-flex cursor-pointer items-center gap-1 border-none bg-transparent p-0 text-xs text-accent" onClick={() => setActive("discounts")}>Przeglądaj zniżki</button>
           </div>
         )}
       </div>
@@ -5374,7 +5405,7 @@ function AdvisorsView() {
                     }}>Zmień</button>
                   </div>
                 ) : (
-                  <button className="btn btn--outline btn--sm contact-request-btn" onClick={() => setContactDropdown(openId ? null : a.id)}>
+                  <Btn variant="outline" size="sm" className="contact-request-btn" onClick={() => setContactDropdown(openId ? null : a.id)}>
                     Zamów kontakt
                   </button>
                 )}
@@ -5780,7 +5811,7 @@ function CheckoutModal({ cart, totalNet, totalGross, profile, priceMode, onClose
         </div>
 
         <div className="checkout-modal__footer">
-          <button className="btn btn--accent checkout-modal__submit" onClick={handleRedirect}>
+          <Btn variant="accent" className="checkout-modal__submit" onClick={handleRedirect}>
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
             Przekieruj do finansowania
           </button>

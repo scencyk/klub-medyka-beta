@@ -30,10 +30,6 @@
 @import './base.css';
 
 /* Components (atoms) */
-@import './components/buttons.css';
-@import './components/pills.css';
-@import './components/forms.css';
-@import './components/section-headers.css';
 @import './components/cards.css';
 @import './components/alerts.css';
 @import './components/ticket.css';
