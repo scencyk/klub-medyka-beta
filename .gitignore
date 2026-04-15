@@ -2,3 +2,7 @@
 .claude/
 node_modules/
 *.log
+
+# Local backup snapshots (safety nets, not for repo)
+beta-1-backup/
+beta-1-pre-tailwind-*/
