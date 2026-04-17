@@ -381,6 +381,142 @@ function calcLPPrice(sub) {
   return { raw, effective: raw, annualTotal: null, annualSaving: 0 };
 }
 
+// ─── SERVICES 2 — katalog pojedynczych usług (bottom-up discovery) ───────────
+// Model: user przegląda klocki, dodaje do koszyka, w pewnym momencie system
+// "odkrywa" mu że wybrane usługi są częścią pakietu LP i oferuje swap.
+const SERVICE_CATEGORIES = [
+  { id: "all",        label: "Wszystkie" },
+  { id: "insurance",  label: "Ubezpieczenia" },
+  { id: "accounting", label: "Księgowość i dokumenty" },
+  { id: "medical",    label: "Praktyka" },
+  { id: "legal",      label: "Prawne i doradcze" },
+];
+
+// Solo prices — każda usługa kupowana osobno. LP daje rabat/gratis/bonus.
+// Ikony: emoji trzymamy neutralne, krótkie, żeby nie dominowały.
+const SERVICE_CATALOG = [
+  {
+    id: "lloyds", label: "Ubezpieczenie utraty dochodu (Lloyd's)", short: "Lloyd's",
+    category: "insurance", icon: "💼",
+    soloPrice: 115,
+    desc: "Ochrona Twojego przychodu przy chorobie lub wypadku. Remedium pośredniczy.",
+    soloFeatures: ["Suma 5 000 zł / mies.", "Wypłata do 24 miesięcy", "Bez karencji medycznej"],
+    lpAdvantage: "Rabat 15% + rocznie bez 10% surcharge",
+    inLP: true,
+  },
+  {
+    id: "oc", label: "OC zawodowe", short: "OC",
+    category: "insurance", icon: "🩺",
+    soloPrice: 89,
+    desc: "Obowiązkowe OC lekarskie. Klasa zależy od Twojej specjalizacji.",
+    soloFeatures: ["Suma 1 000 000 zł", "Roczna polisa", "Ergo Hestia"],
+    lpAdvantage: "Klasa auto z NIL, rabat 10% negocjowany",
+    inLP: true,
+  },
+  {
+    id: "travel", label: "Ubezpieczenie podróżne INTER", short: "Podróżne",
+    category: "insurance", icon: "✈️",
+    soloPrice: 49,
+    desc: "Roczna ochrona na wyjazdach służbowych i prywatnych. Do 500 000 EUR.",
+    soloFeatures: ["Koszty leczenia do 500k EUR", "NNW i bagaż", "Cały świat"],
+    inLP: false, // poza LP — osobny produkt
+  },
+  {
+    id: "infakt", label: "Księgowość inFakt", short: "inFakt",
+    category: "accounting", icon: "🧾",
+    soloPrice: 199,
+    desc: "Pełna księgowość JDG przez inFakt. Faktury, PIT, ZUS, US.",
+    soloFeatures: ["Wszystkie deklaracje", "App mobilna", "Wsparcie księgowego"],
+    lpAdvantage: "Bonus 1 000 zł za aktywację + 179 zł w pakiecie",
+    inLP: true,
+  },
+  {
+    id: "wg", label: "Wirtualny gabinet (adres rejestrowy)", short: "Wirtualny gabinet",
+    category: "accounting", icon: "🏢",
+    soloPrice: 79,
+    desc: "Adres JDG + korespondencja + telefon + email — prywatność w KRS.",
+    soloFeatures: ["Adres rejestrowy", "Skanowanie poczty", "Prywatność w CEIDG"],
+    lpAdvantage: "W cenie pakietu (0 zł)",
+    inLP: true,
+  },
+  {
+    id: "autenti", label: "Autenti — podpis kwalifikowany", short: "Autenti",
+    category: "accounting", icon: "✍️",
+    soloPrice: 29,
+    desc: "Podpis kwalifikowany do e-Recept, e-ZLA i umów. Bez tokena USB.",
+    soloFeatures: ["Nieograniczone podpisy", "e-Recepta, e-ZLA", "Weryfikacja przez mObywatel"],
+    lpAdvantage: "W cenie pakietu (0 zł)",
+    inLP: true,
+  },
+  {
+    id: "egabinet", label: "eGabinet EDM", short: "eGabinet",
+    category: "medical", icon: "🗂️",
+    soloPrice: 59,
+    desc: "Elektroniczna dokumentacja medyczna zgodna z CeZ. Integracja z NFZ.",
+    soloFeatures: ["EDM dla 1 lekarza", "Szablony dokumentów", "Pakiet wizyt (50/msc)"],
+    lpAdvantage: "W cenie + 10% zniżki dla klinik",
+    inLP: true,
+  },
+  {
+    id: "tax", label: "Konsultacja podatkowa (15 min/msc)", short: "Konsultacja podatkowa",
+    category: "legal", icon: "📊",
+    soloPrice: 99,
+    desc: "Miesięczna konsultacja z doradcą podatkowym Tax Legal Beauty.",
+    soloFeatures: ["15 min / miesiąc", "Doradca white-label TLB", "Rollower do 3 msc"],
+    lpAdvantage: "GRATIS w cenie pakietu",
+    inLP: true,
+  },
+  {
+    id: "legal", label: "Bank odpowiedzi prawnych", short: "Bank odp. prawnych",
+    category: "legal", icon: "⚖️",
+    soloPrice: 49,
+    desc: "AI-based baza odpowiedzi prawnych sygnowana przez kancelarię Tymiński.",
+    soloFeatures: ["Top 50 pytań JDG", "Nowe pytania miesięcznie", "Sygnatura kancelarii"],
+    lpAdvantage: "W cenie pakietu",
+    inLP: true,
+  },
+  {
+    id: "advInsur", label: "Doradca ubezpieczeniowy (per sesja)", short: "Doradca ubezp.",
+    category: "legal", icon: "🧑‍💼",
+    soloPrice: 150, priceUnit: "zł/sesja",
+    desc: "Jednorazowa konsultacja — analiza polis, rekomendacja zakresów.",
+    soloFeatures: ["60 min rozmowy", "Analiza dokumentów", "Pisemna rekomendacja"],
+    lpAdvantage: "GRATIS + pełna analiza potrzeb + dedykowany opiekun",
+    inLP: true,
+  },
+  {
+    id: "advLeas", label: "Doradca leasingowy (per sesja)", short: "Doradca leas.",
+    category: "legal", icon: "🚗",
+    soloPrice: 120, priceUnit: "zł/sesja",
+    desc: "Konsultacja z doradcą leasingowym LeaseLink — wybór, kalkulacja.",
+    soloFeatures: ["45 min rozmowy", "Kalkulacja wariantów", "Rekomendacja produktu"],
+    lpAdvantage: "GRATIS w cenie integracji LeaseLink",
+    inLP: true,
+  },
+  {
+    id: "courses", label: "Kursy online (Medu)", short: "Kursy Medu",
+    category: "medical", icon: "🎓",
+    soloPrice: 69,
+    desc: "Platforma kursów medycznych Medu — dostęp do biblioteki szkoleń.",
+    soloFeatures: ["Dostęp do 200+ kursów", "Certyfikaty CME", "Aplikacja mobilna"],
+    inLP: false, // poza LP — osobna usługa
+  },
+];
+
+// LP-exclusives — rzeczy których nie dostaniesz kupując solo.
+// Pokazywane w momencie reveal (Level 2) jako dodatkowe argumenty za pakietem.
+const LP_EXCLUSIVES = [
+  { id: "negotiate", label: "Automatyczne negocjacje cen",      note: "Lloyd's −15% · OC −10% · klasa auto z NIL",                  icon: "📉" },
+  { id: "advisor",   label: "Doradca przypisany imiennie",      note: "24/7 imienny opiekun, nie infolinia",                        icon: "👤" },
+  { id: "leaselink", label: "Prelimit LeaseLink 87 000 zł",     note: "Od dnia 1 na PWZ · decyzja 30 sek · bez dokumentów",         icon: "💳" },
+  { id: "bonus",     label: "Bonus aktywacyjny 1 000 zł",       note: "Jednorazowy bonus za aktywację inFakt",                      icon: "🎁" },
+  { id: "aion",      label: "Konto AION firmowe co-branded",    note: "Zero opłat, kreator JDG, karta (wymaga addon inFakt)",       icon: "🏦" },
+  { id: "zen",       label: "Karta ZEN co-branded",             note: "Wkrótce (Q3) · cashback, FX, karta w Twoim imieniu",         icon: "💎", comingSoon: true },
+  { id: "priority",  label: "Priority support",                 note: "Gorąca linia · SLA 2h · dedykowany ticket",                  icon: "⚡" },
+];
+
+const LP_CORE_IDS = new Set(SERVICE_CATALOG.filter(s => s.inLP).map(s => s.id));
+
 // ─── SECONDARY PACKAGES (strefa C) ───────────────────────────────────────────
 const SECONDARY_PACKAGES = [
   {
@@ -1162,6 +1298,7 @@ const NAV_SECTIONS = [
       { id: "discounts",   label: "Zniżki",        icon: "discounts" },
       { id: "cars",        label: "Samochody",     icon: "cars" },
       { id: "packages",    label: "Usługi",        icon: "packages" },
+      { id: "packages2",   label: "Usługi 2",      icon: "packages" },
       { id: "insurance",   label: "Ubezpieczenia", icon: "insurance" },
     ],
   },
@@ -3883,6 +4020,446 @@ function LPUpgradeDrawer({ variant, sub, setSub, onClose }) {
   );
 }
 
+// ═══════════════════════════════════════════════════════════════════════════
+// ─── SERVICES 2 VIEW (bottom-up discovery) ─────────────────────────────────
+// ═══════════════════════════════════════════════════════════════════════════
+// User przegląda pojedyncze usługi, dodaje do koszyka. Gdy zbiera klocki
+// z pakietu LP, system progresywnie ujawnia istnienie pakietu:
+//   L1 (≥2 LP items) — subtle bar informujący że usługi są częścią pakietu
+//   L2 (≥4 LP items lub >349 zł) — pełen reveal + mini-config LP inline
+// ═══════════════════════════════════════════════════════════════════════════
+
+// LP pitch — kalkulacja savings i content karty reveal
+function calcServices2Reveal(cartServices) {
+  const cartServiceIds = new Set(cartServices.map(i => i.product.id));
+  const lpItems = cartServices.filter(i => LP_CORE_IDS.has(i.product.id));
+  const lpInCart = lpItems.length;
+  const cartTotal = cartServices.reduce((s, i) => s + (i.priceGross || 0), 0);
+  const missingLpServices = SERVICE_CATALOG.filter(s => s.inLP && !cartServiceIds.has(s.id));
+  const level = (lpInCart >= 4 || cartTotal >= 349) ? 2 : lpInCart >= 2 ? 1 : 0;
+  return { lpInCart, cartTotal, missingLpServices, level };
+}
+
+// Konwersja usługi z katalogu na obiekt produktu dla cart state
+function serviceToCartProduct(svc) {
+  return {
+    id: svc.id,
+    brand: "Remedium",
+    model: svc.label,
+    desc: svc.desc,
+    categoryId: "service",
+    monthlyNet: svc.soloPrice,
+    monthlyGross: svc.soloPrice,
+    emoji: svc.icon,
+    productSellType: "SERVICE",
+    priceUnit: svc.priceUnit || "zł/mies.",
+  };
+}
+
+function Services2View({ cart, addToCart, removeFromCart, lpSub, setLpSub, setActive }) {
+  const [filter, setFilter] = useState("all");
+  const cartServices = (cart || []).filter(i => i.product?.categoryId === "service");
+  const cartServiceIds = new Set(cartServices.map(i => i.product.id));
+  const { lpInCart, cartTotal, missingLpServices, level } = calcServices2Reveal(cartServices);
+
+  const visibleServices = filter === "all"
+    ? SERVICE_CATALOG
+    : SERVICE_CATALOG.filter(s => s.category === filter);
+
+  const toggleService = (svc) => {
+    if (cartServiceIds.has(svc.id)) {
+      removeFromCart(svc.id);
+    } else {
+      addToCart(serviceToCartProduct(svc), null, { silent: true });
+    }
+  };
+
+  const swapToLP = (opts = {}) => {
+    // Wymiana koszyka na pakiet LP: usuwamy wszystkie service items z koszyka,
+    // aktywujemy LP z parametrami wybranymi w mini-config.
+    cartServices.forEach(i => removeFromCart(i.key));
+    setLpSub(s => ({
+      ...s,
+      active: true,
+      billing: opts.billing ?? s.billing,
+      lloydSum: opts.lloydSum ?? s.lloydSum,
+      infaktAddon: opts.infaktAddon ?? s.infaktAddon,
+      activatedAt: "15 kwi 2026",
+      nextRenewal: (opts.billing ?? s.billing) === "rok" ? "15 kwi 2027" : "15 maj 2026",
+    }));
+    // Przekierowanie na Usługi 1 żeby user zobaczył post-sale panel
+    setTimeout(() => setActive && setActive("packages"), 150);
+  };
+
+  return (
+    <div className="s2-view">
+      <div className="s2-view__intro">
+        <h2 className="text-[20px] font-bold tracking-[-0.02em]">Usługi</h2>
+        <p className="text-sm text-muted mt-1">
+          Wybierz usługi których potrzebujesz. Każda kupowana osobno lub w pakiecie — porównamy w trakcie.
+        </p>
+      </div>
+
+      {/* Category filter */}
+      <div className="s2-filter" role="tablist" aria-label="Kategorie usług">
+        {SERVICE_CATEGORIES.map(c => {
+          const active = filter === c.id;
+          const count = c.id === "all" ? SERVICE_CATALOG.length : SERVICE_CATALOG.filter(s => s.category === c.id).length;
+          return (
+            <button
+              key={c.id}
+              role="tab"
+              aria-selected={active}
+              className={`s2-filter__opt${active ? " is-active" : ""}`}
+              onClick={() => setFilter(c.id)}
+            >
+              {active && <motion.span className="s2-filter__indicator" layoutId="s2-filter-indicator" transition={{ type: "spring", stiffness: 420, damping: 34 }} aria-hidden />}
+              <span className="s2-filter__label">{c.label}</span>
+              <span className="s2-filter__count">{count}</span>
+            </button>
+          );
+        })}
+      </div>
+
+      <div className="s2-grid-layout">
+        {/* Catalog grid */}
+        <div className="s2-catalog">
+          {visibleServices.map(svc => (
+            <ServiceCatalogCard
+              key={svc.id}
+              service={svc}
+              inCart={cartServiceIds.has(svc.id)}
+              onToggle={() => toggleService(svc)}
+            />
+          ))}
+        </div>
+
+        {/* Sidebar: cart + LP reveal */}
+        <aside className="s2-sidebar">
+          <Services2Cart
+            items={cartServices}
+            total={cartTotal}
+            lpInCart={lpInCart}
+            onRemove={(key) => removeFromCart(key)}
+          />
+
+          <AnimatePresence mode="wait">
+            {level === 1 && (
+              <motion.div
+                key="l1"
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -8 }}
+                transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
+              >
+                <LPRevealL1 lpInCart={lpInCart} missingCount={missingLpServices.length} />
+              </motion.div>
+            )}
+            {level === 2 && (
+              <motion.div
+                key="l2"
+                initial={{ opacity: 0, y: 12, scale: 0.98 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, y: -8, scale: 0.98 }}
+                transition={{ duration: 0.32, ease: [0.22, 1, 0.36, 1] }}
+              >
+                <LPRevealL2
+                  lpInCart={lpInCart}
+                  cartTotal={cartTotal}
+                  missingServices={missingLpServices}
+                  onSwap={swapToLP}
+                />
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </aside>
+      </div>
+    </div>
+  );
+}
+
+// ─── Service catalog card ────────────────────────────────────────────────────
+function ServiceCatalogCard({ service, inCart, onToggle }) {
+  const price = service.soloPrice;
+  const unit = service.priceUnit || "zł / mies.";
+  return (
+    <motion.div
+      className={`s2-card${inCart ? " is-in-cart" : ""}`}
+      layout
+      transition={{ duration: 0.2 }}
+    >
+      <div className="s2-card__top">
+        <div className="s2-card__icon" aria-hidden>{service.icon}</div>
+        {service.inLP && (
+          <span className="s2-card__lp-hint" title="Usługa jest częścią pakietu Lekarz Przedsiębiorca">
+            w pakiecie LP
+          </span>
+        )}
+      </div>
+      <div className="s2-card__body">
+        <h4 className="s2-card__title">{service.label}</h4>
+        <p className="s2-card__desc">{service.desc}</p>
+        <ul className="s2-card__features">
+          {service.soloFeatures.map((f, i) => <li key={i}>{f}</li>)}
+        </ul>
+      </div>
+      <div className="s2-card__footer">
+        <div className="s2-card__price">
+          <span className="s2-card__price-num">{price}</span>
+          <span className="s2-card__price-unit">{unit}</span>
+        </div>
+        <button
+          className={`s2-card__cta${inCart ? " is-in-cart" : ""}`}
+          onClick={onToggle}
+        >
+          {inCart ? (
+            <>
+              <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden><path d="M2.5 6l2.5 2.5L9.5 3.5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>
+              W koszyku
+            </>
+          ) : (
+            <>
+              <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden><path d="M6 2v8M2 6h8" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/></svg>
+              Dodaj
+            </>
+          )}
+        </button>
+      </div>
+    </motion.div>
+  );
+}
+
+// ─── Sidebar: koszyk Services 2 ──────────────────────────────────────────────
+function Services2Cart({ items, total, lpInCart, onRemove }) {
+  return (
+    <div className="s2-cart">
+      <div className="s2-cart__head">
+        <div>
+          <div className="s2-cart__eyebrow">Twój koszyk</div>
+          <div className="s2-cart__count">{items.length} {items.length === 1 ? "usługa" : items.length < 5 ? "usługi" : "usług"}</div>
+        </div>
+        <div className="s2-cart__total">
+          <AnimatePresence mode="popLayout" initial={false}>
+            <motion.div
+              key={total}
+              initial={{ y: 12, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              exit={{ y: -12, opacity: 0 }}
+              transition={{ duration: 0.22 }}
+              className="s2-cart__total-num"
+            >
+              {total} zł
+            </motion.div>
+          </AnimatePresence>
+          <div className="s2-cart__total-unit">/ mies.</div>
+        </div>
+      </div>
+
+      {items.length === 0 ? (
+        <div className="s2-cart__empty">
+          Dodaj pierwszą usługę z katalogu.
+        </div>
+      ) : (
+        <ul className="s2-cart__list">
+          <AnimatePresence initial={false}>
+            {items.map(item => (
+              <motion.li
+                key={item.key}
+                className="s2-cart__item"
+                layout
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+                transition={{ duration: 0.22 }}
+              >
+                <span className="s2-cart__item-icon" aria-hidden>{item.product.emoji}</span>
+                <span className="s2-cart__item-name">{item.product.model}</span>
+                <span className="s2-cart__item-price">{item.priceGross} zł</span>
+                <button className="s2-cart__item-remove" onClick={() => onRemove(item.key)} aria-label="Usuń">
+                  <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M3 3l6 6M9 3l-6 6" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round"/></svg>
+                </button>
+              </motion.li>
+            ))}
+          </AnimatePresence>
+        </ul>
+      )}
+    </div>
+  );
+}
+
+// ─── LP Reveal Level 1 (subtle hint) ─────────────────────────────────────────
+function LPRevealL1({ lpInCart, missingCount }) {
+  return (
+    <div className="s2-reveal s2-reveal--l1">
+      <span className="s2-reveal__dot" aria-hidden />
+      <div className="s2-reveal__body">
+        <strong>{lpInCart} z 10 usług pakietu</strong> — te klocki często idą razem w pakiecie <em>Lekarz Przedsiębiorca</em>. Dodaj jeszcze {missingCount === 1 ? "jedną" : "kilka"}, żeby zobaczyć porównanie.
+      </div>
+    </div>
+  );
+}
+
+// ─── LP Reveal Level 2 (full reveal + mini-config) ───────────────────────────
+function LPRevealL2({ lpInCart, cartTotal, missingServices, onSwap }) {
+  const [billing, setBilling] = useState("rok");
+  const [lloydSum, setLloydSum] = useState(5000);
+  const [infaktAddon, setInfaktAddon] = useState(true);
+
+  const pseudoSub = { billing, lloydSum, infaktAddon, active: false };
+  const { effective } = calcLPPrice(pseudoSub);
+  const savings = cartTotal - effective;
+
+  return (
+    <div className="s2-reveal s2-reveal--l2">
+      {/* Header reveal moment */}
+      <div className="s2-reveal__header">
+        <div className="s2-reveal__sparkle" aria-hidden>
+          <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+            <path d="M9 1l1.5 4.5L15 7l-4.5 1.5L9 13l-1.5-4.5L3 7l4.5-1.5L9 1z" fill="currentColor"/>
+          </svg>
+        </div>
+        <div>
+          <div className="s2-reveal__eyebrow">Mamy dla Ciebie pakiet</div>
+          <h3 className="s2-reveal__title">Lekarz Przedsiębiorca</h3>
+          <div className="s2-reveal__sub">Twój koszyk pokrywa <strong>{lpInCart} z 10 usług</strong> tego pakietu</div>
+        </div>
+      </div>
+
+      {/* Comparison */}
+      <div className="s2-compare">
+        <div className="s2-compare__col">
+          <div className="s2-compare__lbl">Twój koszyk</div>
+          <div className="s2-compare__val s2-compare__val--muted">
+            {cartTotal} <span>zł/mies</span>
+          </div>
+          <div className="s2-compare__note">{lpInCart} {lpInCart === 1 ? "usługa" : "usług"} z pakietu</div>
+        </div>
+        <div className="s2-compare__arrow" aria-hidden>
+          <svg width="18" height="12" viewBox="0 0 18 12" fill="none"><path d="M1 6h15M12 1l5 5-5 5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/></svg>
+        </div>
+        <div className="s2-compare__col s2-compare__col--featured">
+          <div className="s2-compare__lbl">Pakiet LP</div>
+          <AnimatePresence mode="popLayout" initial={false}>
+            <motion.div
+              key={effective}
+              initial={{ y: 10, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              exit={{ y: -10, opacity: 0 }}
+              transition={{ duration: 0.22 }}
+              className="s2-compare__val"
+            >
+              {effective} <span>zł/mies</span>
+            </motion.div>
+          </AnimatePresence>
+          <div className="s2-compare__note">10 usług + extra</div>
+        </div>
+      </div>
+
+      {savings > 0 && (
+        <div className="s2-savings">
+          <span className="s2-savings__num">−{savings} zł</span>
+          <span className="s2-savings__lbl">miesięcznie · {Math.round((savings / cartTotal) * 100)}% taniej niż osobno</span>
+        </div>
+      )}
+
+      {/* What you ALSO get in LP */}
+      <div className="s2-also">
+        <div className="s2-also__title">Dodatkowo w pakiecie dostajesz:</div>
+        <div className="s2-also__grid">
+          {missingServices.slice(0, 4).map(s => (
+            <div key={s.id} className="s2-also__row s2-also__row--service">
+              <span className="s2-also__icon" aria-hidden>{s.icon}</span>
+              <span className="s2-also__name">{s.short}</span>
+              <span className="s2-also__price">warte {s.soloPrice} zł/msc</span>
+            </div>
+          ))}
+          {LP_EXCLUSIVES.map(ex => (
+            <div key={ex.id} className={`s2-also__row s2-also__row--exclusive${ex.comingSoon ? " is-coming" : ""}`}>
+              <span className="s2-also__icon" aria-hidden>{ex.icon}</span>
+              <div className="s2-also__body">
+                <div className="s2-also__name">{ex.label}</div>
+                <div className="s2-also__note">{ex.note}</div>
+              </div>
+              {ex.comingSoon ? (
+                <span className="s2-chip s2-chip--muted">wkrótce</span>
+              ) : (
+                <span className="s2-chip s2-chip--lime">tylko w LP</span>
+              )}
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Mini-config inline */}
+      <div className="s2-mini">
+        <div className="s2-mini__title">Dostosuj pakiet:</div>
+
+        {/* Billing */}
+        <div className="s2-mini__row">
+          <div className="s2-mini__lbl">Rozliczenie</div>
+          <div className="s2-mini__billing">
+            {[{ id: "msc", label: "Miesięcznie" }, { id: "rok", label: "Rocznie −10%" }].map(o => (
+              <button
+                key={o.id}
+                className={`s2-mini__opt${billing === o.id ? " is-active" : ""}`}
+                onClick={() => setBilling(o.id)}
+              >
+                {billing === o.id && <motion.span className="s2-mini__indicator" layoutId="s2-mini-billing" transition={{ type: "spring", stiffness: 420, damping: 34 }} aria-hidden />}
+                <span>{o.label}</span>
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Lloyd's sum */}
+        <div className="s2-mini__row">
+          <div className="s2-mini__lbl">Suma Lloyd's</div>
+          <div className="s2-mini__lloyds">
+            {LP_PRODUCT.lloydOptions.map(opt => (
+              <button
+                key={opt.sum}
+                className={`s2-mini__opt${lloydSum === opt.sum ? " is-active" : ""}`}
+                onClick={() => setLloydSum(opt.sum)}
+              >
+                {lloydSum === opt.sum && <motion.span className="s2-mini__indicator" layoutId="s2-mini-lloyds" transition={{ type: "spring", stiffness: 420, damping: 34 }} aria-hidden />}
+                <span>{opt.sum / 1000}k</span>
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* inFakt */}
+        <div className="s2-mini__row">
+          <div className="s2-mini__lbl">
+            inFakt
+            <span className="s2-mini__note">+ 1 000 zł bonus</span>
+          </div>
+          <label className="s2-mini__switch">
+            <input type="checkbox" checked={infaktAddon} onChange={e => setInfaktAddon(e.target.checked)} />
+            <span className="s2-mini__switch-track" />
+            <span className="s2-mini__switch-thumb" />
+          </label>
+        </div>
+      </div>
+
+      <div className="s2-reveal__cta">
+        <button
+          className="s2-reveal__confirm"
+          onClick={() => onSwap({ billing, lloydSum, infaktAddon })}
+        >
+          Zamień koszyk na pakiet LP
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden>
+            <path d="M3 7h8M7 3l4 4-4 4" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/>
+          </svg>
+        </button>
+        <div className="s2-reveal__fineprint">
+          Dotychczasowe usługi w koszyku zostaną zastąpione pakietem. Subskrypcję możesz anulować w dowolnym momencie.
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ─── DISCOUNTS VIEW ───────────────────────────────────────────────────────────
 
 function TiltCard({ children, className, onClick }) {
@@ -6469,6 +7046,7 @@ const VIEWS = {
   purchases:   PurchasesView,
   cars:        CarsView,
   packages:    ServicesView,
+  packages2:   Services2View,
   discounts:      DiscountsView,
   advisors:       AdvisorsView,
   insurance:      InsuranceDashView,
@@ -6530,7 +7108,7 @@ function App() {
 
   const setActive = (id) => { setActive_(id); setNavKey(k => k + 1); };
 
-  const addToCart = (product, variant) => {
+  const addToCart = (product, variant, options = {}) => {
     setCart(prev => {
       // Key includes contractMonths and services so same product with different config = separate item
       const keyParts = [product.id];
@@ -6546,7 +7124,8 @@ function App() {
       const oneTimePrice = isOneTime ? parseFloat((product.price || "0").replace(/[^\d]/g, "")) : 0;
       return [...prev, { key, product, variant, qty: 1, priceNet, priceGross, isOneTime, oneTimePrice }];
     });
-    setCartOpen(true);
+    // silent=true for Services2 where reveal UI lives in the view itself
+    if (!options.silent) setCartOpen(true);
   };
 
   const removeFromCart = (key) => setCart(prev => prev.filter(i => i.key !== key));
