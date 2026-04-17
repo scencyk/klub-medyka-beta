@@ -4420,6 +4420,7 @@ function Services2View({ cart, addToCart, removeFromCart, lpSub, setLpSub, setAc
         {selectedService ? (
           <motion.div
             key="detail"
+            className="s2-view__inner"
             initial={{ opacity: 0, x: 16 }}
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: -16 }}
@@ -4443,6 +4444,7 @@ function Services2View({ cart, addToCart, removeFromCart, lpSub, setLpSub, setAc
         ) : (
           <motion.div
             key="catalog"
+            className="s2-view__inner"
             initial={{ opacity: 0, x: -16 }}
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: 16 }}
@@ -4590,12 +4592,6 @@ function ServiceCatalogCard({ service, inCart, onToggle, onOpen }) {
           )}
         </button>
       </div>
-      <div className="s2-card__overlay" aria-hidden>
-        <span className="s2-card__overlay-txt">
-          Szczegóły usługi
-          <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M3 6h6M6 3l3 3-3 3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
-        </span>
-      </div>
     </motion.div>
   );
 }
@@ -4690,15 +4686,17 @@ function ServiceDetailView({
           <section className="s2-detail__hero">
             <div className="s2-detail__hero-left">
               <div className="s2-detail__icon" aria-hidden>{service.icon}</div>
-              {service.inLP && (
-                <span className="s2-detail__lp-hint" title="Usługa jest częścią pakietu Lekarz Przedsiębiorca">
-                  · w pakiecie Lekarz Przedsiębiorca
-                </span>
-              )}
             </div>
             <div className="s2-detail__hero-body">
-              <div className="s2-detail__category">
-                {SERVICE_CATEGORIES.find(c => c.id === service.category)?.label}
+              <div className="s2-detail__meta-row">
+                <div className="s2-detail__category">
+                  {SERVICE_CATEGORIES.find(c => c.id === service.category)?.label}
+                </div>
+                {service.inLP && (
+                  <span className="s2-detail__lp-hint" title="Usługa jest częścią pakietu Lekarz Przedsiębiorca">
+                    w pakiecie Lekarz Przedsiębiorca
+                  </span>
+                )}
               </div>
               <h1 className="s2-detail__title">{service.label}</h1>
               <p className="s2-detail__long">{landing.longDesc || service.desc}</p>
