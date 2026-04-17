@@ -393,7 +393,8 @@ const SERVICE_CATEGORIES = [
 ];
 
 // Solo prices — każda usługa kupowana osobno. LP daje rabat/gratis/bonus.
-// Ikony: emoji trzymamy neutralne, krótkie, żeby nie dominowały.
+// Każda usługa ma pełny `landing` z sekcjami: longDesc, partner, valueProps,
+// includes, howItWorks, faq. To zasila ServiceDetailView (osobny widok per usługa).
 const SERVICE_CATALOG = [
   {
     id: "lloyds", label: "Ubezpieczenie utraty dochodu (Lloyd's)", short: "Lloyd's",
@@ -403,6 +404,34 @@ const SERVICE_CATALOG = [
     soloFeatures: ["Suma 5 000 zł / mies.", "Wypłata do 24 miesięcy", "Bez karencji medycznej"],
     lpAdvantage: "Rabat 15% + rocznie bez 10% surcharge",
     inLP: true,
+    landing: {
+      longDesc: "Polisa z syndykatu Lloyd's zapewniająca wypłatę stałego miesięcznego świadczenia, gdy nie możesz pracować z powodu choroby lub wypadku. Remedium jest ubezpieczającym — to pozwala nam wynegocjować warunki niedostępne w retailowej sprzedaży.",
+      partner: "Lloyd's · dystrybucja przez Remedium",
+      valueProps: [
+        { title: "Wypłata bez OL", desc: "Brak okresu oczekiwania na świadczenie" },
+        { title: "Do 24 miesięcy", desc: "Długoterminowa ochrona na poważne przypadki" },
+        { title: "Wiek z profilu NIL", desc: "Zero pytań medycznych — dane z Twojego profilu" },
+      ],
+      includes: [
+        { title: "Suma 5 000 zł / miesiąc", desc: "Baza — do uptade w pakiecie LP (10k, 15k)" },
+        { title: "Wypłata po 14 dniach niezdolności", desc: "Licząc od pierwszego dnia L4" },
+        { title: "Brak karencji medycznej", desc: "Ochrona od dnia 1, bez pytań o stan zdrowia" },
+        { title: "Pokrycie chorób zawodowych", desc: "Pełna ochrona przy zakażeniu w gabinecie" },
+        { title: "Wypadek + choroba", desc: "Obie sytuacje w jednej polisie" },
+      ],
+      howItWorks: [
+        { title: "Wypełniasz mini-formularz", desc: "5 minut — wiek i specjalizacja zaciągane z profilu NIL" },
+        { title: "Otrzymujesz ofertę", desc: "Kalkulacja automatyczna, bez konsultantów telefonicznych" },
+        { title: "Polisa aktywna w 24h", desc: "Dokumenty w panelu Klubu, podpis przez Autenti" },
+        { title: "Zgłaszasz szkodę przez app", desc: "Bezpośrednio z dashboardu — bez dzwonienia" },
+      ],
+      faq: [
+        { q: "Kiedy zaczyna się ochrona?", a: "Następnego dnia roboczego po zapłacie pierwszej składki. Brak karencji medycznej oznacza, że nie musisz czekać 90 dni jak w retail." },
+        { q: "Czy mogę zmienić sumę ubezpieczenia?", a: "Tak, w każdym momencie przez panel — upgrade z 5k na 10k lub 15k wchodzi od następnego cyklu rozliczeniowego." },
+        { q: "Jakie są wyłączenia?", a: "Standardowe: działania wojenne, umyślne samookaleczenie, nadużycie alkoholu/substancji. Pełna lista w OWU dostępna po kliknięciu 'Dodaj do koszyka'." },
+        { q: "Co jeśli dostanę L4 krótsze niż 14 dni?", a: "Polisa nie wypłaca świadczenia. Jest przeznaczona do dłuższych niezdolności do pracy, nie do kilkudniowych zwolnień." },
+      ],
+    },
   },
   {
     id: "oc", label: "OC zawodowe", short: "OC",
@@ -412,6 +441,32 @@ const SERVICE_CATALOG = [
     soloFeatures: ["Suma 1 000 000 zł", "Roczna polisa", "Ergo Hestia"],
     lpAdvantage: "Klasa auto z NIL, rabat 10% negocjowany",
     inLP: true,
+    landing: {
+      longDesc: "Obowiązkowe ubezpieczenie odpowiedzialności cywilnej lekarza. Chroni przed roszczeniami pacjentów w przypadku błędów w sztuce lekarskiej. Klasyfikacja ryzyka automatyczna z Twojego profilu NIL — nie musisz zgadywać.",
+      partner: "Ergo Hestia · dystrybucja przez Remedium",
+      valueProps: [
+        { title: "Klasa ryzyka z NIL", desc: "Auto z profilu — bez ankiet" },
+        { title: "Suma 1 000 000 zł", desc: "Standard rynkowy + możliwość nadwyżki" },
+        { title: "Roczna polisa", desc: "Pokrycie przez 12 miesięcy od zakupu" },
+      ],
+      includes: [
+        { title: "OC obowiązkowe", desc: "Suma 100 000 EUR zgodnie z Rozporządzeniem MF" },
+        { title: "OC dobrowolne nadwyżkowe", desc: "Od 1M do 2M zł — opcjonalne rozszerzenie" },
+        { title: "Automatyczna klasyfikacja", desc: "Klasa I/II/III z bazy NIL — zero pomyłek" },
+        { title: "Rozszerzenia klauzulowe", desc: "Medycyna estetyczna, kary NFZ, HIV/WZW dostępne" },
+        { title: "Pomoc prawnika w trakcie sprawy", desc: "Włączony koszt ochrony prawnej" },
+      ],
+      howItWorks: [
+        { title: "Zaciągamy Twoją specjalizację z NIL", desc: "Klasa ryzyka (I, II lub III) wynika z aktu prawnego" },
+        { title: "Wybierasz sumę nadwyżkową", desc: "Opcjonalnie — dla lekarzy z praktyką prywatną" },
+        { title: "Polisa aktywna w 1 dzień", desc: "Certyfikat w PDF do pokazania w NFZ / klinikach" },
+      ],
+      faq: [
+        { q: "Dla kogo jest OC obowiązkowe?", a: "Dla każdego lekarza wykonującego zawód, bez wyjątku. Praktyka prywatna wymaga dodatkowo dobrowolnego nadwyżkowego." },
+        { q: "Co daje wyższa suma nadwyżkowa?", a: "Większa ochrona przy roszczeniach powyżej 100 000 EUR. Dla chirurgów i anestezjologów rekomendujemy 2M zł." },
+        { q: "Czy pokrywa medycynę estetyczną?", a: "W standardzie nie — wymaga klauzuli rozszerzającej. Do wykupienia osobno w koszyku." },
+      ],
+    },
   },
   {
     id: "travel", label: "Ubezpieczenie podróżne INTER", short: "Podróżne",
@@ -419,7 +474,32 @@ const SERVICE_CATALOG = [
     soloPrice: 49,
     desc: "Roczna ochrona na wyjazdach służbowych i prywatnych. Do 500 000 EUR.",
     soloFeatures: ["Koszty leczenia do 500k EUR", "NNW i bagaż", "Cały świat"],
-    inLP: false, // poza LP — osobny produkt
+    inLP: false,
+    landing: {
+      longDesc: "Roczna polisa podróżna INTER Polska — chroni Cię na wyjazdach prywatnych i na konferencjach medycznych. Koszty leczenia, NNW, bagaż i OC w podróży w jednej polisie.",
+      partner: "INTER Polska TU S.A.",
+      valueProps: [
+        { title: "500 000 EUR", desc: "Suma kosztów leczenia" },
+        { title: "Nielimitowana liczba wyjazdów", desc: "Cały rok, cały świat" },
+        { title: "Bez franszyz", desc: "Zero udziału własnego" },
+      ],
+      includes: [
+        { title: "Koszty leczenia do 500 000 EUR", desc: "Szpital, ambulatorium, transport sanitarny" },
+        { title: "NNW do 50 000 zł", desc: "Śmierć i trwały uszczerbek na zdrowiu" },
+        { title: "Bagaż do 3 000 zł", desc: "Kradzież, zagubienie, opóźnienie dostarczenia" },
+        { title: "OC w życiu prywatnym", desc: "Suma 100 000 EUR na szkody wyrządzone osobom trzecim" },
+        { title: "Assistance 24/7", desc: "Infolinia po polsku, pomoc w organizacji leczenia" },
+      ],
+      howItWorks: [
+        { title: "Jedna polisa na rok", desc: "Bez konieczności kupowania za każdym wyjazdem" },
+        { title: "Automatyczna aktywacja", desc: "Polisa obowiązuje od zakupu przez 12 miesięcy" },
+        { title: "Zgłoszenie przez INTER app", desc: "Bezpośrednio z podróży, po polsku" },
+      ],
+      faq: [
+        { q: "Czy obejmuje konferencje medyczne?", a: "Tak, wyjazdy służbowe są w pełni objęte ochroną — konferencje, szkolenia, staże zagraniczne." },
+        { q: "A sporty ekstremalne?", a: "Standardowo nie — wymaga rozszerzenia. Narty rekreacyjne OK, heliski nie." },
+      ],
+    },
   },
   {
     id: "infakt", label: "Księgowość inFakt", short: "inFakt",
@@ -429,6 +509,35 @@ const SERVICE_CATALOG = [
     soloFeatures: ["Wszystkie deklaracje", "App mobilna", "Wsparcie księgowego"],
     lpAdvantage: "Bonus 1 000 zł za aktywację + 179 zł w pakiecie",
     inLP: true,
+    landing: {
+      longDesc: "Pełna księgowość dla lekarza JDG — inFakt zajmuje się wszystkim: fakturami, PIT, ZUS, US, VAT, deklaracjami. Aktywacja przez Klub odblokowuje też konto firmowe AION i kreator JDG.",
+      partner: "inFakt · oficjalna integracja",
+      valueProps: [
+        { title: "Wszystkie deklaracje", desc: "PIT, VAT, ZUS, JPK — w cenie" },
+        { title: "Księgowy do kontaktu", desc: "Chat, email, telefon — dedykowany opiekun" },
+        { title: "App mobilna", desc: "Faktury z telefonu w 30 sekund" },
+      ],
+      includes: [
+        { title: "Księgowość pełna", desc: "Ryczałt, liniowy, skala — wszystkie formy opodatkowania" },
+        { title: "Faktury bez limitu", desc: "Wystawianie z aplikacji mobilnej i webowej" },
+        { title: "Deklaracje wysyłane automatycznie", desc: "PIT, VAT, JPK-V7 — w terminie, bez Twojej akcji" },
+        { title: "Kontakt z księgowym", desc: "Dedykowany opiekun — chat, email, telefon" },
+        { title: "Integracja z e-Urzędem Skarbowym", desc: "Zero ręcznego wprowadzania danych z US" },
+        { title: "Konto firmowe AION", desc: "Odblokowane po aktywacji inFakt — zero opłat" },
+      ],
+      howItWorks: [
+        { title: "Aktywujesz w 1 dzień", desc: "Pełnomocnictwo dla księgowego + pierwsze logowanie" },
+        { title: "Migracja historii jeśli zmieniasz biuro", desc: "inFakt przejmuje rozliczenia z poprzedniego okresu" },
+        { title: "Rozliczamy za Ciebie", desc: "Ty tylko wystawiasz faktury, resztę robi inFakt" },
+        { title: "Konsultacja przed rozliczeniem", desc: "Raz w roku na życzenie — optymalizacja podatkowa" },
+      ],
+      faq: [
+        { q: "Czy mogę zmienić formę opodatkowania?", a: "Tak, inFakt obsługuje wszystkie: ryczałt ewidencjonowany, podatek liniowy, zasady ogólne (skala). Zmiana raz w roku zgodnie z przepisami." },
+        { q: "Co z fakturami sprzed inFakt?", a: "Migracja jest w cenie — przenosimy historię z Twojego poprzedniego biura." },
+        { q: "Jak działa bonus 1 000 zł?", a: "Jednorazowy zwrot po 3 miesiącach aktywnej subskrypcji — dostępny tylko przez Klub Medyka w pakiecie LP." },
+        { q: "Czy księgowy się zmienia?", a: "Nie — dedykowany opiekun pozostaje Twój przez cały czas trwania umowy." },
+      ],
+    },
   },
   {
     id: "wg", label: "Wirtualny gabinet (adres rejestrowy)", short: "Wirtualny gabinet",
@@ -438,6 +547,32 @@ const SERVICE_CATALOG = [
     soloFeatures: ["Adres rejestrowy", "Skanowanie poczty", "Prywatność w CEIDG"],
     lpAdvantage: "W cenie pakietu (0 zł)",
     inLP: true,
+    landing: {
+      longDesc: "Adres rejestrowy dla Twojej JDG — nie musisz podawać domowego w CEIDG. Obsługa korespondencji, numer telefonu i email w Twojej domenie. Twoja prywatność i profesjonalizm w jednym.",
+      partner: "Remedium — własna usługa",
+      valueProps: [
+        { title: "Prywatność w CEIDG", desc: "Adres domowy nie trafia do publicznego rejestru" },
+        { title: "Obsługa korespondencji", desc: "Skanujemy i wysyłamy do panelu" },
+        { title: "Numer firmowy", desc: "Telefon w Twojej domenie medycznej" },
+      ],
+      includes: [
+        { title: "Adres rejestrowy w Warszawie", desc: "Prestiżowa lokalizacja, możliwość spotkań" },
+        { title: "Skanowanie poczty przychodzącej", desc: "Każda przesyłka w panelu w 24h od dostarczenia" },
+        { title: "Przekazywanie poczty fizycznej", desc: "Raz w miesiącu na wskazany adres (w cenie)" },
+        { title: "Numer telefonu", desc: "Dedykowany dla praktyki, przekazanie na komórkę" },
+        { title: "Email praktyki", desc: "Format imie.nazwisko@remedium.md" },
+      ],
+      howItWorks: [
+        { title: "Generujemy dokumenty", desc: "Umowa najmu adresu + pełnomocnictwo pocztowe" },
+        { title: "Podpisujesz przez Autenti", desc: "Bez wysyłki papierów — 2 kliknięcia" },
+        { title: "Zgłaszasz adres w CEIDG", desc: "Mamy gotowy szablon wniosku" },
+      ],
+      faq: [
+        { q: "Czy to legalnie?", a: "Tak — adres wirtualny do rejestracji JDG jest w pełni zgodny z prawem, od lat stosowany przez kancelarie, software house'y i setki branż." },
+        { q: "Co z wizytami US / ZUS?", a: "Mogą odwiedzić — mamy recepcję i salkę spotkań. Zawsze Cię wcześniej informujemy." },
+        { q: "Czy dostanę potwierdzenie z bankiem?", a: "Tak, umowa najmu adresu jest akceptowana przez banki przy zakładaniu konta firmowego." },
+      ],
+    },
   },
   {
     id: "autenti", label: "Autenti — podpis kwalifikowany", short: "Autenti",
@@ -447,6 +582,32 @@ const SERVICE_CATALOG = [
     soloFeatures: ["Nieograniczone podpisy", "e-Recepta, e-ZLA", "Weryfikacja przez mObywatel"],
     lpAdvantage: "W cenie pakietu (0 zł)",
     inLP: true,
+    landing: {
+      longDesc: "Podpis kwalifikowany w chmurze — bez tokena USB, bez karty, bez dodatkowego sprzętu. Weryfikacja tożsamości przez mObywatel, zero instalacji. Standard dla e-Recept, e-ZLA, umów i dokumentów firmowych.",
+      partner: "Autenti · oficjalna integracja",
+      valueProps: [
+        { title: "Bez tokena USB", desc: "Podpis z każdego urządzenia przez chmurę" },
+        { title: "Nielimitowane podpisy", desc: "Zero opłat per-operacja" },
+        { title: "Weryfikacja przez mObywatel", desc: "Aktywacja w 5 minut" },
+      ],
+      includes: [
+        { title: "Podpis kwalifikowany PE", desc: "Pełna moc prawna — zgodny z eIDAS" },
+        { title: "Nieograniczone operacje", desc: "Podpisz ile chcesz — nie ma limitu" },
+        { title: "e-Recepta i e-ZLA", desc: "Bezpośrednia integracja z Gabinet+ i NFZ" },
+        { title: "Podpis umów handlowych", desc: "Kontrakty z klinikami, zleceniobiorcami, pacjentami" },
+        { title: "Archiwum dokumentów", desc: "Wszystkie podpisane dokumenty w panelu na 10 lat" },
+      ],
+      howItWorks: [
+        { title: "Weryfikacja tożsamości przez mObywatel", desc: "5 minut przez aplikację państwową" },
+        { title: "Aktywacja w panelu Autenti", desc: "Automatyczne założenie konta przez Klub" },
+        { title: "Pierwszy podpis", desc: "Przez app Autenti lub bezpośrednio z Gabinet+" },
+      ],
+      faq: [
+        { q: "Czy to wystarczy do e-Recepty?", a: "Tak — Autenti jest oficjalnym dostawcą podpisu kwalifikowanego akceptowanym przez NFZ i CeZ." },
+        { q: "Co jeśli zmienię telefon?", a: "Nie dotyczy — podpis jest w chmurze. Logujesz się z każdego urządzenia i telefon służy tylko do 2FA." },
+        { q: "Jak długo ważny jest podpis?", a: "Certyfikat odnawia się automatycznie co 12 miesięcy — bez Twojej akcji." },
+      ],
+    },
   },
   {
     id: "egabinet", label: "eGabinet EDM", short: "eGabinet",
@@ -456,6 +617,33 @@ const SERVICE_CATALOG = [
     soloFeatures: ["EDM dla 1 lekarza", "Szablony dokumentów", "Pakiet wizyt (50/msc)"],
     lpAdvantage: "W cenie + 10% zniżki dla klinik",
     inLP: true,
+    landing: {
+      longDesc: "Elektroniczna dokumentacja medyczna zgodna z wymaganiami Centrum e-Zdrowia (CeZ) oraz NFZ. System gotowy do kontroli, szablony zaadaptowane pod specjalizacje, integracja z e-Receptą i e-Skierowaniem.",
+      partner: "eGabinet.pl · oficjalny partner",
+      valueProps: [
+        { title: "Zgodny z CeZ i NFZ", desc: "Gotowy do kontroli EDM" },
+        { title: "Integracja e-Recepta", desc: "Wystawianie z poziomu wizyty" },
+        { title: "Szablony per-specjalizacja", desc: "Gotowe formularze gabinetowe" },
+      ],
+      includes: [
+        { title: "Dokumentacja wizyt", desc: "Wywiad, badanie, zalecenia — strukturalnie wg CeZ" },
+        { title: "Pakiet 50 wizyt miesięcznie", desc: "Wystarczy dla pojedynczej praktyki gabinetowej" },
+        { title: "e-Recepta bezpośrednio z wizyty", desc: "Bez przełączania się między systemami" },
+        { title: "e-Skierowania", desc: "Pełna integracja z NFZ" },
+        { title: "Eksport EDM na żądanie", desc: "Dla pacjentów, NFZ, lub backup" },
+        { title: "Szablony zaadaptowane", desc: "Formularze dla Twojej specjalizacji z bazy eGabinet" },
+      ],
+      howItWorks: [
+        { title: "Aktywujesz konto", desc: "Automatyczne założenie przez Klub, bez osobnego loginu" },
+        { title: "Importujesz bazę pacjentów", desc: "CSV, Excel, lub wprowadzenie ręczne" },
+        { title: "Prowadzisz wizyty", desc: "Dokumentacja na żywo, e-Recepta w tym samym oknie" },
+      ],
+      faq: [
+        { q: "Co jeśli prowadzę klinikę z kilkoma lekarzami?", a: "Solo eGabinet to 1 lekarz. W pakiecie LP klinika dostaje dodatkowo 10% zniżki per-lekarz — upgrade dostępny w panelu." },
+        { q: "Czy integruje się z Moim NFZ?", a: "Tak — e-Recepta, e-ZLA, e-Skierowania wysyłane bezpośrednio." },
+        { q: "Co jeśli CeZ zmieni wymagania?", a: "eGabinet aktualizuje się automatycznie — zawsze zgodny z aktualnymi wymaganiami." },
+      ],
+    },
   },
   {
     id: "tax", label: "Konsultacja podatkowa (15 min/msc)", short: "Konsultacja podatkowa",
@@ -465,6 +653,33 @@ const SERVICE_CATALOG = [
     soloFeatures: ["15 min / miesiąc", "Doradca white-label TLB", "Rollower do 3 msc"],
     lpAdvantage: "GRATIS w cenie pakietu",
     inLP: true,
+    landing: {
+      longDesc: "Miesięczna konsultacja z doradcą podatkowym z kancelarii Tax Legal Beauty — dedykowanej branży medycznej. 15 minut na pytania o optymalizację, ZUS, rozliczenia roczne, lub interpretacje podatkowe.",
+      partner: "Tax Legal Beauty · white-label dla Remedium",
+      valueProps: [
+        { title: "Doradca branżowy", desc: "TLB specjalizuje się w lekarzach JDG" },
+        { title: "15 min co miesiąc", desc: "Wystarczy na pytanie + konkretną odpowiedź" },
+        { title: "Rollower do 3 miesięcy", desc: "Nie wykorzystałeś? Kumuluje się" },
+      ],
+      includes: [
+        { title: "15 minut rozmowy z doradcą", desc: "Slot miesięczny do wykorzystania kiedy chcesz" },
+        { title: "Rollower do 3 miesięcy", desc: "Niewykorzystany czas kumuluje się, max 45 min" },
+        { title: "Tematy: podatki, ZUS, optymalizacja", desc: "Pełen scope podatkowy lekarza" },
+        { title: "Rezerwacja w panelu", desc: "Slot dostępny w 48h, bez telefonów" },
+        { title: "Follow-up mailem", desc: "Konkluzje z rozmowy w pisemnej formie" },
+      ],
+      howItWorks: [
+        { title: "Umawiasz rozmowę w panelu", desc: "Wybierasz dogodny slot z kalendarza doradcy" },
+        { title: "Przygotowujesz pytania", desc: "Wysyłasz mailem z wyprzedzeniem dla oszczędności czasu" },
+        { title: "Rozmowa 15 min", desc: "Video lub telefon, polski lub angielski" },
+        { title: "Otrzymujesz pisemne podsumowanie", desc: "W ciągu 24h po rozmowie" },
+      ],
+      faq: [
+        { q: "Czy to prawdziwy doradca podatkowy?", a: "Tak — Tax Legal Beauty to licencjonowana kancelaria doradztwa podatkowego, nie automat." },
+        { q: "Co jeśli potrzebuję więcej niż 15 min?", a: "Możesz wykupić dodatkowy czas w panelu — stawka preferencyjna dla członków Klubu." },
+        { q: "Czy obejmuje interpretacje indywidualne?", a: "Sam wniosek — nie. Doradca pomoże Ci go sformułować, a złożenie do US to dodatkowa usługa." },
+      ],
+    },
   },
   {
     id: "legal", label: "Bank odpowiedzi prawnych", short: "Bank odp. prawnych",
@@ -474,6 +689,32 @@ const SERVICE_CATALOG = [
     soloFeatures: ["Top 50 pytań JDG", "Nowe pytania miesięcznie", "Sygnatura kancelarii"],
     lpAdvantage: "W cenie pakietu",
     inLP: true,
+    landing: {
+      longDesc: "Baza gotowych odpowiedzi na najczęstsze pytania prawne lekarzy prowadzących JDG — roszczenia pacjentów, RODO, umowy z klinikami, spory z NFZ. AI-przeszukiwana, ale każda odpowiedź sygnowana przez kancelarię Tymiński.",
+      partner: "Kancelaria Tymiński · content partnership",
+      valueProps: [
+        { title: "50+ gotowych odpowiedzi", desc: "Top 50 pytań od lekarzy JDG" },
+        { title: "Nowe pytania miesięcznie", desc: "Baza rośnie, dostajesz aktualizacje" },
+        { title: "Podpisane przez kancelarię", desc: "Nie AI-dump — każda odpowiedź zweryfikowana" },
+      ],
+      includes: [
+        { title: "Baza 50+ pytań i odpowiedzi", desc: "Kategorie: pacjent, klinika, NFZ, RODO, ZUS, skargi" },
+        { title: "Wyszukiwarka AI", desc: "Zadajesz pytanie w języku naturalnym" },
+        { title: "5 nowych pytań miesięcznie", desc: "Tematy inspirowane realnymi case'ami lekarzy" },
+        { title: "Każda odpowiedź podpisana", desc: "Sygnatura kancelarii Tymiński — nie AI-hallucination" },
+        { title: "Kontekst + odnośniki do ustaw", desc: "Pełne uzasadnienie prawne, nie tylko odpowiedź" },
+      ],
+      howItWorks: [
+        { title: "Zadajesz pytanie w panelu", desc: "W języku naturalnym — nie musisz znać nomenklatury" },
+        { title: "AI znajduje pasujące odpowiedzi", desc: "Rankingowane po podobieństwie" },
+        { title: "Czytasz odpowiedź + uzasadnienie", desc: "Jeśli trzeba głębiej — upsell na konsultację z Tymińskim" },
+      ],
+      faq: [
+        { q: "Czy AI może mylić?", a: "Sama baza odpowiedzi nie — każda odpowiedź jest pisana przez prawnika. AI tylko dopasowuje pytanie użytkownika do gotowej odpowiedzi." },
+        { q: "Co jeśli mojego pytania nie ma w bazie?", a: "Zgłaszasz je — jeśli pojawi się u 3+ lekarzy, trafia do kolejki tworzenia odpowiedzi. Odpowiedź w 2-4 tygodnie." },
+        { q: "Kiedy warto konsultować się bezpośrednio?", a: "Dla unikalnych case'ów, sporów sądowych, negocjacji umów — wtedy bank odpowiedzi nie wystarczy, potrzebna indywidualna konsultacja." },
+      ],
+    },
   },
   {
     id: "advInsur", label: "Doradca ubezpieczeniowy (per sesja)", short: "Doradca ubezp.",
@@ -483,6 +724,33 @@ const SERVICE_CATALOG = [
     soloFeatures: ["60 min rozmowy", "Analiza dokumentów", "Pisemna rekomendacja"],
     lpAdvantage: "GRATIS + pełna analiza potrzeb + dedykowany opiekun",
     inLP: true,
+    landing: {
+      longDesc: "Konsultacja z doradcą ubezpieczeniowym specjalizującym się w polisach dla medyków. Przegląda Twoje obecne polisy, wskazuje luki, rekomenduje optymalny zakres. Jednorazowo (solo) lub w LP — gdzie masz dedykowanego opiekuna bez dopłat.",
+      partner: "Remedium · wewnętrzny zespół doradców",
+      valueProps: [
+        { title: "60 min rozmowy", desc: "Video lub telefon, wnikliwa analiza" },
+        { title: "Analiza obecnych polis", desc: "Pokazujemy luki w Twojej ochronie" },
+        { title: "Pisemna rekomendacja", desc: "Konkretne wnioski mailem w 48h" },
+      ],
+      includes: [
+        { title: "Analiza polis", desc: "OC, Lloyd's, podróżne, na życie — przegląd wszystkiego co masz" },
+        { title: "Mapa ryzyk", desc: "Co Cię realnie zagraża jako lekarzowi" },
+        { title: "Luki w ochronie", desc: "Wskazujemy konkretne scenariusze bez pokrycia" },
+        { title: "Rekomendacja produktowa", desc: "Co kupić, co zrezygnować, co zmodyfikować" },
+        { title: "Pisemne podsumowanie", desc: "Dokument PDF do decyzji na spokojnie" },
+      ],
+      howItWorks: [
+        { title: "Rezerwujesz slot w panelu", desc: "Dostępność w 48h od zakupu" },
+        { title: "Wysyłasz polisy do analizy", desc: "PDF lub zdjęcia, przez panel" },
+        { title: "Rozmowa 60 min", desc: "Omówienie luk i rekomendacji" },
+        { title: "Pisemne podsumowanie", desc: "W 48h po rozmowie" },
+      ],
+      faq: [
+        { q: "Czy jesteście niezależni?", a: "Tak — doradcy pracują dla Remedium, nie pojedynczego ubezpieczyciela. Rekomendujemy co obiektywnie najlepsze dla lekarza." },
+        { q: "Co z mOCą zamówienia po konsultacji?", a: "Możesz zamówić rekomendowane produkty bezpośrednio przez Klub — to nie jest warunek, ale często wygodniejsze." },
+        { q: "Jak to działa w LP?", a: "W pakiecie LP masz tego samego doradcę przypisanego imiennie — bez limitów czasowych, zawsze w cenie." },
+      ],
+    },
   },
   {
     id: "advLeas", label: "Doradca leasingowy (per sesja)", short: "Doradca leas.",
@@ -492,6 +760,32 @@ const SERVICE_CATALOG = [
     soloFeatures: ["45 min rozmowy", "Kalkulacja wariantów", "Rekomendacja produktu"],
     lpAdvantage: "GRATIS w cenie integracji LeaseLink",
     inLP: true,
+    landing: {
+      longDesc: "Rozmowa z doradcą leasingowym LeaseLink — pomoże wybrać finansowanie sprzętu medycznego, samochodu, laptopów, elektroniki. Kalkuluje warianty (leasing operacyjny vs finansowy, raty 0%), porównuje koszty. W pakiecie LP zero dopłat.",
+      partner: "LeaseLink · dedykowany zespół dla medyków",
+      valueProps: [
+        { title: "45 min rozmowy", desc: "Wystarcza na 2-3 warianty finansowania" },
+        { title: "Kalkulacja wariantów", desc: "Operacyjny vs finansowy vs raty 0%" },
+        { title: "Rekomendacja produktu", desc: "Co wybrać do Twojego scenariusza" },
+      ],
+      includes: [
+        { title: "Analiza potrzeb finansowania", desc: "Co chcesz kupić, na jak długo, jaki budżet" },
+        { title: "Porównanie 3 wariantów", desc: "Leasing operacyjny, finansowy, raty bankowe" },
+        { title: "Kalkulacja kosztów", desc: "Pełny koszt w okresie finansowania + podatki" },
+        { title: "Rekomendacja produktu LeaseLink", desc: "Jeśli leasing to najlepsze rozwiązanie" },
+        { title: "Pomoc w procedowaniu", desc: "Jeśli decydujesz się — asysta przy dokumentach" },
+      ],
+      howItWorks: [
+        { title: "Określasz co chcesz kupić", desc: "Sprzęt medyczny, auto, laptop, rower — cokolwiek" },
+        { title: "Doradca liczy warianty", desc: "3 scenariusze z rozbiciem kosztów" },
+        { title: "Wybierasz i procedujesz", desc: "Jeśli LeaseLink — asystujemy przy wniosku" },
+      ],
+      faq: [
+        { q: "Co jeśli raty bankowe są lepsze?", a: "Powiemy wprost — nasza rola to doradztwo, nie sprzedaż LeaseLink za wszelką cenę." },
+        { q: "Czy obejmuje sprzęt używany?", a: "Tak — LeaseLink finansuje sprzęt używany dla medyków, szczególnie sprzęt stomatologiczny i diagnostyczny." },
+        { q: "Jak działa prelimit LP?", a: "W pakiecie LP masz prelimit 87 000 zł dostępny od dnia 1 — doradca pomaga go efektywnie wykorzystać." },
+      ],
+    },
   },
   {
     id: "courses", label: "Kursy online (Medu)", short: "Kursy Medu",
@@ -499,7 +793,33 @@ const SERVICE_CATALOG = [
     soloPrice: 69,
     desc: "Platforma kursów medycznych Medu — dostęp do biblioteki szkoleń.",
     soloFeatures: ["Dostęp do 200+ kursów", "Certyfikaty CME", "Aplikacja mobilna"],
-    inLP: false, // poza LP — osobna usługa
+    inLP: false,
+    landing: {
+      longDesc: "Platforma e-learningowa Medu — 200+ kursów medycznych z certyfikatami CME (Continuing Medical Education). Dostęp do biblioteki szkoleń ze wszystkich specjalizacji, mobilna aplikacja, aktualizacje miesięcznie.",
+      partner: "Medu · oficjalny partner",
+      valueProps: [
+        { title: "200+ kursów", desc: "Wszystkie specjalizacje medyczne" },
+        { title: "Certyfikaty CME", desc: "Akredytacja wymagana do punktów edukacyjnych" },
+        { title: "Aplikacja mobilna", desc: "Nauka w drodze, offline mode" },
+      ],
+      includes: [
+        { title: "Dostęp do 200+ kursów", desc: "Biblioteka rośnie miesięcznie o 5-10 nowych" },
+        { title: "Certyfikaty CME po ukończeniu", desc: "Akredytowane punkty edukacyjne" },
+        { title: "Aplikacja mobilna", desc: "Offline mode — oglądaj w drodze, synchronizacja po wifi" },
+        { title: "Egzaminy sprawdzające", desc: "Po każdym kursie — dla uzyskania certyfikatu" },
+        { title: "Konferencje online", desc: "Live'y z ekspertami, pytania do prelegentów" },
+      ],
+      howItWorks: [
+        { title: "Aktywujesz konto Medu", desc: "Automatycznie przez Klub, bez osobnego loginu" },
+        { title: "Wybierasz kursy", desc: "Z biblioteki lub wg ścieżek specjalizacyjnych" },
+        { title: "Uczysz się + egzamin", desc: "Materiał wideo + test + certyfikat PDF" },
+      ],
+      faq: [
+        { q: "Czy certyfikaty są uznawane przez NIL?", a: "Tak — Medu ma akredytację CME honorowaną przez Naczelną Izbę Lekarską." },
+        { q: "Co z kursami premium?", a: "Standardowa subskrypcja to ~170 kursów. 30+ premium (np. z prof. Kowalskim) wymaga dopłaty." },
+        { q: "Czy mogę przerywać i wracać?", a: "Tak — każdy kurs zapamiętuje postęp, możesz wracać w dowolnym momencie." },
+      ],
+    },
   },
 ];
 
@@ -4058,9 +4378,12 @@ function serviceToCartProduct(svc) {
 
 function Services2View({ cart, addToCart, removeFromCart, lpSub, setLpSub, setActive }) {
   const [filter, setFilter] = useState("all");
+  const [selectedId, setSelectedId] = useState(null);
   const cartServices = (cart || []).filter(i => i.product?.categoryId === "service");
   const cartServiceIds = new Set(cartServices.map(i => i.product.id));
   const { lpInCart, cartTotal, missingLpServices, level } = calcServices2Reveal(cartServices);
+
+  const selectedService = selectedId ? SERVICE_CATALOG.find(s => s.id === selectedId) : null;
 
   const visibleServices = filter === "all"
     ? SERVICE_CATALOG
@@ -4093,98 +4416,140 @@ function Services2View({ cart, addToCart, removeFromCart, lpSub, setLpSub, setAc
 
   return (
     <div className="s2-view">
-      <div className="s2-view__intro">
-        <h2 className="text-[20px] font-bold tracking-[-0.02em]">Usługi</h2>
-        <p className="text-sm text-muted mt-1">
-          Wybierz usługi których potrzebujesz. Każda kupowana osobno lub w pakiecie — porównamy w trakcie.
-        </p>
-      </div>
-
-      {/* Category filter */}
-      <div className="s2-filter" role="tablist" aria-label="Kategorie usług">
-        {SERVICE_CATEGORIES.map(c => {
-          const active = filter === c.id;
-          const count = c.id === "all" ? SERVICE_CATALOG.length : SERVICE_CATALOG.filter(s => s.category === c.id).length;
-          return (
-            <button
-              key={c.id}
-              role="tab"
-              aria-selected={active}
-              className={`s2-filter__opt${active ? " is-active" : ""}`}
-              onClick={() => setFilter(c.id)}
-            >
-              {active && <motion.span className="s2-filter__indicator" layoutId="s2-filter-indicator" transition={{ type: "spring", stiffness: 420, damping: 34 }} aria-hidden />}
-              <span className="s2-filter__label">{c.label}</span>
-              <span className="s2-filter__count">{count}</span>
-            </button>
-          );
-        })}
-      </div>
-
-      <div className="s2-grid-layout">
-        {/* Catalog grid */}
-        <div className="s2-catalog">
-          {visibleServices.map(svc => (
-            <ServiceCatalogCard
-              key={svc.id}
-              service={svc}
-              inCart={cartServiceIds.has(svc.id)}
-              onToggle={() => toggleService(svc)}
+      <AnimatePresence mode="wait" initial={false}>
+        {selectedService ? (
+          <motion.div
+            key="detail"
+            initial={{ opacity: 0, x: 16 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -16 }}
+            transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
+          >
+            <ServiceDetailView
+              service={selectedService}
+              inCart={cartServiceIds.has(selectedService.id)}
+              onToggle={() => toggleService(selectedService)}
+              onBack={() => setSelectedId(null)}
+              onOpenRelated={(id) => setSelectedId(id)}
+              cartServices={cartServices}
+              cartTotal={cartTotal}
+              lpInCart={lpInCart}
+              missingLpServices={missingLpServices}
+              level={level}
+              onRemove={removeFromCart}
+              onSwap={swapToLP}
             />
-          ))}
-        </div>
+          </motion.div>
+        ) : (
+          <motion.div
+            key="catalog"
+            initial={{ opacity: 0, x: -16 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: 16 }}
+            transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
+          >
+            <div className="s2-view__intro">
+              <h2 className="text-[20px] font-bold tracking-[-0.02em]">Usługi</h2>
+              <p className="text-sm text-muted mt-1">
+                Wybierz usługi których potrzebujesz. Każda kupowana osobno lub w pakiecie — porównamy w trakcie.
+              </p>
+            </div>
 
-        {/* Sidebar: cart + LP reveal */}
-        <aside className="s2-sidebar">
-          <Services2Cart
-            items={cartServices}
-            total={cartTotal}
-            lpInCart={lpInCart}
-            onRemove={(key) => removeFromCart(key)}
-          />
+            {/* Category filter */}
+            <div className="s2-filter" role="tablist" aria-label="Kategorie usług">
+              {SERVICE_CATEGORIES.map(c => {
+                const active = filter === c.id;
+                const count = c.id === "all" ? SERVICE_CATALOG.length : SERVICE_CATALOG.filter(s => s.category === c.id).length;
+                return (
+                  <button
+                    key={c.id}
+                    role="tab"
+                    aria-selected={active}
+                    className={`s2-filter__opt${active ? " is-active" : ""}`}
+                    onClick={() => setFilter(c.id)}
+                  >
+                    {active && <motion.span className="s2-filter__indicator" layoutId="s2-filter-indicator" transition={{ type: "spring", stiffness: 420, damping: 34 }} aria-hidden />}
+                    <span className="s2-filter__label">{c.label}</span>
+                    <span className="s2-filter__count">{count}</span>
+                  </button>
+                );
+              })}
+            </div>
 
-          <AnimatePresence mode="wait">
-            {level === 1 && (
-              <motion.div
-                key="l1"
-                initial={{ opacity: 0, y: 8 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -8 }}
-                transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
-              >
-                <LPRevealL1 lpInCart={lpInCart} missingCount={missingLpServices.length} />
-              </motion.div>
-            )}
-            {level === 2 && (
-              <motion.div
-                key="l2"
-                initial={{ opacity: 0, y: 12, scale: 0.98 }}
-                animate={{ opacity: 1, y: 0, scale: 1 }}
-                exit={{ opacity: 0, y: -8, scale: 0.98 }}
-                transition={{ duration: 0.32, ease: [0.22, 1, 0.36, 1] }}
-              >
-                <LPRevealL2
+            <div className="s2-grid-layout">
+              {/* Catalog grid */}
+              <div className="s2-catalog">
+                {visibleServices.map(svc => (
+                  <ServiceCatalogCard
+                    key={svc.id}
+                    service={svc}
+                    inCart={cartServiceIds.has(svc.id)}
+                    onToggle={() => toggleService(svc)}
+                    onOpen={() => setSelectedId(svc.id)}
+                  />
+                ))}
+              </div>
+
+              {/* Sidebar: cart + LP reveal */}
+              <aside className="s2-sidebar">
+                <Services2Cart
+                  items={cartServices}
+                  total={cartTotal}
                   lpInCart={lpInCart}
-                  cartTotal={cartTotal}
-                  missingServices={missingLpServices}
-                  onSwap={swapToLP}
+                  onRemove={(key) => removeFromCart(key)}
                 />
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </aside>
-      </div>
+
+                <AnimatePresence mode="wait">
+                  {level === 1 && (
+                    <motion.div
+                      key="l1"
+                      initial={{ opacity: 0, y: 8 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -8 }}
+                      transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
+                    >
+                      <LPRevealL1 lpInCart={lpInCart} missingCount={missingLpServices.length} />
+                    </motion.div>
+                  )}
+                  {level === 2 && (
+                    <motion.div
+                      key="l2"
+                      initial={{ opacity: 0, y: 12, scale: 0.98 }}
+                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                      exit={{ opacity: 0, y: -8, scale: 0.98 }}
+                      transition={{ duration: 0.32, ease: [0.22, 1, 0.36, 1] }}
+                    >
+                      <LPRevealL2
+                        lpInCart={lpInCart}
+                        cartTotal={cartTotal}
+                        missingServices={missingLpServices}
+                        onSwap={swapToLP}
+                      />
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </aside>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
 
 // ─── Service catalog card ────────────────────────────────────────────────────
-function ServiceCatalogCard({ service, inCart, onToggle }) {
+function ServiceCatalogCard({ service, inCart, onToggle, onOpen }) {
   const price = service.soloPrice;
   const unit = service.priceUnit || "zł / mies.";
+  const handleCardClick = (e) => {
+    // Nie otwieraj detail jeśli user kliknął w button Dodaj/W koszyku
+    if (e.target.closest(".s2-card__cta")) return;
+    onOpen && onOpen();
+  };
   return (
     <motion.div
       className={`s2-card${inCart ? " is-in-cart" : ""}`}
+      onClick={handleCardClick}
       layout
       transition={{ duration: 0.2 }}
     >
@@ -4210,7 +4575,7 @@ function ServiceCatalogCard({ service, inCart, onToggle }) {
         </div>
         <button
           className={`s2-card__cta${inCart ? " is-in-cart" : ""}`}
-          onClick={onToggle}
+          onClick={(e) => { e.stopPropagation(); onToggle(); }}
         >
           {inCart ? (
             <>
@@ -4224,6 +4589,12 @@ function ServiceCatalogCard({ service, inCart, onToggle }) {
             </>
           )}
         </button>
+      </div>
+      <div className="s2-card__overlay" aria-hidden>
+        <span className="s2-card__overlay-txt">
+          Szczegóły usługi
+          <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M3 6h6M6 3l3 3-3 3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
+        </span>
       </div>
     </motion.div>
   );
@@ -4283,6 +4654,251 @@ function Services2Cart({ items, total, lpInCart, onRemove }) {
           </AnimatePresence>
         </ul>
       )}
+    </div>
+  );
+}
+
+// ─── Service Detail View (per-service landing page) ─────────────────────────
+function ServiceDetailView({
+  service, inCart, onToggle, onBack, onOpenRelated,
+  cartServices, cartTotal, lpInCart, missingLpServices, level,
+  onRemove, onSwap,
+}) {
+  const landing = service.landing || {};
+  const [openFaq, setOpenFaq] = useState(null);
+  const price = service.soloPrice;
+  const unit = service.priceUnit || "zł / mies.";
+
+  // Related: do 3 innych usług z tej samej kategorii, bez obecnej
+  const related = SERVICE_CATALOG
+    .filter(s => s.category === service.category && s.id !== service.id)
+    .slice(0, 3);
+
+  return (
+    <div className="s2-detail">
+      <button className="s2-detail__back" onClick={onBack}>
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden>
+          <path d="M9 3l-4 4 4 4M5 7h6" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/>
+        </svg>
+        Wróć do katalogu
+      </button>
+
+      <div className="s2-detail__layout">
+        {/* Main column */}
+        <div className="s2-detail__main">
+          {/* Hero */}
+          <section className="s2-detail__hero">
+            <div className="s2-detail__hero-left">
+              <div className="s2-detail__icon" aria-hidden>{service.icon}</div>
+              {service.inLP && (
+                <span className="s2-detail__lp-hint" title="Usługa jest częścią pakietu Lekarz Przedsiębiorca">
+                  · w pakiecie Lekarz Przedsiębiorca
+                </span>
+              )}
+            </div>
+            <div className="s2-detail__hero-body">
+              <div className="s2-detail__category">
+                {SERVICE_CATEGORIES.find(c => c.id === service.category)?.label}
+              </div>
+              <h1 className="s2-detail__title">{service.label}</h1>
+              <p className="s2-detail__long">{landing.longDesc || service.desc}</p>
+              {landing.partner && (
+                <div className="s2-detail__partner">
+                  <span className="s2-detail__partner-lbl">Dostawca:</span>
+                  <span className="s2-detail__partner-val">{landing.partner}</span>
+                </div>
+              )}
+            </div>
+          </section>
+
+          {/* Value props */}
+          {landing.valueProps && landing.valueProps.length > 0 && (
+            <section className="s2-detail__section">
+              <div className="s2-vp-grid">
+                {landing.valueProps.map((vp, i) => (
+                  <motion.div
+                    key={i}
+                    className="s2-vp"
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.3, delay: i * 0.06, ease: [0.22, 1, 0.36, 1] }}
+                  >
+                    <div className="s2-vp__title">{vp.title}</div>
+                    <div className="s2-vp__desc">{vp.desc}</div>
+                  </motion.div>
+                ))}
+              </div>
+            </section>
+          )}
+
+          {/* Co obejmuje */}
+          <section className="s2-detail__section">
+            <h2 className="s2-detail__h2">Co obejmuje</h2>
+            <div className="s2-includes">
+              {(landing.includes || service.soloFeatures.map(f => ({ title: f, desc: "" }))).map((item, i) => (
+                <div key={i} className="s2-include">
+                  <div className="s2-include__dot" aria-hidden />
+                  <div className="s2-include__body">
+                    <div className="s2-include__title">{item.title}</div>
+                    {item.desc && <div className="s2-include__desc">{item.desc}</div>}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </section>
+
+          {/* Jak to działa */}
+          {landing.howItWorks && landing.howItWorks.length > 0 && (
+            <section className="s2-detail__section">
+              <h2 className="s2-detail__h2">Jak to działa</h2>
+              <ol className="s2-steps">
+                {landing.howItWorks.map((step, i) => (
+                  <li key={i} className="s2-step">
+                    <div className="s2-step__num">{i + 1}</div>
+                    <div className="s2-step__body">
+                      <div className="s2-step__title">{step.title}</div>
+                      <div className="s2-step__desc">{step.desc}</div>
+                    </div>
+                  </li>
+                ))}
+              </ol>
+            </section>
+          )}
+
+          {/* LP advantage callout */}
+          {service.inLP && service.lpAdvantage && (
+            <section className="s2-detail__section">
+              <div className="s2-lp-banner">
+                <div className="s2-lp-banner__bar" aria-hidden />
+                <div className="s2-lp-banner__body">
+                  <div className="s2-lp-banner__eyebrow">W pakiecie Lekarz Przedsiębiorca</div>
+                  <div className="s2-lp-banner__title">{service.lpAdvantage}</div>
+                  <div className="s2-lp-banner__note">
+                    Pakiet LP łączy 10 usług, 7 ekskluzywnych perków i prelimit LeaseLink 87 000 zł
+                    za 349 zł/msc. Suma Twoich usług osobno — {cartTotal} zł/msc.
+                  </div>
+                </div>
+                <button className="s2-lp-banner__cta" onClick={onBack}>
+                  Zobacz pakiet
+                  <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M3 6h6M6 3l3 3-3 3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                </button>
+              </div>
+            </section>
+          )}
+
+          {/* FAQ */}
+          {landing.faq && landing.faq.length > 0 && (
+            <section className="s2-detail__section">
+              <h2 className="s2-detail__h2">Częste pytania</h2>
+              <div className="s2-faq">
+                {landing.faq.map((item, i) => {
+                  const open = openFaq === i;
+                  return (
+                    <div key={i} className={`s2-faq__item${open ? " is-open" : ""}`}>
+                      <button className="s2-faq__q" onClick={() => setOpenFaq(open ? null : i)} aria-expanded={open}>
+                        <span>{item.q}</span>
+                        <motion.span
+                          className="s2-faq__chev"
+                          animate={{ rotate: open ? 180 : 0 }}
+                          transition={{ duration: 0.2 }}
+                          aria-hidden
+                        >
+                          <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                            <path d="M3 5l4 4 4-4" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/>
+                          </svg>
+                        </motion.span>
+                      </button>
+                      <AnimatePresence initial={false}>
+                        {open && (
+                          <motion.div
+                            initial={{ height: 0, opacity: 0 }}
+                            animate={{ height: "auto", opacity: 1 }}
+                            exit={{ height: 0, opacity: 0 }}
+                            transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
+                            style={{ overflow: "hidden" }}
+                          >
+                            <div className="s2-faq__a">{item.a}</div>
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
+                    </div>
+                  );
+                })}
+              </div>
+            </section>
+          )}
+
+          {/* Related services */}
+          {related.length > 0 && (
+            <section className="s2-detail__section">
+              <h2 className="s2-detail__h2">Zobacz też</h2>
+              <div className="s2-related">
+                {related.map(s => (
+                  <button key={s.id} className="s2-related__card" onClick={() => onOpenRelated(s.id)}>
+                    <div className="s2-related__icon" aria-hidden>{s.icon}</div>
+                    <div className="s2-related__body">
+                      <div className="s2-related__name">{s.short}</div>
+                      <div className="s2-related__price">{s.soloPrice} {s.priceUnit || "zł/msc"}</div>
+                    </div>
+                    <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden className="s2-related__arrow"><path d="M3 7h8M7 3l4 4-4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                  </button>
+                ))}
+              </div>
+            </section>
+          )}
+        </div>
+
+        {/* Sidebar: sticky price card + cart + LP reveal */}
+        <aside className="s2-detail__aside">
+          <div className="s2-detail__price-card">
+            <div className="s2-detail__price-num">
+              {price}
+              <span className="s2-detail__price-unit">{unit}</span>
+            </div>
+            <button
+              className={`s2-detail__cta${inCart ? " is-in-cart" : ""}`}
+              onClick={onToggle}
+            >
+              {inCart ? (
+                <>
+                  <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden><path d="M3 7l3 3 5-6" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                  W koszyku
+                </>
+              ) : (
+                <>
+                  <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden><path d="M7 3v8M3 7h8" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/></svg>
+                  Dodaj do koszyka
+                </>
+              )}
+            </button>
+            {service.inLP && (
+              <div className="s2-detail__lp-hint-card">
+                💡 {service.lpAdvantage}
+              </div>
+            )}
+          </div>
+
+          <Services2Cart
+            items={cartServices}
+            total={cartTotal}
+            lpInCart={lpInCart}
+            onRemove={onRemove}
+          />
+
+          <AnimatePresence mode="wait">
+            {level === 1 && (
+              <motion.div key="l1" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.25 }}>
+                <LPRevealL1 lpInCart={lpInCart} missingCount={missingLpServices.length} />
+              </motion.div>
+            )}
+            {level === 2 && (
+              <motion.div key="l2" initial={{ opacity: 0, y: 12, scale: 0.98 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: -8, scale: 0.98 }} transition={{ duration: 0.32 }}>
+                <LPRevealL2 lpInCart={lpInCart} cartTotal={cartTotal} missingServices={missingLpServices} onSwap={onSwap} />
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </aside>
+      </div>
     </div>
   );
 }
