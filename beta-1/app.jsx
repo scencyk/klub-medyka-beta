@@ -328,26 +328,68 @@ const ALL_ADVISORS = [
   { id: "a5", name: "Michał Wójcik",        role: "Doradca kredytowy",                 phone: "+48 604 500 600", initials: "MW", available: true,  photo: "advisors/michal.jpg",    category: "credit",   tags: ["Kredyt hipoteczny", "Leasing", "Finansowanie sprzętu"] },
 ];
 
-const PACKAGES = [
-  {
-    id: "entrepreneur", label: "Lekarz Przedsiębiorca", packagePrice: 349,
-    desc: "Komplet do prowadzenia praktyki jako JDG.",
-    items: [
-      { id: "wg",      name: "Wirtualny Gabinet",  price: 79,  desc: "Adres rejestrowy + korespondencja" },
-      { id: "infakt",  name: "InFakt",             price: 99,  desc: "Faktury i uproszczona księgowość"  },
-      { id: "autenti", name: "Autenti",            price: 29,  desc: "Kwalifikowany podpis elektroniczny"},
-      { id: "legal",   name: "Doradztwo prawne",   price: 99,  desc: "Pakiet godzin prawnych co miesiąc" },
-      { id: "oc",      name: "OC Lekarskie",       price: 120, desc: "Ubezpieczenie OC zawodowe"        },
-      { id: "edm",     name: "E-gabinet EDM",      price: 0,   desc: "Dokumentacja medyczna online"     },
-    ],
-  },
+// ─── LEKARZ PRZEDSIĘBIORCA — produkt główny ──────────────────────────────────
+// Model: jeden produkt, dwa parametry (Lloyd's suma + inFakt addon).
+// Cena dynamiczna, billing monthly / yearly -10%.
+const LP_PRODUCT = {
+  id: "lp",
+  label: "Lekarz Przedsiębiorca",
+  tagline: "Jeden abonament. Pełna infrastruktura biznesowa dla lekarza prowadzącego JDG.",
+  quote: "Otwierasz działalność — my ogarniamy resztę.",
+  basePrice: 349,               // zł/msc, suma Lloyd's 5k, bez inFakt, rozliczenie miesięczne
+  annualDiscount: 0.10,         // -10% przy rozliczeniu rocznym
+  leaselinkLimit: 87000,        // PWZ-based prelimit (hardcoded)
+  lloydOptions: [
+    { sum: 5000,  deltaPrice: 0,   label: "5 000 zł / msc",  sub: "w cenie bazowej" },
+    { sum: 10000, deltaPrice: 150, label: "10 000 zł / msc", sub: "+ 150 zł / msc" },
+    { sum: 15000, deltaPrice: 310, label: "15 000 zł / msc", sub: "+ 310 zł / msc" },
+  ],
+  infakt: { price: 179, bonus: 1000 },
+};
+
+const LP_FEATURES = [
+  { id: "lloyds",    name: "Lloyd's — utrata dochodu",                   short: "Lloyd's",             note: "Remedium jako ubezpieczający · rabat 15% · wiek z profilu" },
+  { id: "oc",        name: "OC zawodowe Ergo Hestia",                    short: "OC zawodowe",         note: "Klasa automatycznie z NIL · rabat 10%" },
+  { id: "wg",        name: "Wirtualny gabinet",                          short: "Wirtualny gabinet",   note: "Adres + tel + email · prywatność w KRS" },
+  { id: "autenti",   name: "Autenti — podpis kwalifikowany",             short: "Autenti",             note: "e-Recepta, e-ZLA, umowy" },
+  { id: "egabinet",  name: "eGabinet EDM",                               short: "eGabinet EDM",        note: "Pakiet wizyt gratis · 10% zniżka dla klinik" },
+  { id: "legal",     name: "Bank odpowiedzi prawnych",                   short: "Bank odp. prawnych",  note: "AI + sygnatura Tymiński · top 50 pytań JDG" },
+  { id: "advIns",    name: "Doradcy ubezpieczeniowi + analiza potrzeb",  short: "Doradcy ubezp.",      note: "Dedykowany opiekun · pełna analiza potrzeb",     gratis: true },
+  { id: "advLeas",   name: "Doradcy leasingowi",                         short: "Doradcy leas.",       note: "W cenie integracji LeaseLink",                   gratis: true },
+  { id: "tax",       name: "Konsultacja podatkowa 15 min/msc",           short: "Konsultacja 15 min",  note: "Tax Legal Beauty · white-label",                 gratis: true },
+  { id: "aion",      name: "Konto AION + kreator JDG",                   short: "Konto AION",          note: "Wskazywalne do US/ZUS",                          requiresInfakt: true },
+];
+
+// Suma ubezpieczenia Lloyd's → labelka do breakdown row
+function lpLloydLabel(sum) { return `Lloyd's utrata dochodu ${sum / 1000}k`; }
+
+// Kalkulacja ceny LP na podstawie stanu subskrypcji.
+// Zwraca: { raw, effective, annualTotal, annualSaving }
+//   raw          — cena miesięczna bez rabatu rocznego (do ekspozycji "strikethrough")
+//   effective    — cena miesięczna do wyświetlenia (po rabacie jeśli billing=rok)
+//   annualTotal  — łączna kwota roczna (null przy billing=msc)
+//   annualSaving — oszczędność w zł/rok vs miesięczny (0 przy billing=msc)
+function calcLPPrice(sub) {
+  const opt = LP_PRODUCT.lloydOptions.find(o => o.sum === sub.lloydSum) || LP_PRODUCT.lloydOptions[0];
+  const raw = LP_PRODUCT.basePrice + opt.deltaPrice + (sub.infaktAddon ? LP_PRODUCT.infakt.price : 0);
+  if (sub.billing === "rok") {
+    const annualTotal  = Math.round(raw * 12 * (1 - LP_PRODUCT.annualDiscount));
+    const effective    = Math.round(annualTotal / 12);
+    const annualSaving = raw * 12 - annualTotal;
+    return { raw, effective, annualTotal, annualSaving };
+  }
+  return { raw, effective: raw, annualTotal: null, annualSaving: 0 };
+}
+
+// ─── SECONDARY PACKAGES (strefa C) ───────────────────────────────────────────
+const SECONDARY_PACKAGES = [
   {
     id: "driver", label: "Lekarz Kierowca", packagePrice: 129,
     desc: "Dla lekarzy dojeżdżających samochodem służbowym.",
     items: [
       { id: "car_ins", name: "Ubezpieczenie auta", price: 89, desc: "OC + AC w wynegocjowanej stawce" },
       { id: "carwash", name: "Myjnia unlimited",   price: 29, desc: "Unlimited wash w sieci myjni"    },
-      { id: "fuel",    name: "Zniżki na paliwo",   price: 0,  desc: "−12 gr/l na stacjach BP"        },
+      { id: "fuel",    name: "Zniżki na paliwo",   price: 0,  desc: "−12 gr/l na stacjach BP"         },
     ],
   },
   {
@@ -3112,132 +3154,732 @@ function PurchasesView({ addToCart, cart, removeFromCart }) {
 }
 
 // ─── SERVICES VIEW ────────────────────────────────────────────────────────────
+// Layout w trzech strefach:
+//   A) LPHero     — Lekarz Przedsiębiorca (pre-sale konfigurator LUB post-sale panel)
+//   B) LPFeatures — siatka 10 świadczeń + LeaseLink callout
+//   C) SecondaryPackages — Lekarz Kierowca + Lekarz w Podróży (drugi plan)
 
-function ServicesView() {
-  const [selected, setSelected]   = useState({});
-  const [purchased, setPurchased] = useState({});
+function ServicesView({ lpSub, setLpSub }) {
+  // Fallback jeżeli ktoś wyrenderuje widok bez propsów (np. testy)
+  const [localLpSub, setLocalLpSub] = useState({
+    active: false, billing: "rok", lloydSum: 5000, infaktAddon: true,
+    activatedAt: null, nextRenewal: null,
+  });
+  const sub = lpSub ?? localLpSub;
+  const setSub = setLpSub ?? setLocalLpSub;
 
-  const toggleItem = (pkgId, itemId) => {
-    setSelected(s => {
-      const cur = new Set(s[pkgId] || []);
-      cur.has(itemId) ? cur.delete(itemId) : cur.add(itemId);
-      return { ...s, [pkgId]: cur };
-    });
-  };
-
-  const getSelected   = (pkg) => pkg.items.filter(i => (selected[pkg.id] || new Set()).has(i.id));
-  const selTotal      = (pkg) => getSelected(pkg).reduce((s, i) => s + i.price, 0);
-  const selCount      = (pkg) => getSelected(pkg).length;
-  const saving        = (pkg) => selTotal(pkg) - pkg.packagePrice;
-  const allItemsTotal = (pkg) => pkg.items.reduce((s, i) => s + i.price, 0);
-
-  const buyPackage = (pkgId) => {
-    setPurchased(p => ({ ...p, [pkgId]: true }));
-    setSelected(s => ({ ...s, [pkgId]: new Set() }));
-  };
+  const [upgrade, setUpgrade] = useState(null); // null | "lloyds" | "infakt" | "billing"
 
   return (
-    <div style={{ maxWidth: 800, display: "flex", flexDirection: "column", gap: 28 }}>
-      <div>
-        <h2 style={{ fontSize: 20, fontWeight: 700, marginBottom: 4 }}>Usługi</h2>
-        <p className="text-sm text-muted">Zaznacz co chcesz kupić lub weź cały pakiet — pakiet zawsze wychodzi taniej.</p>
+    <div className="lp-view">
+      <div className="lp-view__intro">
+        <h2 className="text-[20px] font-bold tracking-[-0.02em]">Usługi</h2>
+        <p className="text-sm text-muted mt-1">Nasz główny produkt to <strong className="text-fg">Lekarz Przedsiębiorca</strong> — jedna subskrypcja, która obsługuje całą infrastrukturę biznesową lekarza.</p>
       </div>
 
-      {PACKAGES.map(pkg => {
-        const isPurchased  = !!purchased[pkg.id];
-        const hasSelection = selCount(pkg) > 0;
-        const total        = selTotal(pkg);
-        const save         = saving(pkg);
-        const nudge        = hasSelection && save > 0 && !isPurchased;
-        const allTotal     = allItemsTotal(pkg);
+      <LPHero sub={sub} setSub={setSub} onUpgrade={setUpgrade} />
+      <LPFeatures sub={sub} />
+      <SecondaryPackages />
 
-        return (
-          <div key={pkg.id} className="card" style={{
-            borderColor: nudge ? "var(--color-warn-border)" : undefined,
-            transition: "border-color 0.2s",
-          }}>
-            {/* Package header */}
-            <div className="card__row" style={{
-              padding: "20px 22px",
-              display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 20,
-              background: isPurchased ? "var(--color-green-bg)" : undefined,
-            }}>
-              <div className="flex-1">
-                <div className="font-semibold" style={{ fontSize: 15, marginBottom: 5 }}>{pkg.label}</div>
-                <p className="text-sm text-muted" style={{ margin: 0 }}>{pkg.desc}</p>
-              </div>
-              <div className="flex items-center" style={{ gap: 14, flexShrink: 0 }}>
-                {allTotal > pkg.packagePrice && (
-                  <div style={{ textAlign: "right" }}>
-                    <div className="text-xs text-muted line-through">{allTotal} zł osobno</div>
-                    <div className="text-xs text-green font-semibold">oszczędzasz {allTotal - pkg.packagePrice} zł/mies.</div>
-                  </div>
-                )}
-                <div style={{ textAlign: "right" }}>
-                  <div className="text-xs text-muted">Pakiet</div>
-                  <div style={{ fontSize: 20, fontWeight: 700, letterSpacing: "-0.03em" }}>
-                    {pkg.packagePrice} zł
-                    <span className="text-sm text-muted" style={{ fontWeight: 400 }}>/mies.</span>
-                  </div>
-                </div>
-                {isPurchased ? (
-                  <Pill variant="green">✓ Kupiony</Pill>
-                ) : (
-                  <Btn variant="primary" onClick={() => buyPackage(pkg.id)}>Kup pakiet</Btn>
-                )}
-              </div>
-            </div>
-
-            {/* Per-item checkboxes */}
-            {pkg.items.map(item => {
-              const sel = isPurchased || (selected[pkg.id] || new Set()).has(item.id);
-              const cls = `check-item${sel && !isPurchased ? " check-item--selected" : ""}${isPurchased ? " check-item--purchased" : ""}`;
-              const boxCls = `check-item__box${isPurchased ? " check-item__box--purchased" : sel ? " check-item__box--selected" : ""}`;
-              return (
-                <div key={item.id} onClick={() => !isPurchased && toggleItem(pkg.id, item.id)} className={cls}>
-                  <div className={boxCls}>
-                    {(sel || isPurchased) && "✓"}
-                  </div>
-                  <div className="flex-1">
-                    <span style={{ fontSize: 13, fontWeight: sel ? 600 : 400 }}>{item.name}</span>
-                    <span className="text-sm text-muted" style={{ marginLeft: 10 }}>{item.desc}</span>
-                  </div>
-                  <span className="nowrap" style={{ fontSize: 13, fontWeight: 500, color: item.price > 0 ? "var(--color-fg)" : "var(--color-muted)" }}>
-                    {item.price > 0 ? `${item.price} zł/mies.` : "gratis"}
-                  </span>
-                </div>
-              );
-            })}
-
-            {/* Nudge bar */}
-            {hasSelection && !isPurchased && (
-              <div className={`nudge-bar${nudge ? " nudge-bar--active" : ""}`}>
-                <div style={{ fontSize: 13 }}>
-                  {selCount(pkg)} {selCount(pkg) === 1 ? "usługa" : "usługi"} osobno:{" "}
-                  <strong>{total} zł/mies.</strong>
-                  {nudge && (
-                    <span className="text-warn" style={{ marginLeft: 8 }}>
-                      Pakiet za {pkg.packagePrice} zł oszczędza Ci <strong>{save} zł miesięcznie</strong>.
-                    </span>
-                  )}
-                  {!nudge && total > 0 && (
-                    <span className="text-muted" style={{ marginLeft: 8 }}>Pakiet: {pkg.packagePrice} zł/mies.</span>
-                  )}
-                </div>
-                <div className="flex" style={{ gap: 8, flexShrink: 0 }}>
-                  <Btn variant="outline" size="sm">Kup wybrane</Btn>
-                  {nudge && (
-                    <Btn variant="accent" onClick={() => buyPackage(pkg.id)} size="sm">
-                      Weź pakiet — oszczędzasz {save} zł →
-                    </Btn>
-                  )}
-                </div>
-              </div>
-            )}
-          </div>
-        );
-      })}
+      <AnimatePresence>
+        {upgrade && (
+          <LPUpgradeDrawer variant={upgrade} sub={sub} setSub={setSub} onClose={() => setUpgrade(null)} />
+        )}
+      </AnimatePresence>
     </div>
+  );
+}
+
+// ─── LP HERO (router pre-sale / post-sale) ───────────────────────────────────
+function LPHero({ sub, setSub, onUpgrade }) {
+  const toggleDemo = () => setSub(s => ({
+    ...s,
+    active: !s.active,
+    activatedAt: !s.active ? "15 kwi 2026" : null,
+    nextRenewal: !s.active ? (s.billing === "rok" ? "15 kwi 2027" : "15 maj 2026") : null,
+  }));
+
+  return (
+    <section className="lp-hero">
+      <div className="lp-hero__demo-toggle">
+        <button onClick={toggleDemo} className="lp-hero__demo-btn" title="Przełącz stan pre-sale / post-sale dla demo">
+          <span className="lp-hero__demo-dot" aria-hidden />
+          <span className="lp-hero__demo-lbl">Demo</span>
+          <span className="lp-hero__demo-val">{sub.active ? "po aktywacji" : "przed aktywacją"}</span>
+          <svg width="10" height="10" viewBox="0 0 10 10" fill="none" aria-hidden>
+            <path d="M2 3.5h6M2 3.5l2-2M8 6.5H2M8 6.5l-2 2" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/>
+          </svg>
+        </button>
+      </div>
+      {sub.active ? (
+        <LPManagePanel sub={sub} onUpgrade={onUpgrade} />
+      ) : (
+        <LPConfigurator sub={sub} setSub={setSub} />
+      )}
+    </section>
+  );
+}
+
+// ─── LP CONFIGURATOR (pre-sale) ──────────────────────────────────────────────
+function LPConfigurator({ sub, setSub }) {
+  const { raw, effective, annualSaving } = calcLPPrice(sub);
+  const [breakdownOpen, setBreakdownOpen] = useState(false);
+  const priceRef = useRef(null);
+  const priceInView = useInView(priceRef, { margin: "0px 0px -80px 0px" });
+
+  const activate = () => setSub(s => ({
+    ...s,
+    active: true,
+    activatedAt: "15 kwi 2026",
+    nextRenewal: s.billing === "rok" ? "15 kwi 2027" : "15 maj 2026",
+  }));
+
+  return (
+    <>
+    <div className="lp-card">
+      <div className="lp-card__top">
+        <div className="lp-card__deco" aria-hidden>
+          <svg width="180" height="180" viewBox="0 0 180 180" fill="none">
+            <defs>
+              <pattern id="lp-dots" x="0" y="0" width="10" height="10" patternUnits="userSpaceOnUse">
+                <circle cx="1" cy="1" r="1" fill="currentColor" />
+              </pattern>
+            </defs>
+            <rect width="180" height="180" fill="url(#lp-dots)" />
+          </svg>
+        </div>
+        <div className="lp-card__eyebrow">Nasz główny produkt</div>
+        <h3 className="lp-card__title">
+          <span className="lp-card__title-l1">Lekarz</span>
+          <span className="lp-card__title-l2">Przedsiębiorca<span className="lp-card__title-dot">.</span></span>
+        </h3>
+        <p className="lp-card__tagline">{LP_PRODUCT.tagline}</p>
+        <figure className="lp-card__quote">
+          <svg className="lp-card__quote-mark" width="28" height="22" viewBox="0 0 28 22" fill="none" aria-hidden>
+            <path d="M11.5 0C5.2 0 0 5 0 11.5V22h11V11H5.5C5.5 7 8.3 4 11.5 4V0zm16 0c-6.3 0-11.5 5-11.5 11.5V22h11V11H21.5C21.5 7 24.3 4 27.5 4V0z" fill="currentColor" />
+          </svg>
+          <blockquote>{LP_PRODUCT.quote}</blockquote>
+        </figure>
+
+        <LPStack sub={sub} />
+      </div>
+
+      <div className="lp-card__body">
+        {/* Billing toggle — segmented control with layoutId indicator */}
+        <div className="lp-billing" role="tablist" aria-label="Cykl rozliczenia">
+          {[
+            { id: "msc", label: "Miesięcznie" },
+            { id: "rok", label: "Rocznie", save: "−10%" },
+          ].map(o => {
+            const active = sub.billing === o.id;
+            return (
+              <button
+                key={o.id}
+                role="tab"
+                aria-selected={active}
+                className={`lp-billing__opt${active ? " is-active" : ""}`}
+                onClick={() => setSub(s => ({ ...s, billing: o.id }))}
+              >
+                {active && (
+                  <motion.span
+                    className="lp-billing__indicator"
+                    layoutId="lp-billing-indicator"
+                    transition={{ type: "spring", stiffness: 420, damping: 34 }}
+                    aria-hidden
+                  />
+                )}
+                <span className="lp-billing__opt-label">{o.label}</span>
+                {o.save && <span className="lp-billing__save">{o.save}</span>}
+              </button>
+            );
+          })}
+        </div>
+
+        {/* Lloyd's options */}
+        <div className="lp-field">
+          <div className="lp-field__label">Suma ubezpieczenia utraty dochodu (Lloyd's)</div>
+          <div className="lp-opts">
+            {LP_PRODUCT.lloydOptions.map(opt => (
+              <button
+                key={opt.sum}
+                className={`lp-opt${sub.lloydSum === opt.sum ? " is-active" : ""}`}
+                onClick={() => setSub(s => ({ ...s, lloydSum: opt.sum }))}
+              >
+                <div className="lp-opt__name">{opt.label}</div>
+                <div className="lp-opt__sub">{opt.sub}</div>
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* inFakt toggle */}
+        <div className="lp-field">
+          <div className="lp-field__label">Księgowość inFakt — add-on</div>
+          <label className={`lp-toggle-row${sub.infaktAddon ? " is-on" : ""}`}>
+            <div className="lp-toggle-row__info">
+              <div className="lp-toggle-row__head">
+                <span className="lp-toggle-row__name">Księgowość inFakt</span>
+                <span className="lp-chip lp-chip--lime">Polecane</span>
+                <span className="lp-chip lp-chip--warn">Bonus 1 000 zł</span>
+              </div>
+              <div className="lp-toggle-row__sub">+ 179 zł/msc · odblokowuje konto AION i kreator JDG · jednorazowy bonus 1 000 zł za aktywację</div>
+            </div>
+            <div className="lp-sw" role="switch" aria-checked={sub.infaktAddon}>
+              <input
+                type="checkbox"
+                checked={sub.infaktAddon}
+                onChange={e => setSub(s => ({ ...s, infaktAddon: e.target.checked }))}
+              />
+              <span className="lp-sw__track" />
+              <span className="lp-sw__thumb" />
+            </div>
+          </label>
+        </div>
+
+        {/* Price row */}
+        <div className="lp-price" ref={priceRef}>
+          <div className="lp-price__main">
+            <span className="lp-price__from">od</span>
+            <span className="lp-price__num" aria-live="polite">
+              <AnimatePresence mode="popLayout" initial={false}>
+                <motion.span
+                  key={effective}
+                  initial={{ y: 18, opacity: 0, filter: "blur(6px)" }}
+                  animate={{ y: 0, opacity: 1, filter: "blur(0px)" }}
+                  exit={{ y: -18, opacity: 0, filter: "blur(6px)" }}
+                  transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
+                  className="lp-price__digits"
+                >
+                  {effective}
+                </motion.span>
+              </AnimatePresence>
+            </span>
+            <span className="lp-price__unit">zł / msc</span>
+          </div>
+          <AnimatePresence mode="wait" initial={false}>
+            {sub.billing === "rok" ? (
+              <motion.div
+                key="annual"
+                className="lp-price__annual"
+                initial={{ opacity: 0, y: 4 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -4 }}
+                transition={{ duration: 0.2 }}
+              >
+                <span className="lp-price__annual-dot" aria-hidden />
+                rozliczenie roczne · oszczędzasz <strong>&nbsp;{annualSaving} zł/rok</strong>
+                <span className="lp-price__strike">(miesięcznie byłoby {raw} zł)</span>
+              </motion.div>
+            ) : (
+              <motion.div
+                key="monthly"
+                className="lp-price__annual lp-price__annual--muted"
+                initial={{ opacity: 0, y: 4 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -4 }}
+                transition={{ duration: 0.2 }}
+              >
+                przejdź na <button className="lp-link" onClick={() => setSub(s => ({ ...s, billing: "rok" }))}>rozliczenie roczne</button> i oszczędź do 419 zł
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
+
+        {/* Breakdown (collapsible) */}
+        <div className="lp-breakdown">
+          <button className="lp-breakdown__trigger" onClick={() => setBreakdownOpen(v => !v)}>
+            {breakdownOpen ? "Ukryj breakdown" : `Pokaż breakdown (${LP_FEATURES.length} pozycji)`} {breakdownOpen ? "▴" : "▾"}
+          </button>
+          <AnimatePresence initial={false}>
+            {breakdownOpen && (
+              <motion.div
+                initial={{ height: 0, opacity: 0 }}
+                animate={{ height: "auto", opacity: 1 }}
+                exit={{ height: 0, opacity: 0 }}
+                transition={{ duration: 0.22, ease: "easeOut" }}
+                style={{ overflow: "hidden" }}
+              >
+                <LPBreakdown sub={sub} />
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
+
+        <div className="lp-cta">
+          <Btn variant="accent" size="lg" onClick={activate}>Aktywuj subskrypcję →</Btn>
+          <span className="text-xs text-muted">Rezygnacja w dowolnym momencie · pierwsze 14 dni zwrot 100%</span>
+        </div>
+      </div>
+    </div>
+
+    {/* Floating price dock — pojawia się gdy naturalna cena zjeżdża z viewportu */}
+    <AnimatePresence>
+      {!priceInView && (
+        <motion.div
+          className="lp-dock"
+          initial={{ y: 80, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          exit={{ y: 80, opacity: 0 }}
+          transition={{ duration: 0.26, ease: [0.22, 1, 0.36, 1] }}
+        >
+          <div className="lp-dock__left">
+            <div className="lp-dock__price">
+              <span className="lp-dock__from">od</span>
+              <span className="lp-dock__num">
+                <AnimatePresence mode="popLayout" initial={false}>
+                  <motion.span
+                    key={effective}
+                    initial={{ y: 12, opacity: 0, filter: "blur(4px)" }}
+                    animate={{ y: 0, opacity: 1, filter: "blur(0px)" }}
+                    exit={{ y: -12, opacity: 0, filter: "blur(4px)" }}
+                    transition={{ duration: 0.24, ease: [0.22, 1, 0.36, 1] }}
+                    className="lp-dock__digits"
+                  >
+                    {effective}
+                  </motion.span>
+                </AnimatePresence>
+              </span>
+              <span className="lp-dock__unit">zł/msc</span>
+              {sub.billing === "rok" && <span className="lp-dock__badge">rocznie −10%</span>}
+            </div>
+            <div className="lp-dock__meta">
+              <span>{sub.lloydSum / 1000}k Lloyd's</span>
+              <span className="lp-dock__sep" aria-hidden>·</span>
+              <span>{sub.infaktAddon ? "z inFakt" : "bez inFakt"}</span>
+            </div>
+          </div>
+          <button className="lp-dock__cta" onClick={activate}>
+            Aktywuj
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden>
+              <path d="M3 7h8M7 3l4 4-4 4" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+          </button>
+        </motion.div>
+      )}
+    </AnimatePresence>
+    </>
+  );
+}
+
+// ─── LP STACK (hero: stat-row + chipy z nazwami usług) ──────────────────────
+// Pokazuje od razu w hero "co dostajesz" — bez konieczności scrollowania
+// do breakdown czy features grid. 3 KPI + chipy z krótkimi nazwami.
+function LPStack({ sub }) {
+  const baseCount = LP_FEATURES.filter(f => !f.requiresInfakt).length;
+  const totalCount = sub.infaktAddon ? LP_FEATURES.length : baseCount;
+  const gratisCount = LP_FEATURES.filter(f => f.gratis).length;
+
+  return (
+    <div className="lp-stack">
+      <div className="lp-stack__stats">
+        <div className="lp-stack__stat">
+          <div className="lp-stack__stat-val">
+            <AnimatePresence mode="popLayout" initial={false}>
+              <motion.span
+                key={totalCount}
+                initial={{ y: 10, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                exit={{ y: -10, opacity: 0 }}
+                transition={{ duration: 0.22 }}
+              >
+                {totalCount}
+              </motion.span>
+            </AnimatePresence>
+          </div>
+          <div className="lp-stack__stat-lbl">
+            {totalCount === 1 ? "usługa" : totalCount < 5 ? "usługi" : "usług"} w standardzie
+          </div>
+        </div>
+        <div className="lp-stack__divider" aria-hidden />
+        <div className="lp-stack__stat">
+          <div className="lp-stack__stat-val">
+            87<span className="lp-stack__stat-unit"> 000 zł</span>
+          </div>
+          <div className="lp-stack__stat-lbl">prelimit LeaseLink od dnia 1</div>
+        </div>
+        <div className="lp-stack__divider" aria-hidden />
+        <div className="lp-stack__stat">
+          <div className="lp-stack__stat-val">
+            {gratisCount}<span className="lp-stack__stat-unit"> × GRATIS</span>
+          </div>
+          <div className="lp-stack__stat-lbl">doradcy + konsultacja podatkowa</div>
+        </div>
+      </div>
+
+      <div className="lp-stack__chips-wrap">
+        <div className="lp-stack__chips-label">Zawiera:</div>
+        <div className="lp-stack__chips">
+          {LP_FEATURES.map(f => {
+            const locked = f.requiresInfakt && !sub.infaktAddon;
+            return (
+              <motion.span
+                key={f.id}
+                className={`lp-stack__chip${f.gratis ? " is-gratis" : ""}${locked ? " is-locked" : ""}${f.requiresInfakt ? " is-addon" : ""}`}
+                animate={{ opacity: locked ? 0.4 : 1 }}
+                transition={{ duration: 0.25 }}
+              >
+                {f.gratis && <span className="lp-stack__chip-dot" aria-hidden />}
+                {f.short}
+                {locked && <span className="lp-stack__chip-note">wymaga inFakt</span>}
+              </motion.span>
+            );
+          })}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── LP BREAKDOWN (składniki ceny w pre-sale) ────────────────────────────────
+function LPBreakdown({ sub }) {
+  const opt = LP_PRODUCT.lloydOptions.find(o => o.sum === sub.lloydSum);
+  const rows = [
+    { label: lpLloydLabel(sub.lloydSum), val: opt.deltaPrice > 0 ? `+ ${opt.deltaPrice} zł` : "w cenie" },
+    { label: "OC zawodowe Ergo Hestia (auto z NIL)", val: "w cenie" },
+    { label: "Wirtualny gabinet (adres + tel + email)", val: "w cenie" },
+    { label: "Autenti — podpis kwalifikowany", val: "w cenie" },
+    { label: "Prelimit LeaseLink (PWZ-based)", val: "w cenie" },
+    { label: "eGabinet EDM", val: "w cenie" },
+    { label: "Doradcy ubezpieczeniowi + analiza potrzeb", val: "GRATIS", gratis: true },
+    { label: "Doradcy leasingowi LeaseLink", val: "GRATIS", gratis: true },
+    { label: "Konsultacja podatkowa 15 min/msc", val: "GRATIS", gratis: true },
+    { label: "Bank odpowiedzi prawnych (Tymiński)", val: "w cenie" },
+  ];
+  if (sub.infaktAddon) rows.push({ label: "Księgowość inFakt (add-on)", val: "+ 179 zł", warn: true });
+
+  return (
+    <div className="lp-bk">
+      {rows.map((r, i) => (
+        <div key={i} className="lp-bk__row">
+          <span className="lp-bk__lbl">{r.label}</span>
+          <span className={`lp-bk__val${r.gratis ? " lp-bk__val--gratis" : ""}${r.warn ? " lp-bk__val--warn" : ""}`}>{r.val}</span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+// ─── LP MANAGE PANEL (post-sale) ─────────────────────────────────────────────
+function LPManagePanel({ sub, onUpgrade }) {
+  const { effective } = calcLPPrice(sub);
+  const billingLabel = sub.billing === "rok" ? "Roczne" : "Miesięczne";
+
+  return (
+    <div className="lp-card lp-card--active">
+      <div className="lp-card__top">
+        <div className="flex items-center gap-2 mb-2">
+          <Pill variant="green">✓ Twoja subskrypcja aktywna</Pill>
+          <span className="text-xs text-muted">od {sub.activatedAt}</span>
+        </div>
+        <h3 className="lp-card__title">{LP_PRODUCT.label}</h3>
+        <p className="lp-card__tagline">
+          {effective} zł / msc · odnowienie {sub.nextRenewal}
+        </p>
+      </div>
+
+      <div className="lp-card__body">
+        <div className="lp-field">
+          <div className="lp-field__label">Twoja konfiguracja</div>
+          <div className="lp-manage">
+            <div className="lp-manage__row">
+              <div>
+                <div className="lp-manage__lbl">Suma Lloyd's</div>
+                <div className="lp-manage__val">{(sub.lloydSum / 1000)}k / mies.</div>
+              </div>
+              <Btn variant="outline" size="sm" onClick={() => onUpgrade("lloyds")}>Zwiększ sumę →</Btn>
+            </div>
+            <div className="lp-manage__row">
+              <div>
+                <div className="lp-manage__lbl">Księgowość inFakt</div>
+                <div className="lp-manage__val">{sub.infaktAddon ? "Aktywna (+179 zł)" : "Nie aktywna"}</div>
+              </div>
+              {sub.infaktAddon
+                ? <span className="text-xs text-muted">aktywna</span>
+                : <Btn variant="accent" size="sm" onClick={() => onUpgrade("infakt")}>Dodaj inFakt +</Btn>}
+            </div>
+            <div className="lp-manage__row">
+              <div>
+                <div className="lp-manage__lbl">Rozliczenie</div>
+                <div className="lp-manage__val">{billingLabel}{sub.billing === "rok" ? " · −10%" : ""}</div>
+              </div>
+              {sub.billing === "rok"
+                ? <span className="text-xs text-muted">najtańsza opcja</span>
+                : <Btn variant="outline" size="sm" onClick={() => onUpgrade("billing")}>Przejdź na roczne →</Btn>}
+            </div>
+          </div>
+        </div>
+
+        <div className="lp-cta lp-cta--secondary">
+          <Btn variant="outline" size="md">Zobacz rozliczenia</Btn>
+          <span className="text-xs text-muted">Faktury, historia płatności i dokumenty polis</span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── LP FEATURES (grid + LeaseLink callout) ──────────────────────────────────
+function LPFeatures({ sub }) {
+  const gridRef = useRef(null);
+  const inView = useInView(gridRef, { once: true, margin: "-40px" });
+
+  return (
+    <section className="lp-features">
+      <h3 className="lp-section-title">Co dostajesz w cenie</h3>
+
+      <LeaseLinkCallout />
+
+      <div className="lp-feat-grid" ref={gridRef}>
+        {LP_FEATURES.map((f, i) => {
+          const locked = f.requiresInfakt && !sub.infaktAddon;
+          return (
+            <motion.div
+              key={f.id}
+              className={`lp-feat${locked ? " lp-feat--locked" : ""}`}
+              initial={{ opacity: 0, y: 14 }}
+              animate={inView ? {
+                opacity: locked ? 0.45 : 1,
+                y: 0,
+              } : { opacity: 0, y: 14 }}
+              transition={{
+                duration: 0.34,
+                ease: [0.22, 1, 0.36, 1],
+                delay: inView ? i * 0.035 : 0,
+              }}
+            >
+              <motion.span
+                className={`lp-feat__dot${locked ? " is-off" : ""}`}
+                animate={{
+                  scale: locked ? 0.7 : 1,
+                  backgroundColor: locked ? "rgba(113,113,122,0.28)" : "var(--color-lime)",
+                  boxShadow: locked ? "0 0 0 0 rgba(206,255,62,0)" : "0 0 0 3px rgba(206,255,62,0.18)",
+                }}
+                transition={{ duration: 0.28, ease: "easeOut" }}
+              />
+              <div className="lp-feat__body">
+                <div className="lp-feat__head">
+                  <span className="lp-feat__name">{f.name}</span>
+                  {f.gratis && <span className="lp-chip lp-chip--lime">GRATIS</span>}
+                  {locked && <span className="lp-chip lp-chip--muted">wymaga inFakt</span>}
+                </div>
+                <div className="lp-feat__note">{f.note}</div>
+              </div>
+            </motion.div>
+          );
+        })}
+      </div>
+    </section>
+  );
+}
+
+// ─── LEASELINK CALLOUT ───────────────────────────────────────────────────────
+function LeaseLinkCallout() {
+  const limit = LP_PRODUCT.leaselinkLimit;
+  return (
+    <div className="lp-leaselink">
+      {/* Atmospheric background: radial gradient + dot pattern overlay */}
+      <div className="lp-leaselink__atmos" aria-hidden>
+        <svg className="lp-leaselink__pattern" width="100%" height="100%" viewBox="0 0 600 200" preserveAspectRatio="xMaxYMid slice">
+          <defs>
+            <pattern id="ll-dots" x="0" y="0" width="14" height="14" patternUnits="userSpaceOnUse">
+              <circle cx="1" cy="1" r="1" fill="currentColor" />
+            </pattern>
+            <radialGradient id="ll-glow" cx="85%" cy="30%" r="55%">
+              <stop offset="0%" stopColor="#CEFF3E" stopOpacity="0.22" />
+              <stop offset="60%" stopColor="#CEFF3E" stopOpacity="0.04" />
+              <stop offset="100%" stopColor="#CEFF3E" stopOpacity="0" />
+            </radialGradient>
+          </defs>
+          <rect width="600" height="200" fill="url(#ll-glow)" />
+          <rect width="600" height="200" fill="url(#ll-dots)" opacity="0.35" />
+        </svg>
+      </div>
+      <div className="lp-leaselink__bar" />
+      <div className="lp-leaselink__body">
+        <div className="lp-leaselink__eyebrow">
+          <span className="lp-leaselink__eyebrow-dot" />
+          Prelimit LeaseLink — dostępny od dnia 1
+        </div>
+        <div className="lp-leaselink__amount">
+          <span className="lp-leaselink__currency">zł</span>
+          <span className="lp-leaselink__digits">{limit.toLocaleString("pl-PL").replace(/,/g, " ")}</span>
+        </div>
+        <p className="lp-leaselink__note">
+          PWZ-based · decyzja 30 sek · bez dokumentów. Sfinansuj sprzęt medyczny, rower premium,
+          auto czy elektronikę — wydajesz cudze, swoje zostawiasz w kapitale.
+        </p>
+      </div>
+      <button className="lp-leaselink__cta">
+        Zobacz co sfinansujesz
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden>
+          <path d="M3 7h8M7 3l4 4-4 4" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/>
+        </svg>
+      </button>
+    </div>
+  );
+}
+
+// ─── SECONDARY PACKAGES (strefa C) ───────────────────────────────────────────
+function SecondaryPackages() {
+  const [expanded, setExpanded] = useState(null); // id or null
+
+  return (
+    <section className="lp-secondary">
+      <h3 className="lp-section-title">Dodatkowe pakiety tematyczne</h3>
+      <p className="text-sm text-muted mb-4">Wąskie pakiety jeśli nie potrzebujesz pełnej infrastruktury Lekarza Przedsiębiorcy.</p>
+
+      <div className="lp-secondary__grid">
+        {SECONDARY_PACKAGES.map(pkg => {
+          const open = expanded === pkg.id;
+          return (
+            <div key={pkg.id} className={`lp-secondary__card${open ? " is-open" : ""}`}>
+              <div className="lp-secondary__head">
+                <div>
+                  <div className="lp-secondary__name">{pkg.label}</div>
+                  <div className="lp-secondary__desc">{pkg.desc}</div>
+                </div>
+                <div className="lp-secondary__price">
+                  <div className="text-[20px] font-bold tracking-[-0.03em]">{pkg.packagePrice} zł<span className="text-sm text-muted font-normal">/mies.</span></div>
+                  <div className="text-xs text-muted">{pkg.items.length} {pkg.items.length === 1 ? "usługa" : "usługi"}</div>
+                </div>
+              </div>
+              <button className="lp-secondary__toggle" onClick={() => setExpanded(open ? null : pkg.id)}>
+                {open ? "Zwiń szczegóły" : "Zobacz szczegóły"} {open ? "▴" : "▾"}
+              </button>
+              <AnimatePresence initial={false}>
+                {open && (
+                  <motion.div
+                    initial={{ height: 0, opacity: 0 }}
+                    animate={{ height: "auto", opacity: 1 }}
+                    exit={{ height: 0, opacity: 0 }}
+                    transition={{ duration: 0.22, ease: "easeOut" }}
+                    style={{ overflow: "hidden" }}
+                  >
+                    <div className="lp-secondary__items">
+                      {pkg.items.map(item => (
+                        <div key={item.id} className="lp-secondary__item">
+                          <div className="flex-1">
+                            <span className="text-sm font-medium">{item.name}</span>
+                            <span className="text-xs text-muted ml-2">{item.desc}</span>
+                          </div>
+                          <span className="text-xs font-medium text-muted">{item.price > 0 ? `${item.price} zł/mies.` : "gratis"}</span>
+                        </div>
+                      ))}
+                      <div className="lp-secondary__cta">
+                        <Btn variant="primary" size="sm">Kup pakiet za {pkg.packagePrice} zł/mies.</Btn>
+                      </div>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+          );
+        })}
+      </div>
+    </section>
+  );
+}
+
+// ─── LP UPGRADE DRAWER ───────────────────────────────────────────────────────
+function LPUpgradeDrawer({ variant, sub, setSub, onClose }) {
+  const [closing, setClosing] = useState(false);
+  const lloydsUpgradeOpts = LP_PRODUCT.lloydOptions.filter(o => o.sum > sub.lloydSum);
+  const [lloydsPick, setLloydsPick] = useState(lloydsUpgradeOpts[0]?.sum ?? null);
+
+  const close = () => { setClosing(true); setTimeout(onClose, 220); };
+
+  let title, body, confirmLabel, onConfirm;
+
+  if (variant === "lloyds") {
+    title = "Zwiększ sumę ubezpieczenia utraty dochodu";
+    body = (
+      <div className="flex flex-col gap-3">
+        <p className="text-sm text-muted">
+          Obecna suma: <strong className="text-fg">{sub.lloydSum / 1000}k / mies.</strong>
+          {" "}Upgrade dla lekarzy z wysokimi przychodami B2B — większa ochrona przy chorobie lub wypadku.
+        </p>
+        {lloydsUpgradeOpts.length === 0 ? (
+          <div className="lp-alert">Masz już maksymalną sumę Lloyd's (15 000 zł / mies.).</div>
+        ) : lloydsUpgradeOpts.map(opt => (
+          <button
+            key={opt.sum}
+            className={`lp-opt${lloydsPick === opt.sum ? " is-active" : ""}`}
+            onClick={() => setLloydsPick(opt.sum)}
+          >
+            <div className="lp-opt__name">{opt.label}</div>
+            <div className="lp-opt__sub">{opt.sub}</div>
+          </button>
+        ))}
+      </div>
+    );
+    confirmLabel = lloydsUpgradeOpts.length ? "Przejdź na wyższą sumę od następnego cyklu" : null;
+    onConfirm = () => { setSub(s => ({ ...s, lloydSum: lloydsPick })); close(); };
+  } else if (variant === "infakt") {
+    title = "Dodaj księgowość inFakt";
+    body = (
+      <div className="flex flex-col gap-3">
+        <p className="text-sm text-muted">
+          inFakt przejmuje księgowość Twojej JDG. Po aktywacji odblokowują się:
+        </p>
+        <ul className="lp-blist">
+          <li>Konto firmowe AION — zero opłat, karta co-branded</li>
+          <li>Kreator JDG — wskazywalny do US i ZUS</li>
+          <li>Jednorazowy bonus <strong className="text-fg">1 000 zł</strong> za aktywację</li>
+        </ul>
+        <div className="lp-summary">
+          <div className="lp-summary__row"><span>Dopłata</span><strong>+179 zł/msc</strong></div>
+          <div className="lp-summary__row"><span>Bonus jednorazowy</span><strong className="text-green">+1 000 zł</strong></div>
+        </div>
+      </div>
+    );
+    confirmLabel = "Dodaj inFakt do subskrypcji";
+    onConfirm = () => { setSub(s => ({ ...s, infaktAddon: true })); close(); };
+  } else if (variant === "billing") {
+    title = "Przejdź na rozliczenie roczne";
+    body = (
+      <div className="flex flex-col gap-3">
+        <p className="text-sm text-muted">
+          Jeden punkt decyzji na rok zamiast dwunastu. Lloyd's bez surcharge 10%, oszczędność 10% na całej subskrypcji.
+        </p>
+        <div className="lp-summary">
+          <div className="lp-summary__row"><span>Obecnie (miesięcznie)</span><strong>{calcLPPrice({ ...sub, billing: "msc" }).effective} zł/msc</strong></div>
+          <div className="lp-summary__row"><span>Po zmianie (rocznie)</span><strong className="text-green">{calcLPPrice({ ...sub, billing: "rok" }).effective} zł/msc</strong></div>
+          <div className="lp-summary__row"><span>Oszczędność</span><strong className="text-green">{calcLPPrice({ ...sub, billing: "rok" }).annualSaving} zł / rok</strong></div>
+        </div>
+      </div>
+    );
+    confirmLabel = "Przełącz od następnego cyklu";
+    onConfirm = () => { setSub(s => ({ ...s, billing: "rok" })); close(); };
+  }
+
+  return (
+    <>
+      <motion.div
+        className="drawer-overlay"
+        onClick={close}
+        initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+        transition={{ duration: 0.2 }}
+      />
+      <motion.div
+        className={`drawer lp-drawer${closing ? " drawer--closing" : ""}`}
+        initial={{ x: "100%" }} animate={{ x: 0 }} exit={{ x: "100%" }}
+        transition={{ duration: 0.25, ease: "easeOut" }}
+      >
+        <div className="lp-drawer__header">
+          <div className="lp-drawer__title">{title}</div>
+          <button className="lp-drawer__close" onClick={close} aria-label="Zamknij">✕</button>
+        </div>
+        <div className="lp-drawer__content">
+          {body}
+        </div>
+        {confirmLabel && (
+          <div className="lp-drawer__footer">
+            <Btn variant="accent" size="lg" onClick={onConfirm}>{confirmLabel}</Btn>
+            <button className="lp-link" onClick={close}>Anuluj</button>
+          </div>
+        )}
+      </motion.div>
+    </>
   );
 }
 
@@ -5874,6 +6516,18 @@ function App() {
   const [unlockedDiscounts, setUnlockedDiscounts] = useState(new Set());
   const unlockDiscount = (id) => setUnlockedDiscounts(prev => new Set(prev).add(id));
 
+  // ─── Lekarz Przedsiębiorca — subskrypcja użytkownika ─────────────────────
+  // Default: pre-sale konfigurator ustawiony na "najbardziej opłacalną" konfigurację
+  // (rocznie + 5k Lloyd's + inFakt ON). Demo toggle z LPHero może przełączyć na post-sale.
+  const [lpSub, setLpSub] = useState({
+    active: false,
+    billing: "rok",
+    lloydSum: 5000,
+    infaktAddon: true,
+    activatedAt: null,
+    nextRenewal: null,
+  });
+
   const setActive = (id) => { setActive_(id); setNavKey(k => k + 1); };
 
   const addToCart = (product, variant) => {
@@ -5934,7 +6588,7 @@ function App() {
       <div className={`main${topbarHidden ? " main--topbar-hidden" : ""}`}>
         <TopBar active={active} setActive={setActive} cart={cart} onCartClick={() => setCartOpen(true)} onNotifClick={() => setNotifOpen(true)} theme={theme} setTheme={setTheme} />
         <main className="main__content" ref={scrollRef}>
-          <View key={navKey} setActive={setActive} addToCart={addToCart} cart={cart} removeFromCart={removeFromCart} profile={profile} setProfile={setProfile} unlockedDiscounts={unlockedDiscounts} unlockDiscount={unlockDiscount} />
+          <View key={navKey} setActive={setActive} addToCart={addToCart} cart={cart} removeFromCart={removeFromCart} profile={profile} setProfile={setProfile} unlockedDiscounts={unlockedDiscounts} unlockDiscount={unlockDiscount} lpSub={lpSub} setLpSub={setLpSub} />
         </main>
       </div>
       {notifOpen && <NotificationsDrawer onClose={() => setNotifOpen(false)} profile={profile} />}

@@ -68,3 +68,4 @@
 @import './views/profile.css' layer(components);
 @import './views/oc-form-v2.css' layer(components);
 @import './views/ocr-modal.css' layer(components);
+@import './views/services-lp.css' layer(components);
