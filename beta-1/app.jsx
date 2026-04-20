@@ -837,6 +837,26 @@ const LP_EXCLUSIVES = [
 
 const LP_CORE_IDS = new Set(SERVICE_CATALOG.filter(s => s.inLP).map(s => s.id));
 
+// Skrócone benefity LP per usługa — konkretny value prop zamiast generycznego "W LP"
+// na kafelku w katalogu.
+const LP_SERVICE_PERK_SHORT = {
+  lloyds:   "rabat 15%",
+  oc:       "rabat 10%",
+  infakt:   "179 zł/mies. + 1000 zł bonus",
+  wg:       "gratis",
+  autenti:  "gratis",
+  egabinet: "w cenie",
+  tax:      "gratis",
+  legal:    "w cenie",
+  advInsur: "gratis + opiekun",
+  advLeas:  "gratis",
+};
+
+// Suma solo-cen wszystkich LP-core usług — baza do kalkulacji savings vs pakiet.
+const LP_ALL_SOLO_MONTHLY = SERVICE_CATALOG
+  .filter(s => s.inLP)
+  .reduce((sum, s) => sum + (s.soloPrice || 0), 0);
+
 // ─── LIFE AREAS (Usługi 3 — ekosystem / gap analysis) ────────────────────────
 // Obszary życia lekarza. Każdy ma 3 stany wg pokrycia:
 //   covered  — wszystkie usługi w obszarze aktywne (lub obszar pokryty przez LP)
@@ -1717,6 +1737,7 @@ const NAV_SECTIONS = [
       { id: "packages",    label: "Usługi",        icon: "packages" },
       { id: "packages2",   label: "Usługi 2",      icon: "packages" },
       { id: "packages3",   label: "Usługi 3",      icon: "packages" },
+      { id: "packages4",   label: "Usługi 4",      icon: "packages" },
       { id: "insurance",   label: "Ubezpieczenia", icon: "insurance" },
     ],
   },
@@ -5520,6 +5541,729 @@ function AreaDetailView({ area, effectiveActive, lpActive, onToggleService, onBa
   );
 }
 
+// ═══════════════════════════════════════════════════════════════════════════
+// ─── SERVICES 4 VIEW (flat Znizki-like pattern) ─────────────────────────────
+// ═══════════════════════════════════════════════════════════════════════════
+// Płaska struktura: kategorie u góry, kafelki usług niżej. Klik → landing.
+// Bez pośrednich widoków "co w środku" — jedna warstwa zagłębienia.
+// ═══════════════════════════════════════════════════════════════════════════
+
+const SERVICE_CAT_THEME = {
+  insurance:  { bg: "linear-gradient(135deg, #EEF2FF 0%, #C7D2FE 100%)", fg: "#3730A3" },
+  accounting: { bg: "linear-gradient(135deg, #ECFEFF 0%, #A5F3FC 100%)", fg: "#0E7490" },
+  medical:    { bg: "linear-gradient(135deg, #FDF4FF 0%, #F5D0FE 100%)", fg: "#86198F" },
+  legal:      { bg: "linear-gradient(135deg, #FEF3C7 0%, #FDE68A 100%)", fg: "#92400E" },
+};
+
+function Services4View({ cart, addToCart, removeFromCart, lpSub, setLpSub, setActive, purchasedServices, openManageService, cancelService, updateServiceParams, pendingManageId, setPendingManageId }) {
+  const [subTab, setSubTab] = useState("catalog"); // "catalog" | "my"
+  const [filter, setFilter] = useState("all");
+  const [selectedId, setSelectedId] = useState(null);
+  const [lpStripDismissed, setLpStripDismissed] = useState(false);
+
+  // Deep-link: jeśli ktoś wywołał openManageService, przełącz na "Moje usługi"
+  React.useEffect(() => {
+    if (pendingManageId) setSubTab("my");
+  }, [pendingManageId]);
+
+  const handleManage = (id) => {
+    setPendingManageId && setPendingManageId(id);
+    setSubTab("my");
+  };
+  const cartServices = (cart || []).filter(i => i.product?.categoryId === "service");
+  const cartServiceIds = new Set(cartServices.map(i => i.product.id));
+  const { lpInCart, cartTotal, missingLpServices, level } = calcServices2Reveal(cartServices);
+  const purchased = purchasedServices || {};
+
+  const selectedService = selectedId ? SERVICE_CATALOG.find(s => s.id === selectedId) : null;
+  const visibleServices = filter === "all" ? SERVICE_CATALOG : SERVICE_CATALOG.filter(s => s.category === filter);
+
+  const toggleService = (svc) => {
+    if (cartServiceIds.has(svc.id)) removeFromCart(svc.id);
+    else addToCart(serviceToCartProduct(svc), null, { silent: true });
+  };
+
+  const swapToLP = (opts = {}) => {
+    cartServices.forEach(i => removeFromCart(i.key));
+    setLpSub(s => ({
+      ...s,
+      active: true,
+      billing: opts.billing ?? s.billing,
+      lloydSum: opts.lloydSum ?? s.lloydSum,
+      infaktAddon: opts.infaktAddon ?? s.infaktAddon,
+      activatedAt: "15 kwi 2026",
+      nextRenewal: (opts.billing ?? s.billing) === "rok" ? "15 kwi 2027" : "15 maj 2026",
+    }));
+    setTimeout(() => setActive && setActive("packages"), 150);
+  };
+
+  const ownedCount = Object.keys(purchased).length;
+
+  return (
+    <div className="s4-view">
+      {/* Nagłówek + sub-taby — widoczne tylko na widoku katalog/my (nie na detail) */}
+      {!selectedService && (
+        <div className="s4-view__header">
+          <div className="s4-view__intro">
+            <h2 className="text-[20px] font-bold tracking-[-0.02em]">Usługi</h2>
+            <p className="text-sm text-muted mt-1">
+              {subTab === "catalog"
+                ? "Wszystkie usługi w jednym miejscu. Wybierz kategorię albo kliknij kafelek, aby zobaczyć szczegóły."
+                : "Aktywne subskrypcje i usługi — parametry, dokumenty, akcje w jednym miejscu."}
+            </p>
+          </div>
+          <div className="s4-subnav" role="tablist">
+            <button
+              role="tab"
+              aria-selected={subTab === "catalog"}
+              className={`s4-subnav__tab${subTab === "catalog" ? " is-active" : ""}`}
+              onClick={() => setSubTab("catalog")}
+            >
+              {subTab === "catalog" && <motion.span layoutId="s4-subnav-indicator" className="s4-subnav__indicator" transition={{ type: "spring", stiffness: 420, damping: 34 }} />}
+              <span className="s4-subnav__label">Katalog</span>
+            </button>
+            <button
+              role="tab"
+              aria-selected={subTab === "my"}
+              className={`s4-subnav__tab${subTab === "my" ? " is-active" : ""}`}
+              onClick={() => setSubTab("my")}
+            >
+              {subTab === "my" && <motion.span layoutId="s4-subnav-indicator" className="s4-subnav__indicator" transition={{ type: "spring", stiffness: 420, damping: 34 }} />}
+              <span className="s4-subnav__label">Moje usługi</span>
+              {ownedCount > 0 && <span className="s4-subnav__count">{ownedCount}</span>}
+            </button>
+          </div>
+        </div>
+      )}
+
+      <AnimatePresence mode="wait" initial={false}>
+        {selectedService ? (
+          <motion.div
+            key="detail"
+            className="s4-view__inner"
+            initial={{ opacity: 0, x: 16 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -16 }}
+            transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
+          >
+            <ServiceDetailView
+              service={selectedService}
+              inCart={cartServiceIds.has(selectedService.id)}
+              onToggle={() => toggleService(selectedService)}
+              onBack={() => setSelectedId(null)}
+              onOpenRelated={(id) => setSelectedId(id)}
+              cartServices={cartServices}
+              cartTotal={cartTotal}
+              lpInCart={lpInCart}
+              missingLpServices={missingLpServices}
+              level={level}
+              onRemove={removeFromCart}
+              onSwap={swapToLP}
+            />
+          </motion.div>
+        ) : subTab === "catalog" ? (
+          <motion.div
+            key="catalog"
+            className="s4-view__inner"
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -8 }}
+            transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
+          >
+            {!lpSub?.active && !lpStripDismissed && (
+              <LPPromoStrip
+                lpSub={lpSub}
+                onOpenLP={() => setActive && setActive("packages")}
+                onDismiss={() => setLpStripDismissed(true)}
+              />
+            )}
+
+            <div className="filter-bar s4-filter">
+              {SERVICE_CATEGORIES.map(c => (
+                <button
+                  key={c.id}
+                  className={`filter-pill${filter === c.id ? " filter-pill--active" : ""}`}
+                  onClick={() => setFilter(c.id)}
+                >
+                  {c.label}
+                </button>
+              ))}
+            </div>
+
+            <div className="s4-grid">
+              {visibleServices.map(svc => (
+                <Service4Card
+                  key={svc.id}
+                  service={svc}
+                  inCart={cartServiceIds.has(svc.id)}
+                  isPurchased={!!purchased[svc.id]}
+                  onOpen={() => setSelectedId(svc.id)}
+                  onManage={() => handleManage(svc.id)}
+                />
+              ))}
+            </div>
+          </motion.div>
+        ) : (
+          <motion.div
+            key="my"
+            className="s4-view__inner"
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -8 }}
+            transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
+          >
+            <MyServicesView
+              purchasedServices={purchasedServices}
+              cancelService={cancelService}
+              updateServiceParams={updateServiceParams}
+              lpSub={lpSub}
+              setLpSub={setLpSub}
+              pendingManageId={pendingManageId}
+              setPendingManageId={setPendingManageId}
+              setActive={setActive}
+              onGoToCatalog={() => setSubTab("catalog")}
+              embedded
+            />
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
+
+function LPPromoStrip({ lpSub, onOpenLP, onDismiss }) {
+  const lpPrice = calcLPPrice(lpSub || { billing: "rok", lloydSum: 5000, infaktAddon: true });
+  const savings = Math.max(0, LP_ALL_SOLO_MONTHLY - lpPrice.effective);
+  return (
+    <div className="s4-lp-strip" role="region" aria-label="Promocja pakietu Lekarz Przedsiębiorca">
+      <div className="s4-lp-strip__icon" aria-hidden>
+        <svg width="18" height="18" viewBox="0 0 20 20" fill="none"><path d="M10 2l2.4 5.4L18 9l-4 3.8L15 19l-5-3-5 3 1-6.2L2 9l5.6-1.6z" fill="currentColor"/></svg>
+      </div>
+      <div className="s4-lp-strip__text">
+        Kupujesz kilka usług? W pakiecie <strong>Lekarz Przedsiębiorca</strong> zaoszczędzisz
+        <strong className="s4-lp-strip__savings"> ~{savings} zł/mies.</strong>
+      </div>
+      <button className="s4-lp-strip__cta" onClick={onOpenLP}>
+        Zobacz pakiet
+        <svg width="12" height="12" viewBox="0 0 16 16" fill="none"><path d="M6 3l5 5-5 5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/></svg>
+      </button>
+      <button className="s4-lp-strip__close" onClick={onDismiss} aria-label="Ukryj">
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M3 3l8 8M11 3l-8 8" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round"/></svg>
+      </button>
+    </div>
+  );
+}
+
+function Service4Card({ service, inCart, isPurchased, onOpen, onManage }) {
+  const theme = SERVICE_CAT_THEME[service.category] || SERVICE_CAT_THEME.insurance;
+  const categoryLabel = SERVICE_CATEGORIES.find(c => c.id === service.category)?.label;
+  const partner = service.landing?.partner?.split("·")[0]?.trim() || "Remedium";
+  const short = service.landing?.longDesc || service.desc;
+  const handleClick = () => {
+    if (isPurchased) onManage && onManage();
+    else onOpen && onOpen();
+  };
+  return (
+    <motion.div
+      className={`s4-card${inCart ? " is-in-cart" : ""}${isPurchased ? " is-purchased" : ""}`}
+      onClick={handleClick}
+      layout
+      transition={{ duration: 0.2 }}
+    >
+      <div className="s4-card__hero" style={{ background: theme.bg, color: theme.fg }}>
+        <div className="s4-card__hero-icon" aria-hidden>{service.icon}</div>
+        {isPurchased ? (
+          <span className="s4-card__badge s4-card__badge--active">Aktywna</span>
+        ) : service.inLP && LP_SERVICE_PERK_SHORT[service.id] ? (
+          <span className="s4-card__badge s4-card__badge--lp" title="Korzyść w pakiecie Lekarz Przedsiębiorca">
+            W LP: {LP_SERVICE_PERK_SHORT[service.id]}
+          </span>
+        ) : service.inLP ? (
+          <span className="s4-card__badge">W LP</span>
+        ) : null}
+      </div>
+      <div className="s4-card__body">
+        <div className="s4-card__meta">
+          <span className="s4-card__logo" style={{ background: theme.fg }} aria-hidden>
+            {partner.charAt(0).toUpperCase()}
+          </span>
+          <span className="s4-card__partner">{partner}</span>
+          <span className="s4-card__cat">{categoryLabel}</span>
+        </div>
+        <h3 className="s4-card__title">{service.label}</h3>
+        <p className="s4-card__desc">{short}</p>
+      </div>
+      <div className="s4-card__footer">
+        <div className="s4-card__price">
+          <span className="s4-card__price-num">{service.soloPrice}</span>
+          <span className="s4-card__price-unit">zł / mies.</span>
+        </div>
+        {isPurchased ? (
+          <button className="s4-card__cta s4-card__cta--manage" onClick={(e) => { e.stopPropagation(); onManage && onManage(); }}>
+            <svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden>
+              <path d="M8 5v3l2 1.5M14 8A6 6 0 11 2 8a6 6 0 0112 0z" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+            Zarządzaj
+          </button>
+        ) : (
+          <button className="s4-card__cta" onClick={(e) => { e.stopPropagation(); onOpen(); }}>
+            <svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden>
+              <path d="M6 3l5 5-5 5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+            Zobacz szczegóły
+          </button>
+        )}
+      </div>
+    </motion.div>
+  );
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// ─── MOJE USŁUGI — HUB + PANEL ZARZĄDZANIA ─────────────────────────────────
+// ═══════════════════════════════════════════════════════════════════════════
+// Jedno źródło prawdy o posiadanych usługach. Każda usługa ma swój własny
+// panel zarządzania (registry SERVICE_MANAGE_VIEWS), ze wspólnym shellem.
+// ═══════════════════════════════════════════════════════════════════════════
+
+function MyServicesView({ purchasedServices, cancelService, updateServiceParams, lpSub, setLpSub, pendingManageId, setPendingManageId, setActive, onGoToCatalog, embedded }) {
+  const [selectedId, setSelectedId] = useState(null);
+
+  // Deep-link z Service4Card: otwórz panel dla konkretnej usługi
+  React.useEffect(() => {
+    if (pendingManageId) {
+      setSelectedId(pendingManageId);
+      setPendingManageId(null);
+    }
+  }, [pendingManageId, setPendingManageId]);
+
+  const purchased = purchasedServices || {};
+  const ownedIds = Object.keys(purchased);
+  const ownedServices = ownedIds
+    .map(id => SERVICE_CATALOG.find(s => s.id === id))
+    .filter(Boolean);
+
+  // Migration upsell: user ma ≥2 LP-core usługi kupione solo, ale LP nie jest aktywny
+  const ownedLpCore = ownedServices.filter(s => LP_CORE_IDS.has(s.id));
+  const showLPMigration = !lpSub?.active && ownedLpCore.length >= 2;
+  const currentSoloMonthly = ownedLpCore.reduce((sum, s) => sum + (s.soloPrice || 0), 0);
+  const lpPriceCalc = calcLPPrice(lpSub || { billing: "rok", lloydSum: 5000, infaktAddon: true });
+  const migrationSavings = Math.max(0, currentSoloMonthly - lpPriceCalc.effective);
+
+  const activateLPFromMigration = () => {
+    if (!setLpSub) return;
+    setLpSub(s => ({
+      ...s,
+      active: true,
+      activatedAt: new Date().toLocaleDateString("pl-PL", { day: "numeric", month: "short", year: "numeric" }),
+      nextRenewal: s.billing === "rok" ? "15 kwi 2027" : "15 maj 2026",
+    }));
+  };
+
+  const selectedService = selectedId ? SERVICE_CATALOG.find(s => s.id === selectedId) : null;
+  const selectedPurchase = selectedId ? purchased[selectedId] : null;
+
+  if (selectedService && selectedPurchase) {
+    return (
+      <ServiceManagePanel
+        service={selectedService}
+        purchase={selectedPurchase}
+        lpSub={lpSub}
+        onBack={() => setSelectedId(null)}
+        onCancel={() => { cancelService(selectedService.id); setSelectedId(null); }}
+        onUpdateParams={(patch) => updateServiceParams(selectedService.id, patch)}
+      />
+    );
+  }
+
+  return (
+    <div className="ms-view">
+      {!embedded && (
+        <div className="ms-view__intro">
+          <h2 className="text-[20px] font-bold tracking-[-0.02em]">Moje usługi</h2>
+          <p className="text-sm text-muted mt-1">
+            Aktywne subskrypcje i usługi — parametry, dokumenty, akcje w jednym miejscu.
+          </p>
+        </div>
+      )}
+
+      {lpSub?.active && (
+        <div className="ms-lp-hero">
+          <div className="ms-lp-hero__left">
+            <div className="ms-lp-hero__eyebrow">Pakiet</div>
+            <div className="ms-lp-hero__title">Lekarz Przedsiębiorca</div>
+            <div className="ms-lp-hero__meta">
+              {lpSub.lloydSum / 1000}k Lloyd's · {lpSub.infaktAddon ? "inFakt w pakiecie" : "bez inFaktu"} · rozliczenie {lpSub.billing === "rok" ? "roczne" : "miesięczne"}
+            </div>
+          </div>
+          <button className="ms-lp-hero__btn" onClick={() => setActive && setActive("packages")}>
+            Zarządzaj pakietem
+            <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M6 3l5 5-5 5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/></svg>
+          </button>
+        </div>
+      )}
+
+      {showLPMigration && (
+        <div className="ms-migrate">
+          <div className="ms-migrate__badge">Oszczędność</div>
+          <div className="ms-migrate__body">
+            <div className="ms-migrate__title">Masz {ownedLpCore.length} usługi z pakietu LP — scal je i zaoszczędź</div>
+            <div className="ms-migrate__desc">
+              Teraz płacisz <strong>{currentSoloMonthly} zł/mies.</strong> za usługi solo. Pakiet Lekarz Przedsiębiorca to <strong>{lpPriceCalc.effective} zł/mies.</strong> — i masz dodatkowo opiekuna, negocjowane rabaty, prelimit LeaseLink i bonus aktywacyjny.
+            </div>
+            <div className="ms-migrate__savings">
+              Zaoszczędzisz <strong>{migrationSavings} zł/mies.</strong> · {migrationSavings * 12} zł/rok
+            </div>
+          </div>
+          <div className="ms-migrate__actions">
+            <button className="ms-migrate__btn ms-migrate__btn--primary" onClick={activateLPFromMigration}>
+              Aktywuj pakiet
+            </button>
+            <button className="ms-migrate__btn" onClick={() => setActive && setActive("packages")}>
+              Zobacz szczegóły
+            </button>
+          </div>
+        </div>
+      )}
+
+      {ownedServices.length === 0 ? (
+        <div className="ms-empty">
+          <div className="ms-empty__icon">📭</div>
+          <div className="ms-empty__title">Brak aktywnych usług</div>
+          <div className="ms-empty__desc">Przeglądaj katalog w zakładce Usługi, aby aktywować pierwszą subskrypcję.</div>
+          <button className="ms-empty__btn" onClick={() => onGoToCatalog ? onGoToCatalog() : setActive && setActive("packages4")}>Przejdź do katalogu</button>
+        </div>
+      ) : (
+        <div className="ms-grid">
+          {ownedServices.map(svc => {
+            const p = purchased[svc.id];
+            const isLPCovered = lpSub?.active && LP_CORE_IDS.has(svc.id);
+            return (
+              <div key={svc.id} className="ms-card" onClick={() => setSelectedId(svc.id)}>
+                <div className="ms-card__icon" aria-hidden>{svc.icon}</div>
+                <div className="ms-card__body">
+                  <div className="ms-card__title">{svc.label}</div>
+                  <div className="ms-card__meta">
+                    <span className={`ms-status ms-status--${p.status}`}>● {p.status === "active" ? "Aktywna" : p.status}</span>
+                    <span className="ms-card__date">od {p.purchasedAt}</span>
+                  </div>
+                  {isLPCovered && (
+                    <div className="ms-card__lp-chip">Część pakietu LP</div>
+                  )}
+                </div>
+                <svg className="ms-card__chevron" width="18" height="18" viewBox="0 0 16 16" fill="none"><path d="M6 3l5 5-5 5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/></svg>
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ─── SHELL panelu zarządzania — wspólne sekcje dla wszystkich typów usług ───
+function ServiceManagePanel({ service, purchase, lpSub, onBack, onCancel, onUpdateParams }) {
+  const [tab, setTab] = useState("status");
+  const isLPCovered = lpSub?.active && LP_CORE_IDS.has(service.id);
+  const CustomView = SERVICE_MANAGE_VIEWS[service.id] || GenericManageView;
+  const categoryLabel = SERVICE_CATEGORIES.find(c => c.id === service.category)?.label;
+
+  const TABS = [
+    { id: "status",   label: "Status" },
+    { id: "params",   label: "Parametry" },
+    { id: "docs",     label: "Dokumenty" },
+    { id: "actions",  label: "Akcje" },
+    { id: "history",  label: "Historia" },
+  ];
+
+  return (
+    <div className="ms-panel">
+      <button className="ms-panel__back" onClick={onBack}>
+        <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M10 3L5 8l5 5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/></svg>
+        Moje usługi
+      </button>
+
+      <div className="ms-panel__head">
+        <div className="ms-panel__icon" aria-hidden>{service.icon}</div>
+        <div className="ms-panel__head-body">
+          <div className="ms-panel__eyebrow">{categoryLabel}</div>
+          <h2 className="ms-panel__title">{service.label}</h2>
+          <div className="ms-panel__meta">
+            <span className={`ms-status ms-status--${purchase.status}`}>● Aktywna</span>
+            <span>aktywna od {purchase.purchasedAt}</span>
+            {purchase.nextRenewal && <span>odnowienie {purchase.nextRenewal}</span>}
+          </div>
+        </div>
+      </div>
+
+      {isLPCovered && (
+        <div className="ms-panel__lp-banner">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M8 2l1.8 4.2L14 7l-3 3 .8 4.2L8 12l-3.8 2.2L5 10 2 7l4.2-.8z" fill="currentColor"/></svg>
+          Usługa jest częścią pakietu Lekarz Przedsiębiorca — parametry i rozliczenie konfigurowane przez pakiet.
+        </div>
+      )}
+
+      <div className="ms-panel__tabs" role="tablist">
+        {TABS.map(t => (
+          <button
+            key={t.id}
+            role="tab"
+            aria-selected={tab === t.id}
+            className={`ms-panel__tab${tab === t.id ? " is-active" : ""}`}
+            onClick={() => setTab(t.id)}
+          >
+            {tab === t.id && <motion.span layoutId="ms-tab-indicator" className="ms-panel__tab-indicator" transition={{ type: "spring", stiffness: 420, damping: 34 }} />}
+            <span className="ms-panel__tab-label">{t.label}</span>
+          </button>
+        ))}
+      </div>
+
+      <div className="ms-panel__content">
+        <CustomView
+          tab={tab}
+          service={service}
+          purchase={purchase}
+          isLPCovered={isLPCovered}
+          onCancel={onCancel}
+          onUpdateParams={onUpdateParams}
+        />
+      </div>
+    </div>
+  );
+}
+
+// ─── Generyczny fallback — dla usług bez custom panelu ──────────────────────
+function GenericManageView({ tab, service, purchase, isLPCovered, onCancel }) {
+  if (tab === "status") {
+    return (
+      <div className="ms-section">
+        <div className="ms-stat-grid">
+          <div className="ms-stat">
+            <div className="ms-stat__label">Status</div>
+            <div className="ms-stat__value">Aktywna</div>
+          </div>
+          <div className="ms-stat">
+            <div className="ms-stat__label">Aktywna od</div>
+            <div className="ms-stat__value">{purchase.purchasedAt}</div>
+          </div>
+          {purchase.nextRenewal && (
+            <div className="ms-stat">
+              <div className="ms-stat__label">Kolejne odnowienie</div>
+              <div className="ms-stat__value">{purchase.nextRenewal}</div>
+            </div>
+          )}
+          <div className="ms-stat">
+            <div className="ms-stat__label">Opłata</div>
+            <div className="ms-stat__value">{service.soloPrice} zł / mies.</div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+  if (tab === "params") {
+    return (
+      <div className="ms-section">
+        <div className="ms-empty-tab">
+          Parametry konfigurowalne dla tej usługi będą dostępne w kolejnej wersji.
+        </div>
+      </div>
+    );
+  }
+  if (tab === "docs") {
+    return (
+      <div className="ms-section">
+        {(purchase.docs || []).length === 0 ? (
+          <div className="ms-empty-tab">Brak dokumentów.</div>
+        ) : (
+          <ul className="ms-docs">
+            {purchase.docs.map((d, i) => (
+              <li key={i} className="ms-docs__item">
+                <svg width="20" height="20" viewBox="0 0 16 16" fill="none"><path d="M9 1H3v14h10V5L9 1z M9 1v4h4" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                <div className="ms-docs__body">
+                  <div className="ms-docs__name">{d.name}</div>
+                  <div className="ms-docs__meta">{d.date} · {d.size}</div>
+                </div>
+                <button className="ms-docs__dl">Pobierz</button>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+    );
+  }
+  if (tab === "actions") {
+    return (
+      <div className="ms-section">
+        <div className="ms-actions">
+          <button className="ms-action-btn">Kontakt z doradcą</button>
+          <button className="ms-action-btn ms-action-btn--danger" onClick={onCancel} disabled={isLPCovered} title={isLPCovered ? "Usługa jest częścią pakietu LP" : ""}>
+            Anuluj usługę
+          </button>
+        </div>
+      </div>
+    );
+  }
+  if (tab === "history") {
+    return (
+      <div className="ms-section">
+        <ul className="ms-history">
+          <li className="ms-history__item">
+            <div className="ms-history__dot" />
+            <div>
+              <div className="ms-history__title">Usługa aktywowana</div>
+              <div className="ms-history__meta">{purchase.purchasedAt}</div>
+            </div>
+          </li>
+        </ul>
+      </div>
+    );
+  }
+  return null;
+}
+
+// ─── Lloyd's — custom management (zmień sumę, zgłoś szkodę, pobierz polisę) ─
+function LloydsManageView({ tab, service, purchase, isLPCovered, onCancel, onUpdateParams }) {
+  const [claimOpen, setClaimOpen] = useState(false);
+  const SUM_OPTIONS = [5000, 10000, 15000];
+
+  if (tab === "status") {
+    return (
+      <div className="ms-section">
+        <div className="ms-stat-grid">
+          <div className="ms-stat">
+            <div className="ms-stat__label">Suma ubezpieczenia</div>
+            <div className="ms-stat__value">{purchase.params.sum.toLocaleString("pl-PL")} zł / mies.</div>
+          </div>
+          <div className="ms-stat">
+            <div className="ms-stat__label">Okres wyczekiwania</div>
+            <div className="ms-stat__value">{purchase.params.waitPeriod} dni</div>
+          </div>
+          <div className="ms-stat">
+            <div className="ms-stat__label">Aktywna od</div>
+            <div className="ms-stat__value">{purchase.purchasedAt}</div>
+          </div>
+          <div className="ms-stat">
+            <div className="ms-stat__label">Składka</div>
+            <div className="ms-stat__value">{service.soloPrice} zł / mies.</div>
+          </div>
+        </div>
+        <div className="ms-callout">
+          <div className="ms-callout__title">Brak zgłoszonych szkód</div>
+          <div className="ms-callout__desc">Jeśli jesteś niezdolny do pracy &gt; 14 dni, zgłoś szkodę przez zakładkę Akcje.</div>
+        </div>
+      </div>
+    );
+  }
+
+  if (tab === "params") {
+    return (
+      <div className="ms-section">
+        <div className="ms-field">
+          <div className="ms-field__label">Suma ubezpieczenia (miesięczna)</div>
+          <div className="ms-seg">
+            {SUM_OPTIONS.map(s => (
+              <button
+                key={s}
+                className={`ms-seg__opt${purchase.params.sum === s ? " is-active" : ""}`}
+                onClick={() => onUpdateParams({ sum: s })}
+                disabled={isLPCovered}
+              >
+                {s / 1000}k zł
+              </button>
+            ))}
+          </div>
+          <div className="ms-field__hint">
+            Zmiana sumy wchodzi od następnego cyklu rozliczeniowego. Wyższa suma = wyższa składka.
+          </div>
+        </div>
+        {isLPCovered && (
+          <div className="ms-info">Suma konfigurowana przez pakiet LP — przejdź do "Zarządzaj pakietem".</div>
+        )}
+      </div>
+    );
+  }
+
+  if (tab === "docs") {
+    return (
+      <div className="ms-section">
+        <ul className="ms-docs">
+          {(purchase.docs || []).map((d, i) => (
+            <li key={i} className="ms-docs__item">
+              <svg width="20" height="20" viewBox="0 0 16 16" fill="none"><path d="M9 1H3v14h10V5L9 1z M9 1v4h4" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/></svg>
+              <div className="ms-docs__body">
+                <div className="ms-docs__name">{d.name}</div>
+                <div className="ms-docs__meta">{d.date} · {d.size}</div>
+              </div>
+              <button className="ms-docs__dl">Pobierz</button>
+            </li>
+          ))}
+        </ul>
+      </div>
+    );
+  }
+
+  if (tab === "actions") {
+    return (
+      <div className="ms-section">
+        <div className="ms-actions ms-actions--rich">
+          <button className="ms-action-card" onClick={() => setClaimOpen(true)}>
+            <div className="ms-action-card__icon">🚨</div>
+            <div className="ms-action-card__body">
+              <div className="ms-action-card__title">Zgłoś szkodę</div>
+              <div className="ms-action-card__desc">Nie możesz pracować &gt; 14 dni — uruchom wypłatę świadczenia.</div>
+            </div>
+          </button>
+          <button className="ms-action-card">
+            <div className="ms-action-card__icon">💬</div>
+            <div className="ms-action-card__body">
+              <div className="ms-action-card__title">Kontakt z opiekunem polisy</div>
+              <div className="ms-action-card__desc">Dedykowany specjalista Remedium.</div>
+            </div>
+          </button>
+          <button className="ms-action-card ms-action-card--danger" onClick={onCancel} disabled={isLPCovered}>
+            <div className="ms-action-card__icon">✕</div>
+            <div className="ms-action-card__body">
+              <div className="ms-action-card__title">Anuluj polisę</div>
+              <div className="ms-action-card__desc">{isLPCovered ? "Niedostępne — część pakietu LP." : "Ochrona wygaśnie z końcem okresu rozliczeniowego."}</div>
+            </div>
+          </button>
+        </div>
+        {claimOpen && (
+          <div className="ms-claim-modal" onClick={() => setClaimOpen(false)}>
+            <div className="ms-claim-modal__box" onClick={e => e.stopPropagation()}>
+              <div className="ms-claim-modal__title">Zgłoszenie szkody</div>
+              <div className="ms-claim-modal__desc">Formularz zgłoszenia szkody — prototyp. Docelowo: data L4, dokumenty medyczne, oświadczenie.</div>
+              <button className="ms-claim-modal__close" onClick={() => setClaimOpen(false)}>Zamknij</button>
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  if (tab === "history") {
+    return (
+      <div className="ms-section">
+        <ul className="ms-history">
+          <li className="ms-history__item">
+            <div className="ms-history__dot" />
+            <div>
+              <div className="ms-history__title">Polisa aktywowana · suma {purchase.params.sum / 1000}k zł</div>
+              <div className="ms-history__meta">{purchase.purchasedAt}</div>
+            </div>
+          </li>
+        </ul>
+      </div>
+    );
+  }
+
+  return null;
+}
+
+// Registry — rozszerzamy o kolejne custom panele w następnych turach
+const SERVICE_MANAGE_VIEWS = {
+  lloyds: LloydsManageView,
+};
+
 // ─── DISCOUNTS VIEW ───────────────────────────────────────────────────────────
 
 function TiltCard({ children, className, onClick }) {
@@ -8108,6 +8852,7 @@ const VIEWS = {
   packages:    ServicesView,
   packages2:   Services2View,
   packages3:   Services3View,
+  packages4:   Services4View,
   discounts:      DiscountsView,
   advisors:       AdvisorsView,
   insurance:      InsuranceDashView,
@@ -8179,6 +8924,67 @@ function App() {
     });
   };
 
+  // ─── Moje usługi — kupione usługi z parametrami per typ ───────────────────
+  // Seed dla demo: Lloyd's + inFakt kupione miesiąc temu. Real flow: purchaseService()
+  // wywołane z ServiceDetailView lub po checkoucie koszyka.
+  const [purchasedServices, setPurchasedServices] = useState({
+    lloyds: {
+      id: "lloyds",
+      status: "active",
+      purchasedAt: "12 mar 2026",
+      params: { sum: 5000, waitPeriod: 14, billing: "miesiąc" },
+      nextRenewal: "12 kwi 2026",
+      docs: [
+        { name: "Polisa Lloyd's — 2026.pdf", date: "12 mar 2026", size: "412 KB" },
+        { name: "OWU utrata dochodu.pdf", date: "12 mar 2026", size: "218 KB" },
+      ],
+    },
+    infakt: {
+      id: "infakt",
+      status: "active",
+      purchasedAt: "12 mar 2026",
+      params: { plan: "Firma +", billing: "miesiąc" },
+      nextRenewal: "12 kwi 2026",
+      docs: [
+        { name: "Umowa o świadczenie usług księgowych.pdf", date: "12 mar 2026", size: "156 KB" },
+      ],
+    },
+  });
+
+  const purchaseService = (id, params = {}) => {
+    setPurchasedServices(prev => ({
+      ...prev,
+      [id]: {
+        id,
+        status: "active",
+        purchasedAt: new Date().toLocaleDateString("pl-PL", { day: "numeric", month: "short", year: "numeric" }),
+        params,
+        nextRenewal: null,
+        docs: [],
+      },
+    }));
+  };
+  const cancelService = (id) => {
+    setPurchasedServices(prev => {
+      const next = { ...prev };
+      delete next[id];
+      return next;
+    });
+  };
+  const updateServiceParams = (id, patch) => {
+    setPurchasedServices(prev => ({
+      ...prev,
+      [id]: { ...prev[id], params: { ...prev[id].params, ...patch } },
+    }));
+  };
+
+  // Pending deep-link: Service4Card "Zarządzaj" → sub-tab "Moje usługi" + otwórz panel
+  const [pendingManageId, setPendingManageId] = useState(null);
+  const openManageService = (id) => {
+    setPendingManageId(id);
+    setActive("packages4");
+  };
+
   const setActive = (id) => { setActive_(id); setNavKey(k => k + 1); };
 
   const addToCart = (product, variant, options = {}) => {
@@ -8240,7 +9046,7 @@ function App() {
       <div className={`main${topbarHidden ? " main--topbar-hidden" : ""}`}>
         <TopBar active={active} setActive={setActive} cart={cart} onCartClick={() => setCartOpen(true)} onNotifClick={() => setNotifOpen(true)} theme={theme} setTheme={setTheme} />
         <main className="main__content" ref={scrollRef}>
-          <View key={navKey} setActive={setActive} addToCart={addToCart} cart={cart} removeFromCart={removeFromCart} profile={profile} setProfile={setProfile} unlockedDiscounts={unlockedDiscounts} unlockDiscount={unlockDiscount} lpSub={lpSub} setLpSub={setLpSub} activeServices={activeServices} toggleActiveService={toggleActiveService} />
+          <View key={navKey} setActive={setActive} addToCart={addToCart} cart={cart} removeFromCart={removeFromCart} profile={profile} setProfile={setProfile} unlockedDiscounts={unlockedDiscounts} unlockDiscount={unlockDiscount} lpSub={lpSub} setLpSub={setLpSub} activeServices={activeServices} toggleActiveService={toggleActiveService} purchasedServices={purchasedServices} purchaseService={purchaseService} cancelService={cancelService} updateServiceParams={updateServiceParams} openManageService={openManageService} pendingManageId={pendingManageId} setPendingManageId={setPendingManageId} />
         </main>
       </div>
       {notifOpen && <NotificationsDrawer onClose={() => setNotifOpen(false)} profile={profile} />}
