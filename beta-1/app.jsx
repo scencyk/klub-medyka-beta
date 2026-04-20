@@ -2544,7 +2544,7 @@ function getRelevantAdvisors(profile) {
 
 // ─── Overview component ───
 
-function Overview({ setActive, profile, setProfile, unlockedDiscounts, unlockDiscount }) {
+function Overview({ setActive, profile, setProfile, unlockedDiscounts, unlockDiscount, purchasedServices, lpSub, openManageService }) {
   const [advisorsOpen, setAdvisorsOpen] = useState(false);
   const [bookingDropdown, setBookingDropdown] = useState(null);
   const [contactBooked, setContactBooked] = useState({});
@@ -2576,8 +2576,45 @@ function Overview({ setActive, profile, setProfile, unlockedDiscounts, unlockDis
   const monthLabel = now.toLocaleDateString("pl-PL", { month: "long", year: "numeric" });
   const fmtPrice = (n) => n.toFixed(2).replace(".", ",") + " zł";
 
+  // ─── Home: "Twoje usługi" — dane dla worków ──────────────────────────────
+  const purchased = purchasedServices || {};
+  const ownedServices = Object.keys(purchased)
+    .map(id => SERVICE_CATALOG.find(s => s.id === id))
+    .filter(Boolean);
+  const ownedMonthly = ownedServices.reduce((s, svc) => s + (svc.soloPrice || 0), 0);
+  const effectiveActive = new Set([
+    ...Object.keys(purchased),
+    ...(lpSub?.active ? Array.from(LP_CORE_IDS) : []),
+  ]);
+  const areasWithStatus = LIFE_AREAS.map(a => ({
+    ...a,
+    ...computeAreaStatus(a, effectiveActive, !!lpSub?.active),
+  }));
+  const coveredAreasCount = areasWithStatus.filter(a => a.status === "covered").length;
+  const partialAreasCount = areasWithStatus.filter(a => a.status === "partial").length;
+  const totalAreasCount = areasWithStatus.filter(a => a.status !== "soon").length;
+  const coveragePct = totalAreasCount > 0 ? Math.round((coveredAreasCount / totalAreasCount) * 100) : 0;
+
+  const lpCalc = calcLPPrice(lpSub || { billing: "rok", lloydSum: 5000, infaktAddon: true });
+  const lpSavings = Math.max(0, LP_ALL_SOLO_MONTHLY - lpCalc.effective);
+
+  // Akcje wymagające uwagi — seedowane na podstawie purchasedServices
+  const actionsNeeded = [];
+  Object.values(purchased).forEach(p => {
+    if (p.nextRenewal) {
+      actionsNeeded.push({
+        id: `renew-${p.id}`,
+        type: "renewal",
+        title: `Odnowienie: ${SERVICE_CATALOG.find(s => s.id === p.id)?.label}`,
+        desc: `${p.nextRenewal} — potwierdź kolejny cykl`,
+        action: () => openManageService && openManageService(p.id),
+      });
+    }
+  });
+
+
   return (
-    <div style={{ maxWidth: 800, display: "flex", flexDirection: "column", gap: 40 }}>
+    <div style={{ maxWidth: 1100, display: "flex", flexDirection: "column", gap: 40 }}>
 
       {/* 1. Greeting */}
       <div>
@@ -2637,6 +2674,149 @@ function Overview({ setActive, profile, setProfile, unlockedDiscounts, unlockDis
         </div>
       </div>
       */}
+
+      {/* 2. STATUS STRIP — szybkie metryki */}
+      <InView>
+        <div className="home-strip">
+          <div className="home-strip__cell">
+            <div className="home-strip__num">{ownedServices.length}</div>
+            <div className="home-strip__lbl">{ownedServices.length === 1 ? "aktywna usługa" : ownedServices.length < 5 ? "aktywne usługi" : "aktywnych usług"}</div>
+          </div>
+          <div className="home-strip__divider" />
+          <div className="home-strip__cell">
+            <div className="home-strip__num">{coveredAreasCount}<span className="home-strip__num-sub">/{totalAreasCount}</span></div>
+            <div className="home-strip__lbl">obszarów pokrytych</div>
+          </div>
+          <div className="home-strip__divider" />
+          <div className="home-strip__cell">
+            <div className="home-strip__num">{ownedMonthly}<span className="home-strip__num-sub"> zł</span></div>
+            <div className="home-strip__lbl">miesięcznie</div>
+          </div>
+          <button className="home-strip__cta" onClick={() => setActive("packages4")}>
+            Zarządzaj
+            <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M6 3l5 5-5 5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/></svg>
+          </button>
+        </div>
+      </InView>
+
+      {/* 3. TWOJE USŁUGI — 2 worki */}
+      <InView>
+        <SectionHeader title="Twoje usługi" action="Wszystkie" onAction={() => setActive("packages4")} />
+        <div className="home-bags">
+          {/* Worek A: Aktywne subskrypcje */}
+          <div className="home-bag home-bag--subs" onClick={() => setActive("packages4")} role="button" tabIndex={0}>
+            <div className="home-bag__eyebrow">Aktywne subskrypcje</div>
+            <div className="home-bag__body">
+              <CoverageRing pct={coveragePct} />
+              <div className="home-bag__stats">
+                <div className="home-bag__stat">
+                  <div className="home-bag__stat-num">{ownedServices.length}</div>
+                  <div className="home-bag__stat-lbl">aktywne</div>
+                </div>
+                <div className="home-bag__stat">
+                  <div className="home-bag__stat-num">{partialAreasCount}</div>
+                  <div className="home-bag__stat-lbl">częściowo pokryte</div>
+                </div>
+                <div className="home-bag__stat">
+                  <div className="home-bag__stat-num">{totalAreasCount - coveredAreasCount - partialAreasCount}</div>
+                  <div className="home-bag__stat-lbl">do pokrycia</div>
+                </div>
+              </div>
+            </div>
+            {ownedServices.length > 0 && (
+              <div className="home-bag__quick">
+                <button className="home-bag__quick-btn" onClick={(e) => { e.stopPropagation(); openManageService && openManageService(ownedServices[0].id); }}>
+                  Pobierz polisę
+                </button>
+                <button className="home-bag__quick-btn" onClick={(e) => { e.stopPropagation(); setActive("packages3"); }}>
+                  Zobacz mapę
+                </button>
+              </div>
+            )}
+          </div>
+
+          {/* Worek B: Pakiet LP (conditional) */}
+          {lpSub?.active ? (
+            <div className="home-bag home-bag--lp-active" onClick={() => setActive("packages")} role="button" tabIndex={0}>
+              <div className="home-bag__eyebrow home-bag__eyebrow--lime">Twój pakiet</div>
+              <div className="home-bag__title-xl">Lekarz Przedsiębiorca</div>
+              <div className="home-bag__meta-row">
+                <div className="home-bag__meta-item">
+                  <div className="home-bag__meta-lbl">Lloyd's</div>
+                  <div className="home-bag__meta-val">{lpSub.lloydSum / 1000}k zł</div>
+                </div>
+                <div className="home-bag__meta-item">
+                  <div className="home-bag__meta-lbl">Rozliczenie</div>
+                  <div className="home-bag__meta-val">{lpSub.billing === "rok" ? "Roczne" : "Miesięczne"}</div>
+                </div>
+                <div className="home-bag__meta-item">
+                  <div className="home-bag__meta-lbl">Następne</div>
+                  <div className="home-bag__meta-val">{lpSub.nextRenewal || "—"}</div>
+                </div>
+              </div>
+              <button className="home-bag__cta home-bag__cta--dark" onClick={(e) => { e.stopPropagation(); setActive("packages"); }}>
+                Zarządzaj pakietem →
+              </button>
+            </div>
+          ) : (
+            <div className="home-bag home-bag--lp-offer" onClick={() => setActive("packages")} role="button" tabIndex={0}>
+              <div className="home-bag__sparkle" aria-hidden>
+                <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M10 2l2.4 5.4L18 9l-4 3.8L15 19l-5-3-5 3 1-6.2L2 9l5.6-1.6z" fill="currentColor"/></svg>
+              </div>
+              <div className="home-bag__eyebrow home-bag__eyebrow--lime">Pakiet</div>
+              <div className="home-bag__title-xl">Lekarz Przedsiębiorca</div>
+              <div className="home-bag__pitch">Wszystkie kluczowe usługi w jednym pakiecie. Dedykowany opiekun, negocjowane rabaty, prelimit LeaseLink.</div>
+              <div className="home-bag__savings-chip">Zaoszczędzisz <strong>~{lpSavings} zł / mies.</strong></div>
+              <button className="home-bag__cta home-bag__cta--lime" onClick={(e) => { e.stopPropagation(); setActive("packages"); }}>
+                Zobacz pakiet →
+              </button>
+            </div>
+          )}
+        </div>
+      </InView>
+
+      {/* 4. AKCJE WYMAGAJĄCE UWAGI (warunkowo) */}
+      {actionsNeeded.length > 0 && (
+        <InView>
+          <SectionHeader title="Wymaga Twojej uwagi" />
+          <div className="home-actions">
+            {actionsNeeded.map(a => (
+              <button key={a.id} className="home-action" onClick={a.action}>
+                <div className="home-action__icon" aria-hidden>
+                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="6" stroke="currentColor" strokeWidth="1.5"/><path d="M8 5v3l2 1.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                </div>
+                <div className="home-action__body">
+                  <div className="home-action__title">{a.title}</div>
+                  <div className="home-action__desc">{a.desc}</div>
+                </div>
+                <svg className="home-action__chevron" width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M6 3l5 5-5 5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/></svg>
+              </button>
+            ))}
+          </div>
+        </InView>
+      )}
+
+      {/* 5. NOWE DLA CIEBIE — temptation row */}
+      <InView>
+        <SectionHeader title="Nowe dla Ciebie" action="Wszystkie zniżki" onAction={() => setActive("discounts")} />
+        <div className="scroll-row">
+          {newestDiscounts.slice(0, 6).map(d => (
+            <div key={d.id} className="scroll-row__item home-offer" onClick={() => setSelectedDiscount(d)}>
+              <div className="home-offer__hero">
+                <img src={d.hero} alt={d.partner} />
+                <span className="home-offer__badge">{d.badge}</span>
+              </div>
+              <div className="home-offer__body">
+                <div className="home-offer__partner">
+                  <img src={d.logo} alt="" />
+                  {d.partner}
+                </div>
+                <div className="home-offer__title">{d.title}</div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </InView>
 
       {/* 6. Discounts — tabbed: Dla Ciebie / Nowości */}
       <InView>
