@@ -5734,8 +5734,8 @@ const SERVICE_CAT_THEME = {
   legal:      { bg: "linear-gradient(135deg, #FEF3C7 0%, #FDE68A 100%)", fg: "#92400E" },
 };
 
-function Services4View({ cart, addToCart, removeFromCart, lpSub, setLpSub, setActive, purchasedServices, openManageService, cancelService, updateServiceParams, pendingManageId, setPendingManageId }) {
-  const [subTab, setSubTab] = useState("catalog"); // "catalog" | "my"
+function Services4View({ cart, addToCart, removeFromCart, lpSub, setLpSub, setActive, purchasedServices, purchaseService, openManageService, cancelService, updateServiceParams, pendingManageId, setPendingManageId }) {
+  const [subTab, setSubTab] = useState("catalog"); // "catalog" | "kreator" | "my"
   const [filter, setFilter] = useState("all");
   const [selectedId, setSelectedId] = useState(null);
   const [lpStripDismissed, setLpStripDismissed] = useState(false);
@@ -5788,6 +5788,8 @@ function Services4View({ cart, addToCart, removeFromCart, lpSub, setLpSub, setAc
             <p className="text-sm text-muted mt-1">
               {subTab === "catalog"
                 ? "Wszystkie usługi w jednym miejscu. Wybierz kategorię albo kliknij kafelek, aby zobaczyć szczegóły."
+                : subTab === "kreator"
+                ? "Zabaw się suwakami — dobierzemy Ci ochronę, księgowość i usługi pod Twój profil. Uzbierasz paczkę, potem skonfigurujesz każdą osobno."
                 : "Aktywne subskrypcje i usługi — parametry, dokumenty, akcje w jednym miejscu."}
             </p>
           </div>
@@ -5800,6 +5802,16 @@ function Services4View({ cart, addToCart, removeFromCart, lpSub, setLpSub, setAc
             >
               {subTab === "catalog" && <motion.span layoutId="s4-subnav-indicator" className="s4-subnav__indicator" transition={{ type: "spring", stiffness: 420, damping: 34 }} />}
               <span className="s4-subnav__label">Katalog</span>
+            </button>
+            <button
+              role="tab"
+              aria-selected={subTab === "kreator"}
+              className={`s4-subnav__tab${subTab === "kreator" ? " is-active" : ""}`}
+              onClick={() => setSubTab("kreator")}
+            >
+              {subTab === "kreator" && <motion.span layoutId="s4-subnav-indicator" className="s4-subnav__indicator" transition={{ type: "spring", stiffness: 420, damping: 34 }} />}
+              <span className="s4-subnav__label">Kreator</span>
+              <span className="s4-subnav__dot" aria-hidden>✨</span>
             </button>
             <button
               role="tab"
@@ -5838,6 +5850,23 @@ function Services4View({ cart, addToCart, removeFromCart, lpSub, setLpSub, setAc
               level={level}
               onRemove={removeFromCart}
               onSwap={swapToLP}
+            />
+          </motion.div>
+        ) : subTab === "kreator" ? (
+          <motion.div
+            key="kreator"
+            className="s4-view__inner"
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -8 }}
+            transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
+          >
+            <Services4Kreator
+              purchasedServices={purchased}
+              purchaseService={purchaseService}
+              lpSub={lpSub}
+              setLpSub={setLpSub}
+              onFinish={() => setSubTab("my")}
             />
           </motion.div>
         ) : subTab === "catalog" ? (
@@ -5994,6 +6023,415 @@ function Service4Card({ service, inCart, isPurchased, onOpen, onManage }) {
         )}
       </div>
     </motion.div>
+  );
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// ─── KREATOR USŁUG (Usługi 4 · sub-tab) ────────────────────────────────────
+// ═══════════════════════════════════════════════════════════════════════════
+// 3-krokowy wizard: Pick (suwaki → uzbieraj paczkę) → Configure (skonfiguruj
+// każdą osobno) → Checkout (podsumowanie + zakup). Turn 1: Pick działa, 2/3
+// szkielet do rozbudowy w kolejnych turach.
+// ═══════════════════════════════════════════════════════════════════════════
+
+const KREATOR_SPECS = [
+  { id: "kardiologia",      label: "Kardiologia",         ocClass: "II" },
+  { id: "chirurgia",        label: "Chirurgia",           ocClass: "III" },
+  { id: "anestezjologia",   label: "Anestezjologia",      ocClass: "III" },
+  { id: "medycyna-rodzinna",label: "Medycyna rodzinna",   ocClass: "I"  },
+  { id: "pediatria",        label: "Pediatria",           ocClass: "I"  },
+  { id: "ginekologia",      label: "Ginekologia",         ocClass: "II" },
+  { id: "radiologia",       label: "Radiologia",          ocClass: "II" },
+  { id: "dermatologia",     label: "Dermatologia",        ocClass: "I"  },
+  { id: "okulistyka",       label: "Okulistyka",          ocClass: "II" },
+  { id: "stomatologia",     label: "Stomatologia",        ocClass: "II" },
+  { id: "rezydent",         label: "Rezydent (ogólnie)",  ocClass: "I"  },
+];
+
+const KREATOR_INTERESTS = [
+  { id: "car",      label: "Auto / leasing",    icon: "🚗" },
+  { id: "courses",  label: "Kursy / edukacja",  icon: "🎓" },
+  { id: "travel",   label: "Podróże",            icon: "✈️" },
+  { id: "gear",     label: "Sprzęt medyczny",    icon: "🩺" },
+];
+
+function recommendLloydSum(income) {
+  if (income >= 18000) return 15000;
+  if (income >= 11000) return 10000;
+  return 5000;
+}
+
+function recommendInfaktPlan(income, practice) {
+  if (practice === "private" && income >= 20000) return "Firma Pro";
+  if (practice === "private") return "Firma +";
+  return "Firma";
+}
+
+function recommendedIds(inputs) {
+  const s = new Set(["lloyds", "oc"]); // zawsze: ochrona podstawowa
+  if (inputs.practice !== "contract") {
+    s.add("infakt");
+    s.add("wg");
+    s.add("autenti");
+    s.add("legal");
+  }
+  if (inputs.practice === "private") {
+    s.add("egabinet");
+    s.add("tax");
+  }
+  if (inputs.interests.has("car")) s.add("advLeas");
+  if (inputs.experience <= 3) s.add("advInsur");
+  return s;
+}
+
+function Services4Kreator({ purchasedServices, purchaseService, lpSub, setLpSub, onFinish }) {
+  const [step, setStep] = useState("pick"); // pick | configure | checkout
+  const [inputs, setInputs] = useState({
+    spec: "kardiologia",
+    experience: 3,
+    income: 15000,
+    practice: "contract", // contract | private | mixed
+    interests: new Set(),
+  });
+  const [cart, setCart] = useState(() => new Map()); // id -> { configured: false, params: {} }
+
+  const spec = KREATOR_SPECS.find(s => s.id === inputs.spec) || KREATOR_SPECS[0];
+  const recommended = useMemo(() => recommendedIds(inputs), [inputs]);
+  const lloydSum = recommendLloydSum(inputs.income);
+  const infaktPlan = recommendInfaktPlan(inputs.income, inputs.practice);
+
+  // Lista usług widocznych w kreatorze — LP-core + advLeas/advInsur gdy rekomendowane
+  const kreatorServices = useMemo(() => {
+    return SERVICE_CATALOG.filter(s => s.inLP || recommended.has(s.id));
+  }, [recommended]);
+
+  const toggleCart = (id) => {
+    setCart(prev => {
+      const next = new Map(prev);
+      if (next.has(id)) next.delete(id);
+      else next.set(id, { configured: false, params: {} });
+      return next;
+    });
+  };
+
+  const addAllRecommended = () => {
+    setCart(prev => {
+      const next = new Map(prev);
+      recommended.forEach(id => {
+        if (!next.has(id)) next.set(id, { configured: false, params: {} });
+      });
+      return next;
+    });
+  };
+
+  const cartItems = Array.from(cart.entries()).map(([id, meta]) => ({
+    service: SERVICE_CATALOG.find(s => s.id === id),
+    ...meta,
+    id,
+  })).filter(i => i.service);
+  const cartMonthly = cartItems.reduce((sum, i) => sum + (i.service.soloPrice || 0), 0);
+  const lpCoreInCart = cartItems.filter(i => LP_CORE_IDS.has(i.id)).length;
+  const lpCalc = calcLPPrice(lpSub || { billing: "rok", lloydSum: lloydSum, infaktAddon: true });
+  const lpSwap = lpCoreInCart >= 4 && cartMonthly > lpCalc.effective;
+
+  const setInterestChip = (id) => {
+    setInputs(v => {
+      const next = new Set(v.interests);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      return { ...v, interests: next };
+    });
+  };
+
+  return (
+    <div className="kreator">
+      <KreatorStepper step={step} cartCount={cart.size} />
+
+      <AnimatePresence mode="wait" initial={false}>
+        {step === "pick" && (
+          <motion.div
+            key="pick"
+            className="kreator__step"
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -8 }}
+            transition={{ duration: 0.2 }}
+          >
+            <div className="kreator-pick">
+              {/* LEWY PANEL — suwaki + inputy */}
+              <div className="kreator-panel">
+                <div className="kreator-panel__group">
+                  <div className="kreator-panel__eyebrow">O Tobie</div>
+                  <label className="kreator-field">
+                    <span className="kreator-field__label">Specjalizacja</span>
+                    <select
+                      className="kreator-field__select"
+                      value={inputs.spec}
+                      onChange={(e) => setInputs(v => ({ ...v, spec: e.target.value }))}
+                    >
+                      {KREATOR_SPECS.map(s => <option key={s.id} value={s.id}>{s.label}</option>)}
+                    </select>
+                  </label>
+                  <label className="kreator-field">
+                    <span className="kreator-field__label">
+                      Staż
+                      <span className="kreator-field__value">{inputs.experience} {inputs.experience === 1 ? "rok" : "lat"}</span>
+                    </span>
+                    <input
+                      type="range" min="0" max="30" step="1"
+                      value={inputs.experience}
+                      onChange={(e) => setInputs(v => ({ ...v, experience: +e.target.value }))}
+                      className="kreator-field__slider"
+                    />
+                  </label>
+                </div>
+
+                <div className="kreator-panel__group">
+                  <div className="kreator-panel__eyebrow">Dochód</div>
+                  <label className="kreator-field">
+                    <span className="kreator-field__label">
+                      Miesięczny przychód
+                      <span className="kreator-field__value">
+                        <SlidingNumber value={inputs.income} /> zł
+                      </span>
+                    </span>
+                    <input
+                      type="range" min="3000" max="60000" step="1000"
+                      value={inputs.income}
+                      onChange={(e) => setInputs(v => ({ ...v, income: +e.target.value }))}
+                      className="kreator-field__slider"
+                    />
+                  </label>
+                </div>
+
+                <div className="kreator-panel__group">
+                  <div className="kreator-panel__eyebrow">Forma praktyki</div>
+                  <div className="kreator-seg">
+                    {[
+                      { id: "contract", label: "Kontrakt" },
+                      { id: "mixed",    label: "Mieszana" },
+                      { id: "private",  label: "Własna praktyka" },
+                    ].map(o => (
+                      <button
+                        key={o.id}
+                        className={`kreator-seg__opt${inputs.practice === o.id ? " is-active" : ""}`}
+                        onClick={() => setInputs(v => ({ ...v, practice: o.id }))}
+                      >
+                        {o.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="kreator-panel__group">
+                  <div className="kreator-panel__eyebrow">Zainteresowania</div>
+                  <div className="kreator-chips">
+                    {KREATOR_INTERESTS.map(i => {
+                      const active = inputs.interests.has(i.id);
+                      return (
+                        <button
+                          key={i.id}
+                          className={`kreator-chip${active ? " is-active" : ""}`}
+                          onClick={() => setInterestChip(i.id)}
+                        >
+                          <span aria-hidden>{i.icon}</span>
+                          {i.label}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              </div>
+
+              {/* PRAWY PANEL — rekomendacja + grid usług */}
+              <div className="kreator-right">
+                <div className="kreator-reco">
+                  <div className="kreator-reco__row">
+                    <div className="kreator-reco__item">
+                      <div className="kreator-reco__lbl">OC klasa</div>
+                      <div className="kreator-reco__val">{spec.ocClass}</div>
+                    </div>
+                    <div className="kreator-reco__item">
+                      <div className="kreator-reco__lbl">Lloyd's suma</div>
+                      <div className="kreator-reco__val"><SlidingNumber value={lloydSum / 1000} />k zł</div>
+                    </div>
+                    <div className="kreator-reco__item">
+                      <div className="kreator-reco__lbl">Plan inFakt</div>
+                      <div className="kreator-reco__val">{infaktPlan}</div>
+                    </div>
+                    <button className="kreator-reco__btn" onClick={addAllRecommended}>
+                      ✨ Dodaj rekomendowane
+                    </button>
+                  </div>
+                </div>
+
+                <div className="kreator-grid">
+                  {kreatorServices.map(svc => {
+                    const inCart = cart.has(svc.id);
+                    const isRecommended = recommended.has(svc.id);
+                    return (
+                      <motion.div
+                        key={svc.id}
+                        layout
+                        className={`kreator-card${inCart ? " is-in-cart" : ""}${isRecommended ? " is-recommended" : ""}`}
+                        onClick={() => toggleCart(svc.id)}
+                        transition={{ duration: 0.2 }}
+                      >
+                        <div className="kreator-card__icon" aria-hidden>{svc.icon}</div>
+                        <div className="kreator-card__body">
+                          <div className="kreator-card__title">{svc.short || svc.label}</div>
+                          <div className="kreator-card__price">
+                            {svc.soloPrice} <span>zł/mies.</span>
+                          </div>
+                        </div>
+                        {isRecommended && !inCart && (
+                          <span className="kreator-card__reco-dot" title="Rekomendowane dla Ciebie" />
+                        )}
+                        <div className="kreator-card__cta" aria-hidden>
+                          {inCart ? (
+                            <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M4 8l3 3 5-6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                          ) : (
+                            <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M8 3v10M3 8h10" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/></svg>
+                          )}
+                        </div>
+                      </motion.div>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+          </motion.div>
+        )}
+
+        {step === "configure" && (
+          <motion.div
+            key="configure"
+            className="kreator__step"
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -8 }}
+            transition={{ duration: 0.2 }}
+          >
+            <div className="kreator-skeleton">
+              <div className="kreator-skeleton__title">Konfiguracja każdej usługi</div>
+              <div className="kreator-skeleton__desc">
+                Tu pojawi się lista {cartItems.length} usług do skonfigurowania — każda z mini-formularzem dopasowanym do typu (Lloyd's: suma · OC: klasa + nadwyżka · inFakt: plan · ...).
+              </div>
+              <div className="kreator-skeleton__list">
+                {cartItems.map(i => (
+                  <div key={i.id} className="kreator-skeleton__item">
+                    <span>{i.service.icon}</span>
+                    <span className="kreator-skeleton__name">{i.service.label}</span>
+                    <span className="kreator-skeleton__status">⚪ do konfiguracji</span>
+                  </div>
+                ))}
+              </div>
+              <div className="kreator-skeleton__hint">
+                [Turn 2 dostarczy custom mini-formy per typ usługi — na razie klik "Dalej" przechodzi do Checkout]
+              </div>
+            </div>
+          </motion.div>
+        )}
+
+        {step === "checkout" && (
+          <motion.div
+            key="checkout"
+            className="kreator__step"
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -8 }}
+            transition={{ duration: 0.2 }}
+          >
+            <div className="kreator-skeleton">
+              <div className="kreator-skeleton__title">Podsumowanie zakupu</div>
+              <div className="kreator-skeleton__desc">
+                {cartItems.length} usług · <strong>{cartMonthly} zł / mies.</strong>
+                {lpSwap && <span> · <span style={{ color: "#CEFF3E" }}>Opłaca się kupić pakiet LP zamiast</span></span>}
+              </div>
+              <div className="kreator-skeleton__hint">
+                [Turn 3 dostarczy pełny summary + final buy z mapowaniem parametrów do purchaseService()]
+              </div>
+              <button
+                className="kreator-bar__cta kreator-bar__cta--primary"
+                onClick={() => {
+                  cartItems.forEach(i => {
+                    purchaseService && purchaseService(i.id, i.params || {});
+                  });
+                  onFinish && onFinish();
+                }}
+                style={{ marginTop: 16 }}
+              >
+                Kup wszystko (prototyp)
+              </button>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Sticky bottom bar — zawsze widoczny z akcją */}
+      <div className="kreator-bar">
+        <div className="kreator-bar__info">
+          <div className="kreator-bar__count">
+            <SlidingNumber value={cart.size} /> {cart.size === 1 ? "usługa" : cart.size < 5 ? "usługi" : "usług"}
+          </div>
+          <div className="kreator-bar__sum">
+            <SlidingNumber value={cartMonthly} /> <span>zł/mies.</span>
+          </div>
+          {lpCoreInCart >= 2 && (
+            <div className="kreator-bar__lp">
+              {lpCoreInCart}/{LP_CORE_IDS.size} z pakietu LP
+            </div>
+          )}
+        </div>
+        <div className="kreator-bar__actions">
+          {step !== "pick" && (
+            <button
+              className="kreator-bar__cta"
+              onClick={() => setStep(step === "checkout" ? "configure" : "pick")}
+            >
+              ← Wstecz
+            </button>
+          )}
+          <button
+            className="kreator-bar__cta kreator-bar__cta--primary"
+            disabled={cart.size === 0}
+            onClick={() => {
+              if (step === "pick") setStep("configure");
+              else if (step === "configure") setStep("checkout");
+            }}
+          >
+            {step === "pick" ? "Przejdź do konfiguracji →" : step === "configure" ? "Podsumowanie →" : "Kup wszystko"}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function KreatorStepper({ step, cartCount }) {
+  const STEPS = [
+    { id: "pick",      label: "Dobierz" },
+    { id: "configure", label: "Skonfiguruj" },
+    { id: "checkout",  label: "Zamów" },
+  ];
+  const activeIdx = STEPS.findIndex(s => s.id === step);
+  return (
+    <div className="kreator-stepper">
+      {STEPS.map((s, i) => {
+        const done = i < activeIdx;
+        const active = i === activeIdx;
+        return (
+          <React.Fragment key={s.id}>
+            <div className={`kreator-stepper__dot${active ? " is-active" : ""}${done ? " is-done" : ""}`}>
+              {done ? (
+                <svg width="12" height="12" viewBox="0 0 16 16" fill="none"><path d="M4 8l3 3 5-6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
+              ) : i + 1}
+            </div>
+            <div className={`kreator-stepper__label${active ? " is-active" : ""}`}>{s.label}</div>
+            {i < STEPS.length - 1 && <div className={`kreator-stepper__line${done ? " is-done" : ""}`} />}
+          </React.Fragment>
+        );
+      })}
+    </div>
   );
 }
 
