@@ -5216,67 +5216,74 @@ function Services3View({ lpSub, setLpSub, activeServices, toggleActiveService, s
 
   return (
     <div className="s3-view">
-      <div className="s3-view__inner">
-        {/* Hero with progress ring */}
-        <section className="s3-hero">
-          <div className="s3-hero__body">
-            <div className="s3-hero__eyebrow">Twój ekosystem</div>
-            <h2 className="s3-hero__title">
-              Pokrywasz <span className="s3-hero__num">{coveredCount}</span>
-              <span className="s3-hero__denom"> z {totalCountable} obszarów</span>
-            </h2>
-            <p className="s3-hero__sub">
-              Zobacz które sfery życia zawodowego i prywatnego masz chronione, a gdzie masz luki.
-              {partialCount > 0 && <> <strong>{partialCount}</strong> obszarów masz częściowo pokrytych.</>}
-            </p>
-          </div>
-          <div className="s3-hero__ring">
-            <CoverageRing pct={coveragePct} />
-          </div>
-        </section>
-
-        {/* Status legend */}
-        <div className="s3-legend">
-          <div className="s3-legend__item"><span className="s3-dot s3-dot--covered" /> Chronione</div>
-          <div className="s3-legend__item"><span className="s3-dot s3-dot--partial" /> Częściowe</div>
-          <div className="s3-legend__item"><span className="s3-dot s3-dot--gap" /> Luka</div>
-          <div className="s3-legend__item"><span className="s3-dot s3-dot--soon" /> Wkrótce</div>
-        </div>
-
-        {/* Area grid */}
-        <div className="s3-grid">
-          {areasWithStatus.map(area => (
-            <AreaCard
-              key={area.id}
-              area={area}
-              onClick={() => area.status !== "soon" && setSelectedAreaId(area.id)}
+      <AnimatePresence mode="wait" initial={false}>
+        {selectedArea ? (
+          <motion.div
+            key="detail"
+            className="s3-view__inner"
+            initial={{ opacity: 0, x: 16 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -16 }}
+            transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
+          >
+            <AreaDetailView
+              area={selectedArea}
+              effectiveActive={effectiveActive}
+              lpActive={!!lpSub?.active}
+              onToggleService={toggleActiveService}
+              onBack={() => setSelectedAreaId(null)}
+              onGoToLP={() => { setSelectedAreaId(null); setActive && setActive("packages"); }}
             />
-          ))}
-        </div>
+          </motion.div>
+        ) : (
+          <motion.div
+            key="grid"
+            className="s3-view__inner"
+            initial={{ opacity: 0, x: -16 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: 16 }}
+            transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
+          >
+            {/* Hero — title + progress ring */}
+            <section className="s3-hero">
+              <div className="s3-hero__body">
+                <div className="s3-hero__eyebrow">Twój ekosystem</div>
+                <h2 className="s3-hero__title">
+                  Pokrywasz <span className="s3-hero__num">{coveredCount}</span>
+                  <span className="s3-hero__denom"> z {totalCountable} obszarów</span>
+                </h2>
+                <p className="s3-hero__sub">
+                  {partialCount > 0
+                    ? <><strong>{partialCount}</strong> {partialCount === 1 ? "obszar masz" : "obszarów masz"} częściowo pokrytych. Dopełnij ekosystem pojedynczo lub weź pakiet.</>
+                    : "Zobacz które sfery życia zawodowego masz zabezpieczone i co zostało do uzupełnienia."}
+                </p>
+              </div>
+              <div className="s3-hero__ring">
+                <CoverageRing pct={coveragePct} />
+              </div>
+            </section>
 
-        {/* LP ecosystem banner */}
-        {!lpSub?.active && lpWouldAdd > 0 && (
-          <LPEcosystemBanner lpWouldAdd={lpWouldAdd} lpTotal={lpTotal} onActivate={activateLP} onGoToLP={() => setActive && setActive("packages")} />
-        )}
-        {lpSub?.active && (
-          <div className="s3-lp-active">
-            <span className="s3-lp-active__dot" aria-hidden />
-            Pakiet Lekarz Przedsiębiorca aktywny — automatycznie pokrywa {lpTotal} obszarów ekosystemu.
-          </div>
-        )}
-      </div>
+            {/* Unified grid — LP hero (when not active) + area cards */}
+            <div className="s3-grid">
+              {!lpSub?.active && (
+                <LPHeroCard lpWouldAdd={lpWouldAdd} lpTotal={lpTotal} onClick={() => setActive && setActive("packages")} />
+              )}
+              {areasWithStatus.map(area => (
+                <AreaCard
+                  key={area.id}
+                  area={area}
+                  onClick={() => area.status !== "soon" && setSelectedAreaId(area.id)}
+                />
+              ))}
+            </div>
 
-      {/* Area drawer */}
-      <AnimatePresence>
-        {selectedArea && (
-          <AreaDrawer
-            area={selectedArea}
-            effectiveActive={effectiveActive}
-            lpActive={!!lpSub?.active}
-            onToggleService={toggleActiveService}
-            onClose={() => setSelectedAreaId(null)}
-            onGoToLP={() => { setSelectedAreaId(null); setActive && setActive("packages"); }}
-          />
+            {lpSub?.active && (
+              <div className="s3-lp-active">
+                <span className="s3-lp-active__dot" aria-hidden />
+                Pakiet Lekarz Przedsiębiorca aktywny — automatycznie pokrywa {lpTotal} obszarów ekosystemu.
+              </div>
+            )}
+          </motion.div>
         )}
       </AnimatePresence>
     </div>
@@ -5320,14 +5327,11 @@ function CoverageRing({ pct }) {
   );
 }
 
-// ─── Area card ───────────────────────────────────────────────────────────────
+// ─── Area card (Mews-inspired: quiet uniform tiles, status via subtle bg tint) ─
 function AreaCard({ area, onClick }) {
   const isSoon = area.status === "soon";
   const isCovered = area.status === "covered";
-  const isPartial = area.status === "partial";
-  const servicesCovering = area.serviceIds
-    .map(id => SERVICE_CATALOG.find(s => s.id === id))
-    .filter(Boolean);
+  const ctaLabel = isCovered ? "Zarządzaj" : isSoon ? "Wkrótce" : "Zobacz szczegóły";
 
   return (
     <motion.div
@@ -5337,187 +5341,182 @@ function AreaCard({ area, onClick }) {
       whileHover={isSoon ? {} : { y: -2 }}
       transition={{ duration: 0.15 }}
     >
-      <div className="s3-card__head">
-        <div className="s3-card__icon" aria-hidden>{area.icon}</div>
-        <div className="s3-card__status">
-          {isCovered && <span className="s3-status s3-status--covered">✓ chroniony</span>}
-          {isPartial && <span className="s3-status s3-status--partial">{area.activeCount}/{area.totalCount} usług</span>}
-          {area.status === "gap" && <span className="s3-status s3-status--gap">luka</span>}
-          {isSoon && <span className="s3-status s3-status--soon">wkrótce</span>}
-        </div>
+      <div className="s3-card__icon" aria-hidden>{area.icon}</div>
+      <div className="s3-card__body">
+        <h3 className="s3-card__title">{area.label}</h3>
+        <p className="s3-card__desc">{area.short}</p>
       </div>
-      <h3 className="s3-card__title">{area.label}</h3>
-      <p className="s3-card__desc">{area.short}</p>
-
-      {servicesCovering.length > 0 && (
-        <div className="s3-card__pills">
-          {servicesCovering.slice(0, 4).map(s => {
-            const activeHere = area.activeIds.includes(s.id);
-            return (
-              <span key={s.id} className={`s3-pill${activeHere ? " is-active" : ""}`}>
-                {activeHere && <span className="s3-pill__dot" />}
-                {s.short}
-              </span>
-            );
-          })}
-        </div>
-      )}
-      {area.lpOnly && !area.comingSoon && (
-        <div className="s3-card__lp-only">
-          {isCovered ? "Pokryte przez pakiet LP" : "Dostępne wyłącznie w pakiecie LP"}
-        </div>
-      )}
-      {area.suggestion && !isCovered && (
-        <div className="s3-card__suggestion">{area.suggestion}</div>
-      )}
-
       {!isSoon && (
-        <div className="s3-card__cta">
-          <span>{isCovered ? "Zarządzaj" : "Zobacz co wypełni lukę"}</span>
-          <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M3 6h6M6 3l3 3-3 3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
+        <div className="s3-card__link">
+          <span>{ctaLabel}</span>
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden>
+            <path d="M3 7h8M7 3l4 4-4 4" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/>
+          </svg>
+        </div>
+      )}
+      {isSoon && (
+        <div className="s3-card__link s3-card__link--soon">
+          <span>Wkrótce</span>
         </div>
       )}
     </motion.div>
   );
 }
 
-// ─── LP ecosystem banner (wielki CTA na dole) ────────────────────────────────
-function LPEcosystemBanner({ lpWouldAdd, lpTotal, onActivate, onGoToLP }) {
+// ─── LP Hero card (Mews-style featured card — lime dominant) ────────────────
+function LPHeroCard({ lpWouldAdd, lpTotal, onClick }) {
   return (
-    <div className="s3-lp-banner">
-      <div className="s3-lp-banner__bar" aria-hidden />
-      <div className="s3-lp-banner__content">
-        <div className="s3-lp-banner__eyebrow">Jedna aktywacja, cały ekosystem</div>
-        <h3 className="s3-lp-banner__title">
-          Pakiet <span className="s3-lp-banner__lime">Lekarz Przedsiębiorca</span> domknie Ci <strong>{lpWouldAdd}</strong> {lpWouldAdd === 1 ? "kolejny obszar" : lpWouldAdd < 5 ? "kolejne obszary" : "kolejnych obszarów"}
-        </h3>
-        <p className="s3-lp-banner__sub">
-          Zamiast aktywować kolejne usługi osobno, w LP (349 zł/msc) dostajesz {lpTotal} obszarów naraz —
-          z rabatem na Lloyd's i OC, doradcami w cenie i prelimitem LeaseLink 87 000 zł od dnia 1.
+    <motion.div
+      className="s3-card s3-card--hero"
+      onClick={onClick}
+      whileHover={{ y: -2 }}
+      transition={{ duration: 0.15 }}
+    >
+      <div className="s3-card__icon s3-card__icon--hero" aria-hidden>
+        <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
+          <path d="M11 1l2.5 7 7 2.5-7 2.5L11 21l-2.5-7-7-2.5 7-2.5L11 1z" fill="currentColor"/>
+        </svg>
+      </div>
+      <div className="s3-card__body">
+        <h3 className="s3-card__title">Pakiet Lekarz Przedsiębiorca</h3>
+        <p className="s3-card__desc">
+          Jedna subskrypcja pokrywa {lpTotal} obszarów Twojego ekosystemu — zamiast aktywować je pojedynczo.
         </p>
       </div>
-      <div className="s3-lp-banner__actions">
-        <button className="s3-lp-banner__primary" onClick={onGoToLP}>
-          Zobacz pakiet
-          <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden><path d="M3 7h8M7 3l4 4-4 4" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/></svg>
-        </button>
+      <div className="s3-card__link s3-card__link--hero">
+        <span>Zobacz pakiet</span>
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden>
+          <path d="M3 7h8M7 3l4 4-4 4" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/>
+        </svg>
       </div>
-    </div>
+    </motion.div>
   );
 }
 
-// ─── Area drawer (detail + service activation) ───────────────────────────────
-function AreaDrawer({ area, effectiveActive, lpActive, onToggleService, onClose, onGoToLP }) {
-  const [closing, setClosing] = useState(false);
-  const close = () => { setClosing(true); setTimeout(onClose, 220); };
+// ─── Area detail (podstrona ekosystemu) ──────────────────────────────────────
+function AreaDetailView({ area, effectiveActive, lpActive, onToggleService, onBack, onGoToLP }) {
   const servicesInArea = area.serviceIds
     .map(id => SERVICE_CATALOG.find(s => s.id === id))
     .filter(Boolean);
 
+  const statusCopy = {
+    covered: "Obszar chroniony",
+    partial: `Częściowo pokryte (${area.activeCount}/${area.totalCount})`,
+    gap: "Masz tu lukę",
+  };
+
   return (
-    <>
-      <motion.div
-        className="drawer-overlay"
-        onClick={close}
-        initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-        transition={{ duration: 0.2 }}
-      />
-      <motion.div
-        className={`drawer s3-drawer${closing ? " drawer--closing" : ""}`}
-        initial={{ x: "100%" }} animate={{ x: 0 }} exit={{ x: "100%" }}
-        transition={{ duration: 0.25, ease: "easeOut" }}
-      >
-        <div className="s3-drawer__header">
-          <div className="s3-drawer__head-left">
-            <div className="s3-drawer__icon" aria-hidden>{area.icon}</div>
-            <div>
-              <div className="s3-drawer__status-chip">
-                <span className={`s3-dot s3-dot--${area.status}`} />
-                {area.status === "covered" && "Obszar chroniony"}
-                {area.status === "partial" && `Częściowo pokryte (${area.activeCount}/${area.totalCount})`}
-                {area.status === "gap" && "Masz tu lukę"}
-              </div>
-              <h3 className="s3-drawer__title">{area.label}</h3>
-            </div>
+    <div className="s3-detail">
+      <button className="s3-detail__back" onClick={onBack}>
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden>
+          <path d="M9 3l-4 4 4 4M5 7h6" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/>
+        </svg>
+        Wróć do ekosystemu
+      </button>
+
+      {/* Hero card */}
+      <section className={`s3-detail__hero s3-detail__hero--${area.status}`}>
+        <div className="s3-detail__hero-icon" aria-hidden>{area.icon}</div>
+        <div className="s3-detail__hero-body">
+          <div className="s3-detail__status">
+            <span className={`s3-dot s3-dot--${area.status}`} />
+            {statusCopy[area.status]}
           </div>
-          <button className="s3-drawer__close" onClick={close} aria-label="Zamknij">✕</button>
+          <h1 className="s3-detail__title">{area.label}</h1>
+          <p className="s3-detail__desc">{area.desc}</p>
         </div>
+      </section>
 
-        <div className="s3-drawer__content">
-          <p className="s3-drawer__desc">{area.desc}</p>
-
-          {area.lpOnly && (
-            <div className="s3-drawer__lp-only">
-              <div className="s3-drawer__lp-only-bar" aria-hidden />
-              <div>
-                <div className="s3-drawer__lp-only-lbl">Obszar LP-only</div>
-                <div className="s3-drawer__lp-only-note">
-                  Finansowanie i sprzęt (LeaseLink, AION, karta ZEN) są dostępne wyłącznie w pakiecie LP —
-                  {lpActive ? " już aktywne dzięki Twojej subskrypcji." : " nie da się aktywować osobno."}
-                </div>
-                {!lpActive && (
-                  <button className="s3-drawer__lp-cta" onClick={onGoToLP}>Zobacz pakiet LP →</button>
-                )}
-              </div>
-            </div>
+      {/* LP-only callout (Finansowanie) */}
+      {area.lpOnly && (
+        <div className="s3-detail__lp-only">
+          <div className="s3-detail__lp-only-chip">Obszar LP-only</div>
+          <p className="s3-detail__lp-only-text">
+            Finansowanie i sprzęt (prelimit LeaseLink 87 000 zł, konto AION, karta ZEN co-branded) są dostępne
+            wyłącznie w pakiecie Lekarz Przedsiębiorca — {lpActive ? "już aktywne dzięki Twojej subskrypcji." : "nie da się ich aktywować osobno."}
+          </p>
+          {!lpActive && (
+            <button className="s3-detail__lp-only-cta" onClick={onGoToLP}>
+              Zobacz pakiet LP
+              <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden><path d="M3 7h8M7 3l4 4-4 4" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/></svg>
+            </button>
           )}
+        </div>
+      )}
 
-          {area.suggestion && !area.lpOnly && (
-            <div className="s3-drawer__suggestion">
-              💡 {area.suggestion}
-            </div>
-          )}
+      {/* Suggestion (np. Mobilność → Lekarz Kierowca pakiet) */}
+      {area.suggestion && !area.lpOnly && (
+        <div className="s3-detail__suggestion">
+          <span className="s3-detail__suggestion-ic" aria-hidden>💡</span>
+          <span>{area.suggestion}</span>
+        </div>
+      )}
 
-          {servicesInArea.length > 0 && (
-            <>
-              <div className="s3-drawer__section-title">Usługi wypełniające ten obszar</div>
-              <div className="s3-drawer__services">
-                {servicesInArea.map(svc => {
-                  const isActive = effectiveActive.has(svc.id);
-                  const viaLP = lpActive && LP_CORE_IDS.has(svc.id);
-                  return (
-                    <div key={svc.id} className={`s3-drawer__service${isActive ? " is-active" : ""}`}>
-                      <div className="s3-drawer__svc-icon" aria-hidden>{svc.icon}</div>
-                      <div className="s3-drawer__svc-body">
-                        <div className="s3-drawer__svc-name">{svc.label}</div>
-                        <div className="s3-drawer__svc-meta">
-                          {viaLP ? (
-                            <span className="s3-drawer__svc-via-lp">aktywne przez pakiet LP</span>
-                          ) : isActive ? (
-                            <span className="s3-drawer__svc-active">aktywne solo · {svc.soloPrice} {svc.priceUnit || "zł/mies"}</span>
-                          ) : (
-                            <span className="s3-drawer__svc-price">{svc.soloPrice} {svc.priceUnit || "zł/mies"}</span>
-                          )}
-                        </div>
-                      </div>
+      {/* Services that fill this area */}
+      {servicesInArea.length > 0 && (
+        <section className="s3-detail__section">
+          <h2 className="s3-detail__h2">Usługi wypełniające ten obszar</h2>
+          <div className="s3-detail__services">
+            {servicesInArea.map(svc => {
+              const isActive = effectiveActive.has(svc.id);
+              const viaLP = lpActive && LP_CORE_IDS.has(svc.id);
+              return (
+                <div key={svc.id} className={`s3-svc-card${isActive ? " is-active" : ""}`}>
+                  <div className="s3-svc-card__icon" aria-hidden>{svc.icon}</div>
+                  <div className="s3-svc-card__body">
+                    <div className="s3-svc-card__name">{svc.label}</div>
+                    <div className="s3-svc-card__desc">{svc.desc}</div>
+                    <div className="s3-svc-card__price">
                       {viaLP ? (
-                        <span className="s3-drawer__svc-lock" title="Aktywne przez LP">
-                          <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M3 7l3 3 5-6" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>
-                        </span>
+                        <span className="s3-svc-card__via-lp">aktywne przez pakiet LP</span>
                       ) : (
-                        <button
-                          className={`s3-drawer__svc-toggle${isActive ? " is-active" : ""}`}
-                          onClick={() => onToggleService(svc.id)}
-                        >
-                          {isActive ? "Aktywne ✓" : "Aktywuj"}
-                        </button>
+                        <>
+                          <strong>{svc.soloPrice}</strong>
+                          <span> {svc.priceUnit || "zł / mies."}</span>
+                          {isActive && <span className="s3-svc-card__active-tag">aktywne</span>}
+                        </>
                       )}
                     </div>
-                  );
-                })}
-              </div>
-            </>
-          )}
+                  </div>
+                  {viaLP ? (
+                    <div className="s3-svc-card__lock" title="Aktywne przez LP">
+                      <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M3 7l3 3 5-6" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                    </div>
+                  ) : (
+                    <button
+                      className={`s3-svc-card__toggle${isActive ? " is-active" : ""}`}
+                      onClick={() => onToggleService(svc.id)}
+                    >
+                      {isActive ? "Aktywne ✓" : "Aktywuj"}
+                    </button>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </section>
+      )}
 
-          {area.coveredByLP && area.status !== "covered" && !area.lpOnly && (
-            <div className="s3-drawer__lp-tease">
-              Ten obszar jest też w pakiecie <strong>Lekarz Przedsiębiorca</strong> — razem z 6 innymi obszarami za 349 zł/msc.
-              <button className="s3-drawer__lp-link" onClick={onGoToLP}>Zobacz pakiet →</button>
+      {/* LP tease */}
+      {area.coveredByLP && area.status !== "covered" && !area.lpOnly && (
+        <div className="s3-detail__lp-tease">
+          <div className="s3-detail__lp-tease-bar" aria-hidden />
+          <div className="s3-detail__lp-tease-body">
+            <div className="s3-detail__lp-tease-eyebrow">Alternatywa</div>
+            <div className="s3-detail__lp-tease-title">
+              Ten obszar jest też w pakiecie <strong>Lekarz Przedsiębiorca</strong>
             </div>
-          )}
+            <div className="s3-detail__lp-tease-note">
+              Razem z 6 innymi obszarami (Praktyka, Ochrona dochodu, Firma, Doradztwo, Finansowanie, …) za 349 zł/msc — jedna subskrypcja zamiast kilku.
+            </div>
+          </div>
+          <button className="s3-detail__lp-tease-cta" onClick={onGoToLP}>
+            Zobacz pakiet
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden><path d="M3 7h8M7 3l4 4-4 4" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/></svg>
+          </button>
         </div>
-      </motion.div>
-    </>
+      )}
+    </div>
   );
 }
 
