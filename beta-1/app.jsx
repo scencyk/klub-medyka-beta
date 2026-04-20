@@ -259,9 +259,8 @@ function TextEffect({ children, per = 'char', preset = 'fade-in-blur', delay = 0
 // ─── THEME ───────────────────────────────────────────────────────────────────
 
 function useTheme() {
-  const [theme, setThemeState] = useState(() => {
-    try { return localStorage.getItem("km-theme") || "light"; } catch { return "light"; }
-  });
+  // Narazie: default light, ignoruje wcześniejszy localStorage
+  const [theme, setThemeState] = useState("light");
   useEffect(() => {
     try { localStorage.setItem("km-theme", theme); } catch {}
     document.documentElement.setAttribute("data-theme", theme);
