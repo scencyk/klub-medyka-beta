@@ -6084,6 +6084,210 @@ function recommendedIds(inputs) {
   return s;
 }
 
+// ─── Config views per typ usługi (registry) ─────────────────────────────────
+function LloydsConfig({ params, onSave, recommended }) {
+  const [sum, setSum] = useState(params.sum || recommended?.lloydSum || 5000);
+  return (
+    <div className="kcfg">
+      <div className="kcfg__field">
+        <label className="kcfg__label">Suma miesięcznego świadczenia</label>
+        <div className="kcfg__seg">
+          {[5000, 10000, 15000].map(s => (
+            <button key={s} className={`kcfg__seg-opt${sum === s ? " is-active" : ""}`} onClick={() => setSum(s)}>
+              {s / 1000}k zł
+            </button>
+          ))}
+        </div>
+        <div className="kcfg__hint">Sugestia na podstawie Twojego dochodu: <strong>{(recommended?.lloydSum || 5000) / 1000}k zł</strong>.</div>
+      </div>
+      <button className="kcfg__save" onClick={() => onSave({ sum, waitPeriod: 14, billing: "miesiąc" })}>Zapisz</button>
+    </div>
+  );
+}
+
+function OCConfig({ params, onSave, recommended }) {
+  const [extra, setExtra] = useState(params.extra ?? 0);
+  const ocClass = recommended?.ocClass || "I";
+  return (
+    <div className="kcfg">
+      <div className="kcfg__note">
+        Klasa ryzyka <strong>{ocClass}</strong> — automatycznie z Twojej specjalizacji.
+      </div>
+      <div className="kcfg__field">
+        <label className="kcfg__label">Suma nadwyżkowa (opcjonalnie)</label>
+        <div className="kcfg__seg">
+          {[0, 500000, 1000000, 2000000].map(s => (
+            <button key={s} className={`kcfg__seg-opt${extra === s ? " is-active" : ""}`} onClick={() => setExtra(s)}>
+              {s === 0 ? "Brak" : `${s / 1000000}M zł`}
+            </button>
+          ))}
+        </div>
+      </div>
+      <button className="kcfg__save" onClick={() => onSave({ ocClass, extra })}>Zapisz</button>
+    </div>
+  );
+}
+
+function InfaktConfig({ params, onSave, recommended }) {
+  const [plan, setPlan] = useState(params.plan || recommended?.infaktPlan || "Firma");
+  return (
+    <div className="kcfg">
+      <div className="kcfg__field">
+        <label className="kcfg__label">Plan księgowy</label>
+        <div className="kcfg__radio-grid">
+          {[
+            { id: "Firma", desc: "Do 10 faktur / mies." },
+            { id: "Firma +", desc: "Do 50 faktur, JPK, KSeF" },
+            { id: "Firma Pro", desc: "Dedykowany księgowy" },
+          ].map(p => (
+            <button
+              key={p.id}
+              className={`kcfg__radio${plan === p.id ? " is-active" : ""}`}
+              onClick={() => setPlan(p.id)}
+            >
+              <div className="kcfg__radio-name">{p.id}</div>
+              <div className="kcfg__radio-desc">{p.desc}</div>
+            </button>
+          ))}
+        </div>
+        <div className="kcfg__hint">Sugestia dla Ciebie: <strong>{recommended?.infaktPlan || "Firma"}</strong>.</div>
+      </div>
+      <button className="kcfg__save" onClick={() => onSave({ plan, billing: "miesiąc" })}>Zapisz</button>
+    </div>
+  );
+}
+
+function WGConfig({ params, onSave }) {
+  const [city, setCity] = useState(params.city || "Warszawa");
+  return (
+    <div className="kcfg">
+      <div className="kcfg__field">
+        <label className="kcfg__label">Miasto rejestracji</label>
+        <div className="kcfg__seg">
+          {["Warszawa", "Kraków", "Wrocław", "Poznań", "Gdańsk"].map(c => (
+            <button key={c} className={`kcfg__seg-opt${city === c ? " is-active" : ""}`} onClick={() => setCity(c)}>
+              {c}
+            </button>
+          ))}
+        </div>
+      </div>
+      <button className="kcfg__save" onClick={() => onSave({ city })}>Zapisz</button>
+    </div>
+  );
+}
+
+function AutentiConfig({ params, onSave }) {
+  const [volume, setVolume] = useState(params.volume || "50");
+  return (
+    <div className="kcfg">
+      <div className="kcfg__field">
+        <label className="kcfg__label">Liczba podpisów miesięcznie</label>
+        <div className="kcfg__seg">
+          {["10", "50", "200", "500+"].map(v => (
+            <button key={v} className={`kcfg__seg-opt${volume === v ? " is-active" : ""}`} onClick={() => setVolume(v)}>
+              {v}
+            </button>
+          ))}
+        </div>
+      </div>
+      <button className="kcfg__save" onClick={() => onSave({ volume })}>Zapisz</button>
+    </div>
+  );
+}
+
+function EgabinetConfig({ params, onSave }) {
+  const [doctors, setDoctors] = useState(params.doctors || 1);
+  return (
+    <div className="kcfg">
+      <div className="kcfg__field">
+        <label className="kcfg__label">
+          Liczba lekarzy w gabinecie
+          <span className="kcfg__value">{doctors}</span>
+        </label>
+        <input
+          type="range" min="1" max="10" step="1"
+          value={doctors}
+          onChange={e => setDoctors(+e.target.value)}
+          className="kreator-field__slider"
+        />
+      </div>
+      <button className="kcfg__save" onClick={() => onSave({ doctors })}>Zapisz</button>
+    </div>
+  );
+}
+
+function GenericConfig({ onSave }) {
+  return (
+    <div className="kcfg">
+      <div className="kcfg__note">Nic dodatkowego do ustawienia. Szczegóły ustalimy po aktywacji.</div>
+      <button className="kcfg__save" onClick={() => onSave({})}>OK, dalej</button>
+    </div>
+  );
+}
+
+const KREATOR_CONFIG_VIEWS = {
+  lloyds:   LloydsConfig,
+  oc:       OCConfig,
+  infakt:   InfaktConfig,
+  wg:       WGConfig,
+  autenti:  AutentiConfig,
+  egabinet: EgabinetConfig,
+};
+
+function kreatorParamSummary(id, params) {
+  if (!params || Object.keys(params).length === 0) return null;
+  if (id === "lloyds")   return `Suma: ${params.sum / 1000}k zł/mies.`;
+  if (id === "oc")       return `Klasa ${params.ocClass}${params.extra > 0 ? ` · nadwyżka ${params.extra / 1000000}M` : ""}`;
+  if (id === "infakt")   return `Plan: ${params.plan}`;
+  if (id === "wg")       return params.city;
+  if (id === "autenti")  return `${params.volume} podpisów/mies.`;
+  if (id === "egabinet") return `${params.doctors} ${params.doctors === 1 ? "lekarz" : "lekarzy"}`;
+  return null;
+}
+
+function KreatorConfigRow({ item, expanded, onToggleExpand, onSave, recommended }) {
+  const { service, configured, params } = item;
+  const ConfigView = KREATOR_CONFIG_VIEWS[service.id] || GenericConfig;
+  const summary = kreatorParamSummary(service.id, params);
+  return (
+    <motion.div layout className={`kcfg-row${configured ? " is-configured" : ""}${expanded ? " is-expanded" : ""}`}>
+      <button className="kcfg-row__head" onClick={onToggleExpand}>
+        <div className="kcfg-row__icon" aria-hidden>{service.icon}</div>
+        <div className="kcfg-row__body">
+          <div className="kcfg-row__name">{service.label}</div>
+          <div className="kcfg-row__sub">
+            {configured && summary ? summary : configured ? "Gotowe" : "Do konfiguracji"}
+          </div>
+        </div>
+        <div className="kcfg-row__status" aria-hidden>
+          {configured ? (
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="8" fill="#CEFF3E"/><path d="M4.5 8l2.5 2.5L11.5 5.5" stroke="#0A0A0A" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>
+          ) : (
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="7" stroke="currentColor" strokeWidth="1.5" opacity="0.35"/></svg>
+          )}
+        </div>
+        <svg className={`kcfg-row__chevron${expanded ? " is-open" : ""}`} width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M4 6l4 4 4-4" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>
+      </button>
+      <AnimatePresence initial={false}>
+        {expanded && (
+          <motion.div
+            key="body"
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
+            style={{ overflow: "hidden" }}
+          >
+            <div className="kcfg-row__form">
+              <ConfigView params={params || {}} recommended={recommended} onSave={onSave} />
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </motion.div>
+  );
+}
+
 function Services4Kreator({ purchasedServices, purchaseService, lpSub, setLpSub, onFinish }) {
   const [step, setStep] = useState("pick"); // pick | configure | checkout
   const [inputs, setInputs] = useState({
@@ -6133,6 +6337,53 @@ function Services4Kreator({ purchasedServices, purchaseService, lpSub, setLpSub,
   const lpCoreInCart = cartItems.filter(i => LP_CORE_IDS.has(i.id)).length;
   const lpCalc = calcLPPrice(lpSub || { billing: "rok", lloydSum: lloydSum, infaktAddon: true });
   const lpSwap = lpCoreInCart >= 4 && cartMonthly > lpCalc.effective;
+  const configuredCount = cartItems.filter(i => i.configured).length;
+  const allConfigured = cartItems.length > 0 && configuredCount === cartItems.length;
+
+  const [expandedId, setExpandedId] = useState(null);
+
+  const saveItemConfig = (id, params) => {
+    setCart(prev => {
+      const next = new Map(prev);
+      next.set(id, { configured: true, params });
+      return next;
+    });
+    // Auto-collapse and jump do następnej nieskonfigurowanej
+    const remaining = cartItems.filter(i => i.id !== id && !i.configured);
+    setExpandedId(remaining[0]?.id || null);
+  };
+
+  const recoParams = { lloydSum, infaktPlan, ocClass: spec.ocClass };
+
+  const buyAllSolo = () => {
+    cartItems.forEach(i => {
+      purchaseService && purchaseService(i.id, i.params || {});
+    });
+    setCart(new Map());
+    onFinish && onFinish();
+  };
+
+  const activateLPInstead = () => {
+    if (setLpSub) {
+      setLpSub(s => ({
+        ...s,
+        active: true,
+        lloydSum: lloydSum,
+        billing: "rok",
+        infaktAddon: true,
+        activatedAt: new Date().toLocaleDateString("pl-PL", { day: "numeric", month: "short", year: "numeric" }),
+        nextRenewal: "15 kwi 2027",
+      }));
+    }
+    // Nie-LP usługi dalej przez purchaseService
+    cartItems.forEach(i => {
+      if (!LP_CORE_IDS.has(i.id)) {
+        purchaseService && purchaseService(i.id, i.params || {});
+      }
+    });
+    setCart(new Map());
+    onFinish && onFinish();
+  };
 
   const setInterestChip = (id) => {
     setInputs(v => {
@@ -6311,22 +6562,37 @@ function Services4Kreator({ purchasedServices, purchaseService, lpSub, setLpSub,
             exit={{ opacity: 0, y: -8 }}
             transition={{ duration: 0.2 }}
           >
-            <div className="kreator-skeleton">
-              <div className="kreator-skeleton__title">Konfiguracja każdej usługi</div>
-              <div className="kreator-skeleton__desc">
-                Tu pojawi się lista {cartItems.length} usług do skonfigurowania — każda z mini-formularzem dopasowanym do typu (Lloyd's: suma · OC: klasa + nadwyżka · inFakt: plan · ...).
-              </div>
-              <div className="kreator-skeleton__list">
-                {cartItems.map(i => (
-                  <div key={i.id} className="kreator-skeleton__item">
-                    <span>{i.service.icon}</span>
-                    <span className="kreator-skeleton__name">{i.service.label}</span>
-                    <span className="kreator-skeleton__status">⚪ do konfiguracji</span>
+            <div className="kreator-configure">
+              <div className="kreator-configure__head">
+                <h3 className="kreator-configure__title">Skonfiguruj każdą usługę</h3>
+                <p className="kreator-configure__desc">
+                  Przejrzyj {cartItems.length} usług, ustaw parametry pasujące do Twojej sytuacji. Parametry sugerowane są z Twojego profilu.
+                </p>
+                <div className="kreator-configure__progress">
+                  <div className="kreator-configure__progress-bar">
+                    <motion.div
+                      className="kreator-configure__progress-fill"
+                      animate={{ width: `${cartItems.length > 0 ? (configuredCount / cartItems.length) * 100 : 0}%` }}
+                      transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
+                    />
                   </div>
-                ))}
+                  <div className="kreator-configure__progress-lbl">
+                    <SlidingNumber value={configuredCount} /> z {cartItems.length} skonfigurowane
+                  </div>
+                </div>
               </div>
-              <div className="kreator-skeleton__hint">
-                [Turn 2 dostarczy custom mini-formy per typ usługi — na razie klik "Dalej" przechodzi do Checkout]
+
+              <div className="kreator-configure__list">
+                {cartItems.map(item => (
+                  <KreatorConfigRow
+                    key={item.id}
+                    item={item}
+                    expanded={expandedId === item.id}
+                    onToggleExpand={() => setExpandedId(expandedId === item.id ? null : item.id)}
+                    onSave={(params) => saveItemConfig(item.id, params)}
+                    recommended={recoParams}
+                  />
+                ))}
               </div>
             </div>
           </motion.div>
@@ -6341,27 +6607,58 @@ function Services4Kreator({ purchasedServices, purchaseService, lpSub, setLpSub,
             exit={{ opacity: 0, y: -8 }}
             transition={{ duration: 0.2 }}
           >
-            <div className="kreator-skeleton">
-              <div className="kreator-skeleton__title">Podsumowanie zakupu</div>
-              <div className="kreator-skeleton__desc">
-                {cartItems.length} usług · <strong>{cartMonthly} zł / mies.</strong>
-                {lpSwap && <span> · <span style={{ color: "#CEFF3E" }}>Opłaca się kupić pakiet LP zamiast</span></span>}
+            <div className="kreator-checkout">
+              <div className="kreator-checkout__head">
+                <h3 className="kreator-checkout__title">Podsumowanie zamówienia</h3>
+                <p className="kreator-checkout__desc">Potwierdź wybór i uruchom {cartItems.length} usług.</p>
               </div>
-              <div className="kreator-skeleton__hint">
-                [Turn 3 dostarczy pełny summary + final buy z mapowaniem parametrów do purchaseService()]
+
+              {lpSwap && (
+                <div className="kreator-lpswap">
+                  <div className="kreator-lpswap__body">
+                    <div className="kreator-lpswap__eyebrow">Oszczędność</div>
+                    <div className="kreator-lpswap__title">Kup pakiet Lekarz Przedsiębiorca zamiast</div>
+                    <div className="kreator-lpswap__desc">
+                      Masz {lpCoreInCart} z {LP_CORE_IDS.size} usług z pakietu. Pakiet kosztuje <strong>{lpCalc.effective} zł/mies.</strong> zamiast <strong>{cartMonthly} zł/mies.</strong> — zaoszczędzisz <strong>{cartMonthly - lpCalc.effective} zł/mies.</strong>
+                    </div>
+                  </div>
+                  <button className="kreator-lpswap__btn" onClick={activateLPInstead}>
+                    Zamów pakiet LP
+                  </button>
+                </div>
+              )}
+
+              <div className="kreator-checkout__list">
+                {cartItems.map(item => {
+                  const summary = kreatorParamSummary(item.id, item.params);
+                  return (
+                    <div key={item.id} className="kreator-checkout__row">
+                      <div className="kreator-checkout__icon" aria-hidden>{item.service.icon}</div>
+                      <div className="kreator-checkout__body">
+                        <div className="kreator-checkout__name">{item.service.label}</div>
+                        {summary && <div className="kreator-checkout__params">{summary}</div>}
+                      </div>
+                      <div className="kreator-checkout__price">
+                        {item.service.soloPrice} <span>zł/mies.</span>
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
-              <button
-                className="kreator-bar__cta kreator-bar__cta--primary"
-                onClick={() => {
-                  cartItems.forEach(i => {
-                    purchaseService && purchaseService(i.id, i.params || {});
-                  });
-                  onFinish && onFinish();
-                }}
-                style={{ marginTop: 16 }}
-              >
-                Kup wszystko (prototyp)
+
+              <div className="kreator-checkout__total">
+                <div className="kreator-checkout__total-lbl">Razem</div>
+                <div className="kreator-checkout__total-num">
+                  <SlidingNumber value={cartMonthly} /> <span>zł / mies.</span>
+                </div>
+              </div>
+
+              <button className="kreator-checkout__buy" onClick={buyAllSolo}>
+                Zamów wszystko — <SlidingNumber value={cartMonthly} /> zł/mies.
               </button>
+              <div className="kreator-checkout__fine">
+                Prototyp — po potwierdzeniu usługi pojawią się w zakładce "Moje usługi".
+              </div>
             </div>
           </motion.div>
         )}
@@ -6393,13 +6690,15 @@ function Services4Kreator({ purchasedServices, purchaseService, lpSub, setLpSub,
           )}
           <button
             className="kreator-bar__cta kreator-bar__cta--primary"
-            disabled={cart.size === 0}
+            disabled={cart.size === 0 || (step === "configure" && !allConfigured)}
             onClick={() => {
               if (step === "pick") setStep("configure");
               else if (step === "configure") setStep("checkout");
+              else if (step === "checkout") buyAllSolo();
             }}
+            title={step === "configure" && !allConfigured ? "Skonfiguruj wszystkie usługi aby przejść dalej" : ""}
           >
-            {step === "pick" ? "Przejdź do konfiguracji →" : step === "configure" ? "Podsumowanie →" : "Kup wszystko"}
+            {step === "pick" ? "Dalej: konfiguracja →" : step === "configure" ? (allConfigured ? "Dalej: podsumowanie →" : `${configuredCount}/${cartItems.length} gotowe`) : "Kup wszystko"}
           </button>
         </div>
       </div>
