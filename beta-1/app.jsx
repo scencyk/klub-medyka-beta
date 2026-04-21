@@ -347,16 +347,11 @@ const LP_PRODUCT = {
 };
 
 const LP_FEATURES = [
-  { id: "lloyds",    name: "Lloyd's — utrata dochodu",                   short: "Lloyd's",             note: "Remedium jako ubezpieczający · rabat 15% · wiek z profilu" },
-  { id: "oc",        name: "OC zawodowe Ergo Hestia",                    short: "OC zawodowe",         note: "Klasa automatycznie z NIL · rabat 10%" },
-  { id: "wg",        name: "Wirtualny gabinet",                          short: "Wirtualny gabinet",   note: "Adres + tel + email · prywatność w KRS" },
-  { id: "autenti",   name: "Autenti — podpis kwalifikowany",             short: "Autenti",             note: "e-Recepta, e-ZLA, umowy" },
-  { id: "egabinet",  name: "eGabinet EDM",                               short: "eGabinet EDM",        note: "Pakiet wizyt gratis · 10% zniżka dla klinik" },
-  { id: "legal",     name: "Bank odpowiedzi prawnych",                   short: "Bank odp. prawnych",  note: "AI + sygnatura Tymiński · top 50 pytań JDG" },
-  { id: "advIns",    name: "Doradcy ubezpieczeniowi + analiza potrzeb",  short: "Doradcy ubezp.",      note: "Dedykowany opiekun · pełna analiza potrzeb",     gratis: true },
-  { id: "advLeas",   name: "Doradcy leasingowi",                         short: "Doradcy leas.",       note: "W cenie integracji LeaseLink",                   gratis: true },
-  { id: "tax",       name: "Konsultacja podatkowa 15 min/msc",           short: "Konsultacja 15 min",  note: "Tax Legal Beauty · white-label",                 gratis: true },
-  { id: "aion",      name: "Konto AION + kreator JDG",                   short: "Konto AION",          note: "Wskazywalne do US/ZUS",                          requiresInfakt: true },
+  { id: "lloyds",    name: "Lloyd's — utrata dochodu",  short: "Lloyd's",           note: "Remedium jako ubezpieczający · rabat 15% · wiek z profilu" },
+  { id: "oc",        name: "OC zawodowe Ergo Hestia",   short: "OC zawodowe",       note: "Klasa automatycznie z NIL · rabat 10%" },
+  { id: "wg",        name: "Wirtualny gabinet",          short: "Wirtualny gabinet", note: "Adres + tel + email · prywatność w KRS" },
+  { id: "medicover", name: "Medicover — opieka zdrowotna", short: "Medicover",      note: "Pakiet Komfort · rabat 20% w LP" },
+  { id: "aion",      name: "Konto AION + kreator JDG",   short: "Konto AION",        note: "Wskazywalne do US/ZUS", requiresInfakt: true },
 ];
 
 // Suma ubezpieczenia Lloyd's → labelka do breakdown row
@@ -387,8 +382,7 @@ const SERVICE_CATEGORIES = [
   { id: "all",        label: "Wszystkie" },
   { id: "insurance",  label: "Ubezpieczenia" },
   { id: "accounting", label: "Księgowość i dokumenty" },
-  { id: "medical",    label: "Praktyka" },
-  { id: "legal",      label: "Prawne i doradcze" },
+  { id: "medical",    label: "Zdrowie" },
 ];
 
 // Solo prices — każda usługa kupowana osobno. LP daje rabat/gratis/bonus.
@@ -468,39 +462,6 @@ const SERVICE_CATALOG = [
     },
   },
   {
-    id: "travel", label: "Ubezpieczenie podróżne INTER", short: "Podróżne",
-    category: "insurance", icon: "✈️",
-    soloPrice: 49,
-    desc: "Roczna ochrona na wyjazdach służbowych i prywatnych. Do 500 000 EUR.",
-    soloFeatures: ["Koszty leczenia do 500k EUR", "NNW i bagaż", "Cały świat"],
-    inLP: false,
-    landing: {
-      longDesc: "Roczna polisa podróżna INTER Polska — chroni Cię na wyjazdach prywatnych i na konferencjach medycznych. Koszty leczenia, NNW, bagaż i OC w podróży w jednej polisie.",
-      partner: "INTER Polska TU S.A.",
-      valueProps: [
-        { title: "500 000 EUR", desc: "Suma kosztów leczenia" },
-        { title: "Nielimitowana liczba wyjazdów", desc: "Cały rok, cały świat" },
-        { title: "Bez franszyz", desc: "Zero udziału własnego" },
-      ],
-      includes: [
-        { title: "Koszty leczenia do 500 000 EUR", desc: "Szpital, ambulatorium, transport sanitarny" },
-        { title: "NNW do 50 000 zł", desc: "Śmierć i trwały uszczerbek na zdrowiu" },
-        { title: "Bagaż do 3 000 zł", desc: "Kradzież, zagubienie, opóźnienie dostarczenia" },
-        { title: "OC w życiu prywatnym", desc: "Suma 100 000 EUR na szkody wyrządzone osobom trzecim" },
-        { title: "Assistance 24/7", desc: "Infolinia po polsku, pomoc w organizacji leczenia" },
-      ],
-      howItWorks: [
-        { title: "Jedna polisa na rok", desc: "Bez konieczności kupowania za każdym wyjazdem" },
-        { title: "Automatyczna aktywacja", desc: "Polisa obowiązuje od zakupu przez 12 miesięcy" },
-        { title: "Zgłoszenie przez INTER app", desc: "Bezpośrednio z podróży, po polsku" },
-      ],
-      faq: [
-        { q: "Czy obejmuje konferencje medyczne?", a: "Tak, wyjazdy służbowe są w pełni objęte ochroną — konferencje, szkolenia, staże zagraniczne." },
-        { q: "A sporty ekstremalne?", a: "Standardowo nie — wymaga rozszerzenia. Narty rekreacyjne OK, heliski nie." },
-      ],
-    },
-  },
-  {
     id: "infakt", label: "Księgowość inFakt", short: "inFakt",
     category: "accounting", icon: "🧾",
     soloPrice: 199,
@@ -574,249 +535,37 @@ const SERVICE_CATALOG = [
     },
   },
   {
-    id: "autenti", label: "Autenti — podpis kwalifikowany", short: "Autenti",
-    category: "accounting", icon: "✍️",
-    soloPrice: 29,
-    desc: "Podpis kwalifikowany do e-Recept, e-ZLA i umów. Bez tokena USB.",
-    soloFeatures: ["Nieograniczone podpisy", "e-Recepta, e-ZLA", "Weryfikacja przez mObywatel"],
-    lpAdvantage: "W cenie pakietu (0 zł)",
+    id: "medicover", label: "Opieka medyczna Medicover", short: "Medicover",
+    category: "medical", icon: "🏥",
+    soloPrice: 189,
+    desc: "Prywatna opieka zdrowotna — ogólnopolska sieć placówek Medicover.",
+    soloFeatures: ["Bez limitów konsultacji", "Diagnostyka w cenie", "Ogólnopolska sieć"],
+    lpAdvantage: "Rabat 20% w pakiecie",
     inLP: true,
     landing: {
-      longDesc: "Podpis kwalifikowany w chmurze — bez tokena USB, bez karty, bez dodatkowego sprzętu. Weryfikacja tożsamości przez mObywatel, zero instalacji. Standard dla e-Recept, e-ZLA, umów i dokumentów firmowych.",
-      partner: "Autenti · oficjalna integracja",
+      longDesc: "Prywatna opieka zdrowotna Medicover — dostęp do ogólnopolskiej sieci placówek, konsultacji specjalistycznych, diagnostyki i profilaktyki. Dedykowany pakiet dla członków Klubu Medyka z opcją rozszerzenia na rodzinę.",
+      partner: "Medicover · pakiet dla Klubu Medyka",
       valueProps: [
-        { title: "Bez tokena USB", desc: "Podpis z każdego urządzenia przez chmurę" },
-        { title: "Nielimitowane podpisy", desc: "Zero opłat per-operacja" },
-        { title: "Weryfikacja przez mObywatel", desc: "Aktywacja w 5 minut" },
+        { title: "Ogólnopolska sieć", desc: "Wszystkie placówki Medicover w kraju" },
+        { title: "Bez limitów konsultacji", desc: "Lekarz rodzinny + specjaliści w cenie" },
+        { title: "Diagnostyka w pakiecie", desc: "Badania laboratoryjne i obrazowe" },
       ],
       includes: [
-        { title: "Podpis kwalifikowany PE", desc: "Pełna moc prawna — zgodny z eIDAS" },
-        { title: "Nieograniczone operacje", desc: "Podpisz ile chcesz — nie ma limitu" },
-        { title: "e-Recepta i e-ZLA", desc: "Bezpośrednia integracja z Gabinet+ i NFZ" },
-        { title: "Podpis umów handlowych", desc: "Kontrakty z klinikami, zleceniobiorcami, pacjentami" },
-        { title: "Archiwum dokumentów", desc: "Wszystkie podpisane dokumenty w panelu na 10 lat" },
+        { title: "Lekarz rodzinny", desc: "Nielimitowane konsultacje w placówkach Medicover" },
+        { title: "Dostęp do specjalistów", desc: "Kardiolog, dermatolog, okulista, ginekolog i inne" },
+        { title: "Diagnostyka laboratoryjna", desc: "Pakiet badań w cenie bez limitu" },
+        { title: "Diagnostyka obrazowa", desc: "USG, RTG, tomografia w ramach pakietu" },
+        { title: "Profilaktyka roczna", desc: "Bilans zdrowia co 12 miesięcy" },
       ],
       howItWorks: [
-        { title: "Weryfikacja tożsamości przez mObywatel", desc: "5 minut przez aplikację państwową" },
-        { title: "Aktywacja w panelu Autenti", desc: "Automatyczne założenie konta przez Klub" },
-        { title: "Pierwszy podpis", desc: "Przez app Autenti lub bezpośrednio z Gabinet+" },
+        { title: "Aktywacja karty Medicover", desc: "Karta fizyczna + elektroniczna w 3 dni" },
+        { title: "Umawiasz wizyty przez app", desc: "Medicover app lub infolinia 24/7" },
+        { title: "Dostępne placówki", desc: "Przy domu, przy klinice, w podróży — cała Polska" },
       ],
       faq: [
-        { q: "Czy to wystarczy do e-Recepty?", a: "Tak — Autenti jest oficjalnym dostawcą podpisu kwalifikowanego akceptowanym przez NFZ i CeZ." },
-        { q: "Co jeśli zmienię telefon?", a: "Nie dotyczy — podpis jest w chmurze. Logujesz się z każdego urządzenia i telefon służy tylko do 2FA." },
-        { q: "Jak długo ważny jest podpis?", a: "Certyfikat odnawia się automatycznie co 12 miesięcy — bez Twojej akcji." },
-      ],
-    },
-  },
-  {
-    id: "egabinet", label: "eGabinet EDM", short: "eGabinet",
-    category: "medical", icon: "🗂️",
-    soloPrice: 59,
-    desc: "Elektroniczna dokumentacja medyczna zgodna z CeZ. Integracja z NFZ.",
-    soloFeatures: ["EDM dla 1 lekarza", "Szablony dokumentów", "Pakiet wizyt (50/msc)"],
-    lpAdvantage: "W cenie + 10% zniżki dla klinik",
-    inLP: true,
-    landing: {
-      longDesc: "Elektroniczna dokumentacja medyczna zgodna z wymaganiami Centrum e-Zdrowia (CeZ) oraz NFZ. System gotowy do kontroli, szablony zaadaptowane pod specjalizacje, integracja z e-Receptą i e-Skierowaniem.",
-      partner: "eGabinet.pl · oficjalny partner",
-      valueProps: [
-        { title: "Zgodny z CeZ i NFZ", desc: "Gotowy do kontroli EDM" },
-        { title: "Integracja e-Recepta", desc: "Wystawianie z poziomu wizyty" },
-        { title: "Szablony per-specjalizacja", desc: "Gotowe formularze gabinetowe" },
-      ],
-      includes: [
-        { title: "Dokumentacja wizyt", desc: "Wywiad, badanie, zalecenia — strukturalnie wg CeZ" },
-        { title: "Pakiet 50 wizyt miesięcznie", desc: "Wystarczy dla pojedynczej praktyki gabinetowej" },
-        { title: "e-Recepta bezpośrednio z wizyty", desc: "Bez przełączania się między systemami" },
-        { title: "e-Skierowania", desc: "Pełna integracja z NFZ" },
-        { title: "Eksport EDM na żądanie", desc: "Dla pacjentów, NFZ, lub backup" },
-        { title: "Szablony zaadaptowane", desc: "Formularze dla Twojej specjalizacji z bazy eGabinet" },
-      ],
-      howItWorks: [
-        { title: "Aktywujesz konto", desc: "Automatyczne założenie przez Klub, bez osobnego loginu" },
-        { title: "Importujesz bazę pacjentów", desc: "CSV, Excel, lub wprowadzenie ręczne" },
-        { title: "Prowadzisz wizyty", desc: "Dokumentacja na żywo, e-Recepta w tym samym oknie" },
-      ],
-      faq: [
-        { q: "Co jeśli prowadzę klinikę z kilkoma lekarzami?", a: "Solo eGabinet to 1 lekarz. W pakiecie LP klinika dostaje dodatkowo 10% zniżki per-lekarz — upgrade dostępny w panelu." },
-        { q: "Czy integruje się z Moim NFZ?", a: "Tak — e-Recepta, e-ZLA, e-Skierowania wysyłane bezpośrednio." },
-        { q: "Co jeśli CeZ zmieni wymagania?", a: "eGabinet aktualizuje się automatycznie — zawsze zgodny z aktualnymi wymaganiami." },
-      ],
-    },
-  },
-  {
-    id: "tax", label: "Konsultacja podatkowa (15 min/msc)", short: "Konsultacja podatkowa",
-    category: "legal", icon: "📊",
-    soloPrice: 99,
-    desc: "Miesięczna konsultacja z doradcą podatkowym Tax Legal Beauty.",
-    soloFeatures: ["15 min / miesiąc", "Doradca white-label TLB", "Rollower do 3 msc"],
-    lpAdvantage: "GRATIS w cenie pakietu",
-    inLP: true,
-    landing: {
-      longDesc: "Miesięczna konsultacja z doradcą podatkowym z kancelarii Tax Legal Beauty — dedykowanej branży medycznej. 15 minut na pytania o optymalizację, ZUS, rozliczenia roczne, lub interpretacje podatkowe.",
-      partner: "Tax Legal Beauty · white-label dla Remedium",
-      valueProps: [
-        { title: "Doradca branżowy", desc: "TLB specjalizuje się w lekarzach JDG" },
-        { title: "15 min co miesiąc", desc: "Wystarczy na pytanie + konkretną odpowiedź" },
-        { title: "Rollower do 3 miesięcy", desc: "Nie wykorzystałeś? Kumuluje się" },
-      ],
-      includes: [
-        { title: "15 minut rozmowy z doradcą", desc: "Slot miesięczny do wykorzystania kiedy chcesz" },
-        { title: "Rollower do 3 miesięcy", desc: "Niewykorzystany czas kumuluje się, max 45 min" },
-        { title: "Tematy: podatki, ZUS, optymalizacja", desc: "Pełen scope podatkowy lekarza" },
-        { title: "Rezerwacja w panelu", desc: "Slot dostępny w 48h, bez telefonów" },
-        { title: "Follow-up mailem", desc: "Konkluzje z rozmowy w pisemnej formie" },
-      ],
-      howItWorks: [
-        { title: "Umawiasz rozmowę w panelu", desc: "Wybierasz dogodny slot z kalendarza doradcy" },
-        { title: "Przygotowujesz pytania", desc: "Wysyłasz mailem z wyprzedzeniem dla oszczędności czasu" },
-        { title: "Rozmowa 15 min", desc: "Video lub telefon, polski lub angielski" },
-        { title: "Otrzymujesz pisemne podsumowanie", desc: "W ciągu 24h po rozmowie" },
-      ],
-      faq: [
-        { q: "Czy to prawdziwy doradca podatkowy?", a: "Tak — Tax Legal Beauty to licencjonowana kancelaria doradztwa podatkowego, nie automat." },
-        { q: "Co jeśli potrzebuję więcej niż 15 min?", a: "Możesz wykupić dodatkowy czas w panelu — stawka preferencyjna dla członków Klubu." },
-        { q: "Czy obejmuje interpretacje indywidualne?", a: "Sam wniosek — nie. Doradca pomoże Ci go sformułować, a złożenie do US to dodatkowa usługa." },
-      ],
-    },
-  },
-  {
-    id: "legal", label: "Bank odpowiedzi prawnych", short: "Bank odp. prawnych",
-    category: "legal", icon: "⚖️",
-    soloPrice: 49,
-    desc: "AI-based baza odpowiedzi prawnych sygnowana przez kancelarię Tymiński.",
-    soloFeatures: ["Top 50 pytań JDG", "Nowe pytania miesięcznie", "Sygnatura kancelarii"],
-    lpAdvantage: "W cenie pakietu",
-    inLP: true,
-    landing: {
-      longDesc: "Baza gotowych odpowiedzi na najczęstsze pytania prawne lekarzy prowadzących JDG — roszczenia pacjentów, RODO, umowy z klinikami, spory z NFZ. AI-przeszukiwana, ale każda odpowiedź sygnowana przez kancelarię Tymiński.",
-      partner: "Kancelaria Tymiński · content partnership",
-      valueProps: [
-        { title: "50+ gotowych odpowiedzi", desc: "Top 50 pytań od lekarzy JDG" },
-        { title: "Nowe pytania miesięcznie", desc: "Baza rośnie, dostajesz aktualizacje" },
-        { title: "Podpisane przez kancelarię", desc: "Nie AI-dump — każda odpowiedź zweryfikowana" },
-      ],
-      includes: [
-        { title: "Baza 50+ pytań i odpowiedzi", desc: "Kategorie: pacjent, klinika, NFZ, RODO, ZUS, skargi" },
-        { title: "Wyszukiwarka AI", desc: "Zadajesz pytanie w języku naturalnym" },
-        { title: "5 nowych pytań miesięcznie", desc: "Tematy inspirowane realnymi case'ami lekarzy" },
-        { title: "Każda odpowiedź podpisana", desc: "Sygnatura kancelarii Tymiński — nie AI-hallucination" },
-        { title: "Kontekst + odnośniki do ustaw", desc: "Pełne uzasadnienie prawne, nie tylko odpowiedź" },
-      ],
-      howItWorks: [
-        { title: "Zadajesz pytanie w panelu", desc: "W języku naturalnym — nie musisz znać nomenklatury" },
-        { title: "AI znajduje pasujące odpowiedzi", desc: "Rankingowane po podobieństwie" },
-        { title: "Czytasz odpowiedź + uzasadnienie", desc: "Jeśli trzeba głębiej — upsell na konsultację z Tymińskim" },
-      ],
-      faq: [
-        { q: "Czy AI może mylić?", a: "Sama baza odpowiedzi nie — każda odpowiedź jest pisana przez prawnika. AI tylko dopasowuje pytanie użytkownika do gotowej odpowiedzi." },
-        { q: "Co jeśli mojego pytania nie ma w bazie?", a: "Zgłaszasz je — jeśli pojawi się u 3+ lekarzy, trafia do kolejki tworzenia odpowiedzi. Odpowiedź w 2-4 tygodnie." },
-        { q: "Kiedy warto konsultować się bezpośrednio?", a: "Dla unikalnych case'ów, sporów sądowych, negocjacji umów — wtedy bank odpowiedzi nie wystarczy, potrzebna indywidualna konsultacja." },
-      ],
-    },
-  },
-  {
-    id: "advInsur", label: "Doradca ubezpieczeniowy (per sesja)", short: "Doradca ubezp.",
-    category: "legal", icon: "🧑‍💼",
-    soloPrice: 150, priceUnit: "zł/sesja",
-    desc: "Jednorazowa konsultacja — analiza polis, rekomendacja zakresów.",
-    soloFeatures: ["60 min rozmowy", "Analiza dokumentów", "Pisemna rekomendacja"],
-    lpAdvantage: "GRATIS + pełna analiza potrzeb + dedykowany opiekun",
-    inLP: true,
-    landing: {
-      longDesc: "Konsultacja z doradcą ubezpieczeniowym specjalizującym się w polisach dla medyków. Przegląda Twoje obecne polisy, wskazuje luki, rekomenduje optymalny zakres. Jednorazowo (solo) lub w LP — gdzie masz dedykowanego opiekuna bez dopłat.",
-      partner: "Remedium · wewnętrzny zespół doradców",
-      valueProps: [
-        { title: "60 min rozmowy", desc: "Video lub telefon, wnikliwa analiza" },
-        { title: "Analiza obecnych polis", desc: "Pokazujemy luki w Twojej ochronie" },
-        { title: "Pisemna rekomendacja", desc: "Konkretne wnioski mailem w 48h" },
-      ],
-      includes: [
-        { title: "Analiza polis", desc: "OC, Lloyd's, podróżne, na życie — przegląd wszystkiego co masz" },
-        { title: "Mapa ryzyk", desc: "Co Cię realnie zagraża jako lekarzowi" },
-        { title: "Luki w ochronie", desc: "Wskazujemy konkretne scenariusze bez pokrycia" },
-        { title: "Rekomendacja produktowa", desc: "Co kupić, co zrezygnować, co zmodyfikować" },
-        { title: "Pisemne podsumowanie", desc: "Dokument PDF do decyzji na spokojnie" },
-      ],
-      howItWorks: [
-        { title: "Rezerwujesz slot w panelu", desc: "Dostępność w 48h od zakupu" },
-        { title: "Wysyłasz polisy do analizy", desc: "PDF lub zdjęcia, przez panel" },
-        { title: "Rozmowa 60 min", desc: "Omówienie luk i rekomendacji" },
-        { title: "Pisemne podsumowanie", desc: "W 48h po rozmowie" },
-      ],
-      faq: [
-        { q: "Czy jesteście niezależni?", a: "Tak — doradcy pracują dla Remedium, nie pojedynczego ubezpieczyciela. Rekomendujemy co obiektywnie najlepsze dla lekarza." },
-        { q: "Co z mOCą zamówienia po konsultacji?", a: "Możesz zamówić rekomendowane produkty bezpośrednio przez Klub — to nie jest warunek, ale często wygodniejsze." },
-        { q: "Jak to działa w LP?", a: "W pakiecie LP masz tego samego doradcę przypisanego imiennie — bez limitów czasowych, zawsze w cenie." },
-      ],
-    },
-  },
-  {
-    id: "advLeas", label: "Doradca leasingowy (per sesja)", short: "Doradca leas.",
-    category: "legal", icon: "🚗",
-    soloPrice: 120, priceUnit: "zł/sesja",
-    desc: "Konsultacja z doradcą leasingowym LeaseLink — wybór, kalkulacja.",
-    soloFeatures: ["45 min rozmowy", "Kalkulacja wariantów", "Rekomendacja produktu"],
-    lpAdvantage: "GRATIS w cenie integracji LeaseLink",
-    inLP: true,
-    landing: {
-      longDesc: "Rozmowa z doradcą leasingowym LeaseLink — pomoże wybrać finansowanie sprzętu medycznego, samochodu, laptopów, elektroniki. Kalkuluje warianty (leasing operacyjny vs finansowy, raty 0%), porównuje koszty. W pakiecie LP zero dopłat.",
-      partner: "LeaseLink · dedykowany zespół dla medyków",
-      valueProps: [
-        { title: "45 min rozmowy", desc: "Wystarcza na 2-3 warianty finansowania" },
-        { title: "Kalkulacja wariantów", desc: "Operacyjny vs finansowy vs raty 0%" },
-        { title: "Rekomendacja produktu", desc: "Co wybrać do Twojego scenariusza" },
-      ],
-      includes: [
-        { title: "Analiza potrzeb finansowania", desc: "Co chcesz kupić, na jak długo, jaki budżet" },
-        { title: "Porównanie 3 wariantów", desc: "Leasing operacyjny, finansowy, raty bankowe" },
-        { title: "Kalkulacja kosztów", desc: "Pełny koszt w okresie finansowania + podatki" },
-        { title: "Rekomendacja produktu LeaseLink", desc: "Jeśli leasing to najlepsze rozwiązanie" },
-        { title: "Pomoc w procedowaniu", desc: "Jeśli decydujesz się — asysta przy dokumentach" },
-      ],
-      howItWorks: [
-        { title: "Określasz co chcesz kupić", desc: "Sprzęt medyczny, auto, laptop, rower — cokolwiek" },
-        { title: "Doradca liczy warianty", desc: "3 scenariusze z rozbiciem kosztów" },
-        { title: "Wybierasz i procedujesz", desc: "Jeśli LeaseLink — asystujemy przy wniosku" },
-      ],
-      faq: [
-        { q: "Co jeśli raty bankowe są lepsze?", a: "Powiemy wprost — nasza rola to doradztwo, nie sprzedaż LeaseLink za wszelką cenę." },
-        { q: "Czy obejmuje sprzęt używany?", a: "Tak — LeaseLink finansuje sprzęt używany dla medyków, szczególnie sprzęt stomatologiczny i diagnostyczny." },
-        { q: "Jak działa prelimit LP?", a: "W pakiecie LP masz prelimit 87 000 zł dostępny od dnia 1 — doradca pomaga go efektywnie wykorzystać." },
-      ],
-    },
-  },
-  {
-    id: "courses", label: "Kursy online (Medu)", short: "Kursy Medu",
-    category: "medical", icon: "🎓",
-    soloPrice: 69,
-    desc: "Platforma kursów medycznych Medu — dostęp do biblioteki szkoleń.",
-    soloFeatures: ["Dostęp do 200+ kursów", "Certyfikaty CME", "Aplikacja mobilna"],
-    inLP: false,
-    landing: {
-      longDesc: "Platforma e-learningowa Medu — 200+ kursów medycznych z certyfikatami CME (Continuing Medical Education). Dostęp do biblioteki szkoleń ze wszystkich specjalizacji, mobilna aplikacja, aktualizacje miesięcznie.",
-      partner: "Medu · oficjalny partner",
-      valueProps: [
-        { title: "200+ kursów", desc: "Wszystkie specjalizacje medyczne" },
-        { title: "Certyfikaty CME", desc: "Akredytacja wymagana do punktów edukacyjnych" },
-        { title: "Aplikacja mobilna", desc: "Nauka w drodze, offline mode" },
-      ],
-      includes: [
-        { title: "Dostęp do 200+ kursów", desc: "Biblioteka rośnie miesięcznie o 5-10 nowych" },
-        { title: "Certyfikaty CME po ukończeniu", desc: "Akredytowane punkty edukacyjne" },
-        { title: "Aplikacja mobilna", desc: "Offline mode — oglądaj w drodze, synchronizacja po wifi" },
-        { title: "Egzaminy sprawdzające", desc: "Po każdym kursie — dla uzyskania certyfikatu" },
-        { title: "Konferencje online", desc: "Live'y z ekspertami, pytania do prelegentów" },
-      ],
-      howItWorks: [
-        { title: "Aktywujesz konto Medu", desc: "Automatycznie przez Klub, bez osobnego loginu" },
-        { title: "Wybierasz kursy", desc: "Z biblioteki lub wg ścieżek specjalizacyjnych" },
-        { title: "Uczysz się + egzamin", desc: "Materiał wideo + test + certyfikat PDF" },
-      ],
-      faq: [
-        { q: "Czy certyfikaty są uznawane przez NIL?", a: "Tak — Medu ma akredytację CME honorowaną przez Naczelną Izbę Lekarską." },
-        { q: "Co z kursami premium?", a: "Standardowa subskrypcja to ~170 kursów. 30+ premium (np. z prof. Kowalskim) wymaga dopłaty." },
-        { q: "Czy mogę przerywać i wracać?", a: "Tak — każdy kurs zapamiętuje postęp, możesz wracać w dowolnym momencie." },
+        { q: "Czy obejmuje rodzinę?", a: "Standardowo pakiet indywidualny. Rozszerzenie na partnera i dzieci za dopłatą — szczegóły w konfiguracji usługi." },
+        { q: "A jeśli potrzebuję zabiegu?", a: "Pakiet obejmuje drobne zabiegi ambulatoryjne. Większe interwencje wymagają skierowania i mogą wiązać się z udziałem własnym." },
+        { q: "Czy mogę korzystać poza Polską?", a: "Medicover ma partnerów w kilku krajach europejskich — pytaj doradcy przy potrzebie zagranicznej konsultacji." },
       ],
     },
   },
@@ -839,16 +588,11 @@ const LP_CORE_IDS = new Set(SERVICE_CATALOG.filter(s => s.inLP).map(s => s.id));
 // Skrócone benefity LP per usługa — konkretny value prop zamiast generycznego "W LP"
 // na kafelku w katalogu.
 const LP_SERVICE_PERK_SHORT = {
-  lloyds:   "rabat 15%",
-  oc:       "rabat 10%",
-  infakt:   "179 zł/mies. + 1000 zł bonus",
-  wg:       "gratis",
-  autenti:  "gratis",
-  egabinet: "w cenie",
-  tax:      "gratis",
-  legal:    "w cenie",
-  advInsur: "gratis + opiekun",
-  advLeas:  "gratis",
+  lloyds:    "rabat 15%",
+  oc:        "rabat 10%",
+  infakt:    "179 zł/mies. + 1000 zł bonus",
+  wg:        "gratis",
+  medicover: "rabat 20%",
 };
 
 // Suma solo-cen wszystkich LP-core usług — baza do kalkulacji savings vs pakiet.
@@ -868,9 +612,9 @@ const LP_ALL_SOLO_MONTHLY = SERVICE_CATALOG
 const LIFE_AREAS = [
   {
     id: "practice", label: "Praktyka lekarska", icon: "🩺",
-    short: "Dokumentacja, podpis, narzędzia pracy",
-    desc: "Wszystko czego potrzebujesz żeby przyjąć pacjenta i zachować dokumentację zgodnie z CeZ i NFZ.",
-    serviceIds: ["oc", "egabinet", "autenti"],
+    short: "OC zawodowe",
+    desc: "OC obowiązkowe do wykonywania zawodu — zgodnie z wymogami rozporządzenia MF i klasyfikacją NIL.",
+    serviceIds: ["oc"],
     coveredByLP: true,
   },
   {
@@ -882,47 +626,25 @@ const LIFE_AREAS = [
   },
   {
     id: "business", label: "Firma i księgowość", icon: "🏢",
-    short: "JDG, rozliczenia, adres, konto",
+    short: "JDG, rozliczenia, adres",
     desc: "Pełna infrastruktura prowadzenia działalności gospodarczej — księgowość, adres rejestrowy, konto firmowe.",
     serviceIds: ["infakt", "wg"],
     coveredByLP: true,
   },
   {
-    id: "advisory", label: "Doradztwo", icon: "🧑‍💼",
-    short: "Podatkowe, prawne, ubezpieczeniowe",
-    desc: "Dostęp do specjalistów — TLB, kancelaria Tymiński, doradcy Remedium. Konsultacje, analiza polis, odpowiedzi prawne.",
-    serviceIds: ["tax", "legal", "advInsur", "advLeas"],
+    id: "health", label: "Zdrowie", icon: "🏥",
+    short: "Opieka medyczna",
+    desc: "Prywatna opieka medyczna dla lekarza — dostęp do sieci placówek Medicover z możliwością rozszerzenia na rodzinę.",
+    serviceIds: ["medicover"],
     coveredByLP: true,
   },
   {
     id: "financing", label: "Finansowanie i sprzęt", icon: "💳",
-    short: "Leasing, konto firmowe, karta",
+    short: "Leasing, konto firmowe",
     desc: "Prelimit LeaseLink na PWZ (87 000 zł od dnia 1), konto AION, karta ZEN co-branded — dostępne tylko w pakiecie LP.",
     serviceIds: [],
     coveredByLP: true,
-    lpOnly: true, // tylko LP
-  },
-  {
-    id: "development", label: "Rozwój zawodowy", icon: "🎓",
-    short: "Kursy CME, szkolenia, konferencje",
-    desc: "Ciągła edukacja medyczna — kursy akredytowane, certyfikaty CME, biblioteki wiedzy.",
-    serviceIds: ["courses"],
-    coveredByLP: false,
-  },
-  {
-    id: "travel", label: "Podróże", icon: "✈️",
-    short: "Ochrona na wyjazdach",
-    desc: "Roczna polisa podróżna — koszty leczenia, NNW, bagaż. Obejmuje konferencje i wyjazdy prywatne.",
-    serviceIds: ["travel"],
-    coveredByLP: false,
-  },
-  {
-    id: "mobility", label: "Mobilność", icon: "🚗",
-    short: "Auto, paliwo, myjnie, opłaty",
-    desc: "Wszystko wokół samochodu służbowego — ubezpieczenie OC+AC, zniżki na paliwo, unlimited myjnia, opłaty autostradowe.",
-    serviceIds: [],
-    coveredByLP: false,
-    suggestion: "Dostępny pakiet Lekarz Kierowca (129 zł/msc) w zakładce Usługi",
+    lpOnly: true,
   },
   {
     id: "life", label: "Życie prywatne", icon: "💗",
@@ -2618,7 +2340,6 @@ function Overview({ setActive, profile, setProfile, unlockedDiscounts, unlockDis
 
       {/* 1. Greeting */}
       <div>
-        <div className="text-xs font-semibold text-muted" style={{ letterSpacing: "0.05em", textTransform: "uppercase", marginBottom: 8 }}>{monthLabel.toUpperCase()}</div>
         <h1 style={{ fontSize: 30, fontWeight: 700, letterSpacing: "-0.04em", lineHeight: 1.15, margin: 0 }}>
           <TextEffect per="char" preset="fade-in-blur" delay={0.1} as="span">{`Dzień dobry, ${displayName}.`}</TextEffect>
         </h1>
@@ -6068,19 +5789,11 @@ function recommendInfaktPlan(income, practice) {
 }
 
 function recommendedIds(inputs) {
-  const s = new Set(["lloyds", "oc"]); // zawsze: ochrona podstawowa
+  const s = new Set(["lloyds", "oc", "medicover"]); // zawsze: ochrona + zdrowie
   if (inputs.practice !== "contract") {
     s.add("infakt");
     s.add("wg");
-    s.add("autenti");
-    s.add("legal");
   }
-  if (inputs.practice === "private") {
-    s.add("egabinet");
-    s.add("tax");
-  }
-  if (inputs.interests.has("car")) s.add("advLeas");
-  if (inputs.experience <= 3) s.add("advInsur");
   return s;
 }
 
@@ -6176,6 +5889,45 @@ function WGConfig({ params, onSave }) {
   );
 }
 
+function MedicoverConfig({ params, onSave }) {
+  const [scope, setScope] = useState(params.scope || "individual");
+  const [plan, setPlan] = useState(params.plan || "Komfort");
+  return (
+    <div className="kcfg">
+      <div className="kcfg__field">
+        <label className="kcfg__label">Zakres</label>
+        <div className="kcfg__seg">
+          {[
+            { id: "individual", label: "Indywidualny" },
+            { id: "partner", label: "+ Partner" },
+            { id: "family", label: "+ Rodzina" },
+          ].map(s => (
+            <button key={s.id} className={`kcfg__seg-opt${scope === s.id ? " is-active" : ""}`} onClick={() => setScope(s.id)}>
+              {s.label}
+            </button>
+          ))}
+        </div>
+      </div>
+      <div className="kcfg__field">
+        <label className="kcfg__label">Pakiet</label>
+        <div className="kcfg__radio-grid">
+          {[
+            { id: "Standard", desc: "Podstawowa opieka medyczna" },
+            { id: "Komfort",  desc: "+ diagnostyka i specjaliści" },
+            { id: "Optimum",  desc: "Pełna diagnostyka + rehab." },
+          ].map(p => (
+            <button key={p.id} className={`kcfg__radio${plan === p.id ? " is-active" : ""}`} onClick={() => setPlan(p.id)}>
+              <div className="kcfg__radio-name">{p.id}</div>
+              <div className="kcfg__radio-desc">{p.desc}</div>
+            </button>
+          ))}
+        </div>
+      </div>
+      <button className="kcfg__save" onClick={() => onSave({ scope, plan })}>Zapisz</button>
+    </div>
+  );
+}
+
 function AutentiConfig({ params, onSave }) {
   const [volume, setVolume] = useState(params.volume || "50");
   return (
@@ -6226,22 +5978,20 @@ function GenericConfig({ onSave }) {
 }
 
 const KREATOR_CONFIG_VIEWS = {
-  lloyds:   LloydsConfig,
-  oc:       OCConfig,
-  infakt:   InfaktConfig,
-  wg:       WGConfig,
-  autenti:  AutentiConfig,
-  egabinet: EgabinetConfig,
+  lloyds:    LloydsConfig,
+  oc:        OCConfig,
+  infakt:    InfaktConfig,
+  wg:        WGConfig,
+  medicover: MedicoverConfig,
 };
 
 function kreatorParamSummary(id, params) {
   if (!params || Object.keys(params).length === 0) return null;
-  if (id === "lloyds")   return `Suma: ${params.sum / 1000}k zł/mies.`;
-  if (id === "oc")       return `Klasa ${params.ocClass}${params.extra > 0 ? ` · nadwyżka ${params.extra / 1000000}M` : ""}`;
-  if (id === "infakt")   return `Plan: ${params.plan}`;
-  if (id === "wg")       return params.city;
-  if (id === "autenti")  return `${params.volume} podpisów/mies.`;
-  if (id === "egabinet") return `${params.doctors} ${params.doctors === 1 ? "lekarz" : "lekarzy"}`;
+  if (id === "lloyds")    return `Suma: ${params.sum / 1000}k zł/mies.`;
+  if (id === "oc")        return `Klasa ${params.ocClass}${params.extra > 0 ? ` · nadwyżka ${params.extra / 1000000}M` : ""}`;
+  if (id === "infakt")    return `Plan: ${params.plan}`;
+  if (id === "wg")        return params.city;
+  if (id === "medicover") return `${params.plan || "Komfort"} · ${params.scope === "family" ? "rodzina" : params.scope === "partner" ? "+ partner" : "indywidualny"}`;
   return null;
 }
 
