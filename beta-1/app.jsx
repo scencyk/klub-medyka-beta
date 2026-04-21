@@ -3,6 +3,8 @@ import { createRoot } from 'react-dom/client';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence, useSpring, useTransform, motionValue, useInView } from 'motion/react';
 import useMeasure from 'react-use-measure';
+import { TextMorph } from '@/components/motion-primitives/text-morph';
+import { TextRoll as TextRollMP } from '@/components/motion-primitives/text-roll';
 import './styles/index.css';
 
 // ─── TEXT ROLL ────────────────────────────────────────────────────────────────
@@ -363,6 +365,12 @@ function lpLloydLabel(sum) { return `Lloyd's utrata dochodu ${sum / 1000}k`; }
 //   effective    — cena miesięczna do wyświetlenia (po rabacie jeśli billing=rok)
 //   annualTotal  — łączna kwota roczna (null przy billing=msc)
 //   annualSaving — oszczędność w zł/rok vs miesięczny (0 przy billing=msc)
+// Feature flag — wyłącza UI związany z pakietem Lekarz Przedsiębiorca.
+// Dane (lpSub, LP_PRODUCT, calcLPPrice, LP_CORE_IDS) zostają nietknięte żeby
+// łatwo wrócić. Zgasza: Usługi 1/2/3, LP banery, chipy "W LP", LP swap,
+// migration card, LP worek na Overview.
+const LP_ENABLED = false;
+
 function calcLPPrice(sub) {
   const opt = LP_PRODUCT.lloydOptions.find(o => o.sum === sub.lloydSum) || LP_PRODUCT.lloydOptions[0];
   const raw = LP_PRODUCT.basePrice + opt.deltaPrice + (sub.infaktAddon ? LP_PRODUCT.infakt.price : 0);
@@ -391,7 +399,7 @@ const SERVICE_CATEGORIES = [
 const SERVICE_CATALOG = [
   {
     id: "lloyds", label: "Ubezpieczenie utraty dochodu (Lloyd's)", short: "Lloyd's",
-    category: "insurance", icon: "💼",
+    category: "insurance", icon: "💼", logo: "services/lloyds.svg", cover: "services/lloyds-cover.png",
     soloPrice: 115,
     desc: "Ochrona Twojego przychodu przy chorobie lub wypadku. Remedium pośredniczy.",
     soloFeatures: ["Suma 5 000 zł / mies.", "Wypłata do 24 miesięcy", "Bez karencji medycznej"],
@@ -428,7 +436,7 @@ const SERVICE_CATALOG = [
   },
   {
     id: "oc", label: "OC zawodowe", short: "OC",
-    category: "insurance", icon: "🩺",
+    category: "insurance", icon: "🩺", logo: "services/oc.jpg", cover: "services/oc-cover.png",
     soloPrice: 89,
     desc: "Obowiązkowe OC lekarskie. Klasa zależy od Twojej specjalizacji.",
     soloFeatures: ["Suma 1 000 000 zł", "Roczna polisa", "Ergo Hestia"],
@@ -463,7 +471,7 @@ const SERVICE_CATALOG = [
   },
   {
     id: "infakt", label: "Księgowość inFakt", short: "inFakt",
-    category: "accounting", icon: "🧾",
+    category: "accounting", icon: "🧾", logo: "services/infakt.svg", cover: "services/infakt-cover.jpg",
     soloPrice: 199,
     desc: "Pełna księgowość JDG przez inFakt. Faktury, PIT, ZUS, US.",
     soloFeatures: ["Wszystkie deklaracje", "App mobilna", "Wsparcie księgowego"],
@@ -501,7 +509,7 @@ const SERVICE_CATALOG = [
   },
   {
     id: "wg", label: "Wirtualny gabinet (adres rejestrowy)", short: "Wirtualny gabinet",
-    category: "accounting", icon: "🏢",
+    category: "accounting", icon: "🏢", logo: "services/wg.svg", cover: "services/wg-cover.png",
     soloPrice: 79,
     desc: "Adres JDG + korespondencja + telefon + email — prywatność w KRS.",
     soloFeatures: ["Adres rejestrowy", "Skanowanie poczty", "Prywatność w CEIDG"],
@@ -535,37 +543,36 @@ const SERVICE_CATALOG = [
     },
   },
   {
-    id: "medicover", label: "Opieka medyczna Medicover", short: "Medicover",
-    category: "medical", icon: "🏥",
-    soloPrice: 189,
-    desc: "Prywatna opieka zdrowotna — ogólnopolska sieć placówek Medicover.",
-    soloFeatures: ["Bez limitów konsultacji", "Diagnostyka w cenie", "Ogólnopolska sieć"],
-    lpAdvantage: "Rabat 20% w pakiecie",
+    id: "medicover", label: "Medicover Sport", short: "Medicover Sport",
+    category: "medical", icon: "🏃", logo: "services/medicover.svg", cover: "services/medicover-cover.png",
+    soloPrice: 89,
+    desc: "Dostęp do tysięcy obiektów sportowych w całej Polsce — siłownie, baseny, joga, crossfit i więcej.",
+    soloFeatures: ["4 800+ obiektów", "Wejście przez QR kod", "Dopisanie osoby towarzyszącej"],
+    lpAdvantage: "Cena wynegocjowana dla Klubu Medyka",
     inLP: true,
     landing: {
-      longDesc: "Prywatna opieka zdrowotna Medicover — dostęp do ogólnopolskiej sieci placówek, konsultacji specjalistycznych, diagnostyki i profilaktyki. Dedykowany pakiet dla członków Klubu Medyka z opcją rozszerzenia na rodzinę.",
-      partner: "Medicover · pakiet dla Klubu Medyka",
+      longDesc: "Jako lekarz wiesz lepiej niż ktokolwiek, jak ważna jest regularna aktywność fizyczna. Medicover Sport daje Ci dostęp do tysięcy obiektów w całej Polsce — siłowni, basenów, jogi, crossfitu i dziesiątek innych dyscyplin — wszystko w jednej aplikacji. Oferta dostępna wyłącznie dla członków Klubu Medyka, niedostępna indywidualnie bez pośrednictwa organizacji.",
+      partner: "Medicover Sport · oferta ekskluzywna dla Klubu Medyka",
       valueProps: [
-        { title: "Ogólnopolska sieć", desc: "Wszystkie placówki Medicover w kraju" },
-        { title: "Bez limitów konsultacji", desc: "Lekarz rodzinny + specjaliści w cenie" },
-        { title: "Diagnostyka w pakiecie", desc: "Badania laboratoryjne i obrazowe" },
+        { title: "Bez ograniczeń", desc: "Siłownie, baseny, joga, crossfit, ścianki wspinaczkowe i więcej" },
+        { title: "Jedna aplikacja", desc: "Wejście do obiektów przez QR kod" },
+        { title: "Cena Klubowa", desc: "Wynegocjowana wyłącznie dla członków Klubu Medyka" },
       ],
       includes: [
-        { title: "Lekarz rodzinny", desc: "Nielimitowane konsultacje w placówkach Medicover" },
-        { title: "Dostęp do specjalistów", desc: "Kardiolog, dermatolog, okulista, ginekolog i inne" },
-        { title: "Diagnostyka laboratoryjna", desc: "Pakiet badań w cenie bez limitu" },
-        { title: "Diagnostyka obrazowa", desc: "USG, RTG, tomografia w ramach pakietu" },
-        { title: "Profilaktyka roczna", desc: "Bilans zdrowia co 12 miesięcy" },
+        { title: "Siłownie, baseny, joga, crossfit, ścianki wspinaczkowe i więcej", desc: "Tysięce obiektów w całej Polsce" },
+        { title: "Wszystko w jednej aplikacji", desc: "Wejście przez QR kod — bez kart, bez kodów" },
+        { title: "Cena wynegocjowana wyłącznie dla członków Klubu Medyka", desc: "Niedostępna indywidualnie" },
+        { title: "Możliwość dopisania osoby towarzyszącej i dzieci", desc: "Rozszerzenie pakietu na bliskich" },
       ],
       howItWorks: [
-        { title: "Aktywacja karty Medicover", desc: "Karta fizyczna + elektroniczna w 3 dni" },
-        { title: "Umawiasz wizyty przez app", desc: "Medicover app lub infolinia 24/7" },
-        { title: "Dostępne placówki", desc: "Przy domu, przy klinice, w podróży — cała Polska" },
+        { title: "Wybierasz plan", desc: "goFIT (sport bez ograniczeń) lub FIT&more (więcej niż sport — coaching, mindfulness)" },
+        { title: "Aktywujesz kartę", desc: "Automatycznie przez Klub Medyka hasłem dostępu" },
+        { title: "Wchodzisz QR kodem", desc: "Skanujesz przy wejściu do dowolnego obiektu w sieci" },
       ],
       faq: [
-        { q: "Czy obejmuje rodzinę?", a: "Standardowo pakiet indywidualny. Rozszerzenie na partnera i dzieci za dopłatą — szczegóły w konfiguracji usługi." },
-        { q: "A jeśli potrzebuję zabiegu?", a: "Pakiet obejmuje drobne zabiegi ambulatoryjne. Większe interwencje wymagają skierowania i mogą wiązać się z udziałem własnym." },
-        { q: "Czy mogę korzystać poza Polską?", a: "Medicover ma partnerów w kilku krajach europejskich — pytaj doradcy przy potrzebie zagranicznej konsultacji." },
+        { q: "Jaka jest różnica między goFIT a FIT&more?", a: "goFIT (4 800+ obiektów, 50 aktywności) — dla osób skupionych na aktywności fizycznej. FIT&more (6 000+ obiektów, 85+ aktywności) — holistyczne wsparcie: sporty rakietowe, EMS, coaching dietetyczny, mindfulness, treningi wideo." },
+        { q: "Czy mogę dopisać rodzinę?", a: "Tak — osobę towarzyszącą i dzieci za dopłatą. Dokładna cena w konfiguracji usługi." },
+        { q: "Czy mogę korzystać w każdym mieście?", a: "Tak — sieć obiektów pokrywa całą Polskę. Podróżując między klinikami, korzystasz z tej samej karty." },
       ],
     },
   },
@@ -632,9 +639,9 @@ const LIFE_AREAS = [
     coveredByLP: true,
   },
   {
-    id: "health", label: "Zdrowie", icon: "🏥",
-    short: "Opieka medyczna",
-    desc: "Prywatna opieka medyczna dla lekarza — dostęp do sieci placówek Medicover z możliwością rozszerzenia na rodzinę.",
+    id: "health", label: "Aktywność fizyczna", icon: "🏃",
+    short: "Siłownie, baseny, sport",
+    desc: "Dostęp do tysięcy obiektów sportowych w Polsce — siłownie, baseny, joga, crossfit i więcej. Jedna aplikacja, QR kod.",
     serviceIds: ["medicover"],
     coveredByLP: true,
   },
@@ -1455,18 +1462,18 @@ const NAV_SECTIONS = [
       { id: "purchases",   label: "Zakupy",        icon: "purchases" },
       { id: "discounts",   label: "Zniżki",        icon: "discounts" },
       { id: "cars",        label: "Samochody",     icon: "cars" },
-      { id: "packages",    label: "Usługi",        icon: "packages" },
-      { id: "packages2",   label: "Usługi 2",      icon: "packages" },
-      { id: "packages3",   label: "Usługi 3",      icon: "packages" },
-      { id: "packages4",   label: "Usługi 4",      icon: "packages" },
-      { id: "insurance",   label: "Ubezpieczenia", icon: "insurance" },
+      ...(LP_ENABLED ? [
+        { id: "packages",  label: "Usługi LP",     icon: "packages" },
+        { id: "packages2", label: "Usługi 2",      icon: "packages" },
+        { id: "packages3", label: "Usługi 3",      icon: "packages" },
+      ] : []),
+      { id: "packages4",   label: "Usługi",        icon: "packages" },
     ],
   },
   {
     header: "Konto",
     items: [
       { id: "profile", label: "Mój profil", icon: "profile", badge: 2 },
-      { id: "advisors",    label: "Twoi doradcy",  icon: "advisors"  },
     ],
   },
 ];
@@ -2041,7 +2048,7 @@ function Sidebar({ active, setActive, theme, setTheme, profile }) {
   const displayName = profile && profile.firstName ? `Dr ${profile.firstName} ${profile.lastName}` : "Dr Kowalska";
   const roleLabel = profile && profile.role ? (OB_ROLES.find(r => r.id === profile.role)?.label || "") : "Rezydent";
   return (
-    <aside className="sticky top-0 flex h-screen shrink-0 flex-col bg-bg" style={{ width: 'var(--sidebar-w)' }}>
+    <aside className="sticky top-0 flex h-screen shrink-0 flex-col" style={{ width: 'var(--sidebar-w)' }}>
       {/* Logo */}
       <div className="px-5 pb-4 pt-7">
         <div className="mb-3.5 flex cursor-pointer items-center" onClick={() => setActive("overview")}>
@@ -2088,8 +2095,8 @@ function Sidebar({ active, setActive, theme, setTheme, profile }) {
               const stateCls = item.soon
                 ? "cursor-default bg-transparent font-normal text-muted opacity-60 hover:bg-transparent hover:text-muted"
                 : isActive
-                  ? "bg-accent-bg font-semibold text-accent [&_svg]:opacity-100"
-                  : "bg-transparent font-normal text-fg hover:bg-secondary hover:text-fg";
+                  ? "bg-[#E8E4D5] font-semibold text-fg [&_svg]:opacity-100"
+                  : "bg-transparent font-normal text-fg hover:bg-[#EDE9DB] hover:text-fg";
               return (
                 <button key={item.id} onClick={() => !item.soon && setActive(item.id)} className={`${baseCls} ${stateCls}`}>
                   <span className="flex items-center gap-2.5 [&_svg]:shrink-0 [&_svg]:opacity-70">
@@ -2266,6 +2273,70 @@ function getRelevantAdvisors(profile) {
 
 // ─── Overview component ───
 
+function timeOfDayGreeting() {
+  const h = new Date().getHours();
+  if (h < 5)  return "Spokojnej nocy";
+  if (h < 11) return "Dzień dobry";
+  if (h < 17) return "Miłego dnia";
+  if (h < 21) return "Dobry wieczór";
+  return "Dobry wieczór";
+}
+
+// Upsell teaser per service — headline + tagline
+const SERVICE_UPSELL_TEASERS = {
+  lloyds:    { headline: "Lloyd's od 115 zł/mies.",          tagline: "Wypłata do 24 miesięcy — ochrona dochodu w chorobie." },
+  oc:        { headline: "OC zawodowe od 89 zł/mies.",       tagline: "Obowiązkowe — klasa ryzyka automatycznie z NIL." },
+  infakt:    { headline: "inFakt od 199 zł/mies.",           tagline: "Pełna księgowość JDG — aplikacja i dedykowany księgowy." },
+  wg:        { headline: "Wirtualny gabinet od 79 zł/mies.", tagline: "Adres rejestrowy + prywatność w CEIDG." },
+  medicover: { headline: "Medicover Sport od 89 zł/mies.",   tagline: "4 800+ obiektów — oferta ekskluzywna dla Klubu Medyka." },
+};
+
+function HomeUpsellTeaser({ services, onOpen }) {
+  const [idx, setIdx] = useState(0);
+  useEffect(() => {
+    if (services.length <= 1) return;
+    const t = setInterval(() => setIdx(i => (i + 1) % services.length), 5000);
+    return () => clearInterval(t);
+  }, [services.length]);
+  const current = services[idx];
+  if (!current) return null;
+  const teaser = SERVICE_UPSELL_TEASERS[current.id] || { headline: `${current.label} od ${current.soloPrice} zł/mies.`, tagline: current.desc };
+  return (
+    <div
+      className="home-teaser"
+      role="button"
+      tabIndex={0}
+      onClick={() => onOpen && onOpen(current.id)}
+      onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onOpen && onOpen(current.id); } }}
+    >
+      <div className="home-teaser__eyebrow">
+        <img src={`${import.meta.env.BASE_URL}sygnet.svg`} alt="" className="home-teaser__eyebrow-sygnet" />
+        W Klubie możesz mieć
+      </div>
+      <div className="home-teaser__body">
+        {current.logo && (
+          <img key={`logo-${current.id}`} src={`${import.meta.env.BASE_URL}${current.logo}`} alt="" className="home-teaser__logo" />
+        )}
+        <div className="home-teaser__text">
+          <div className="home-teaser__headline">
+            <TextRoll key={`h-${current.id}`}>{teaser.headline}</TextRoll>
+          </div>
+          <div className="home-teaser__tagline">
+            <TextRoll key={`t-${current.id}`}>{teaser.tagline}</TextRoll>
+          </div>
+        </div>
+      </div>
+      {services.length > 1 && (
+        <div className="home-teaser__dots">
+          {services.map((_, i) => (
+            <span key={i} className={`home-teaser__dot${i === idx ? " is-active" : ""}`} />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 function Overview({ setActive, profile, setProfile, unlockedDiscounts, unlockDiscount, purchasedServices, lpSub, openManageService }) {
   const [advisorsOpen, setAdvisorsOpen] = useState(false);
   const [bookingDropdown, setBookingDropdown] = useState(null);
@@ -2320,6 +2391,22 @@ function Overview({ setActive, profile, setProfile, unlockedDiscounts, unlockDis
   const lpCalc = calcLPPrice(lpSub || { billing: "rok", lloydSum: 5000, infaktAddon: true });
   const lpSavings = Math.max(0, LP_ALL_SOLO_MONTHLY - lpCalc.effective);
 
+  // Killer oferty — 3 wyróżnione (pierwsza duży hero, dwie mniejsze)
+  const killerOffers = [...DISCOUNTS].sort((a, b) => {
+    const na = parseInt(a.id.replace("d", ""), 10);
+    const nb = parseInt(b.id.replace("d", ""), 10);
+    return nb - na;
+  }).slice(0, 3);
+
+  // Dokończ ochronę — usługi których user nie ma (max 2 priorytetowe)
+  const missingServices = SERVICE_CATALOG.filter(s => !purchased[s.id]).slice(0, 2);
+
+  // Najbliższe odnowienie
+  const nextRenewalDate = Object.values(purchased)
+    .map(p => p.nextRenewal)
+    .filter(Boolean)
+    .sort()[0] || null;
+
   // Akcje wymagające uwagi — seedowane na podstawie purchasedServices
   const actionsNeeded = [];
   Object.values(purchased).forEach(p => {
@@ -2338,18 +2425,20 @@ function Overview({ setActive, profile, setProfile, unlockedDiscounts, unlockDis
   return (
     <div style={{ maxWidth: 1100, display: "flex", flexDirection: "column", gap: 40 }}>
 
-      {/* 1. Greeting */}
-      <div>
-        <h1 style={{ fontSize: 30, fontWeight: 700, letterSpacing: "-0.04em", lineHeight: 1.15, margin: 0 }}>
-          <TextEffect per="char" preset="fade-in-blur" delay={0.1} as="span">{`Dzień dobry, ${displayName}.`}</TextEffect>
-        </h1>
-        {roleLabel && (
-          <button className="role-btn" onClick={() => setPrefsOpen(true)}>
-            <span className="role-btn__dot" />
-            {roleLabel}
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
-          </button>
-        )}
+      {/* 1. Greeting + upsell teaser (right-side rotating) */}
+      <div className="home-hero">
+        <div className="home-hero__greeting">
+          <h1 style={{ fontSize: 30, fontWeight: 700, letterSpacing: "-0.04em", lineHeight: 1.15, margin: 0 }}>
+            <TextEffect per="char" preset="fade-in-blur" delay={0.1} as="span">{`${timeOfDayGreeting()}, ${displayName}.`}</TextEffect>
+          </h1>
+          {roleLabel && (
+            <div className="role-chip">
+              <span className="role-chip__dot" />
+              {roleLabel}
+            </div>
+          )}
+        </div>
+        {missingServices.length > 0 && <HomeUpsellTeaser services={missingServices} onOpen={() => setActive("packages4")} />}
       </div>
 
       {/* Preferences dialog */}
@@ -2396,105 +2485,147 @@ function Overview({ setActive, profile, setProfile, unlockedDiscounts, unlockDis
       </div>
       */}
 
-      {/* 2. STATUS STRIP — szybkie metryki */}
+      {/* 2. SERVICE STATUS LINE — logo stack + summary + +N plus */}
       <InView>
-        <div className="home-strip">
-          <div className="home-strip__cell">
-            <div className="home-strip__num">{ownedServices.length}</div>
-            <div className="home-strip__lbl">{ownedServices.length === 1 ? "aktywna usługa" : ownedServices.length < 5 ? "aktywne usługi" : "aktywnych usług"}</div>
-          </div>
-          <div className="home-strip__divider" />
-          <div className="home-strip__cell">
-            <div className="home-strip__num">{coveredAreasCount}<span className="home-strip__num-sub">/{totalAreasCount}</span></div>
-            <div className="home-strip__lbl">obszarów pokrytych</div>
-          </div>
-          <div className="home-strip__divider" />
-          <div className="home-strip__cell">
-            <div className="home-strip__num">{ownedMonthly}<span className="home-strip__num-sub"> zł</span></div>
-            <div className="home-strip__lbl">miesięcznie</div>
-          </div>
-          <button className="home-strip__cta" onClick={() => setActive("packages4")}>
-            Zarządzaj
-            <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M6 3l5 5-5 5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/></svg>
-          </button>
-        </div>
-      </InView>
-
-      {/* 3. TWOJE USŁUGI — 2 worki */}
-      <InView>
-        <SectionHeader title="Twoje usługi" action="Wszystkie" onAction={() => setActive("packages4")} />
-        <div className="home-bags">
-          {/* Worek A: Aktywne subskrypcje */}
-          <div className="home-bag home-bag--subs" onClick={() => setActive("packages4")} role="button" tabIndex={0}>
-            <div className="home-bag__eyebrow">Aktywne subskrypcje</div>
-            <div className="home-bag__body">
-              <CoverageRing pct={coveragePct} />
-              <div className="home-bag__stats">
-                <div className="home-bag__stat">
-                  <div className="home-bag__stat-num">{ownedServices.length}</div>
-                  <div className="home-bag__stat-lbl">aktywne</div>
-                </div>
-                <div className="home-bag__stat">
-                  <div className="home-bag__stat-num">{partialAreasCount}</div>
-                  <div className="home-bag__stat-lbl">częściowo pokryte</div>
-                </div>
-                <div className="home-bag__stat">
-                  <div className="home-bag__stat-num">{totalAreasCount - coveredAreasCount - partialAreasCount}</div>
-                  <div className="home-bag__stat-lbl">do pokrycia</div>
-                </div>
-              </div>
-            </div>
-            {ownedServices.length > 0 && (
-              <div className="home-bag__quick">
-                <button className="home-bag__quick-btn" onClick={(e) => { e.stopPropagation(); openManageService && openManageService(ownedServices[0].id); }}>
-                  Pobierz polisę
-                </button>
-                <button className="home-bag__quick-btn" onClick={(e) => { e.stopPropagation(); setActive("packages3"); }}>
-                  Zobacz mapę
-                </button>
-              </div>
+        <div className="home-summary" onClick={() => setActive("packages4")} role="button" tabIndex={0}>
+          <div className="home-summary__stack">
+            {ownedServices.slice(0, 5).map((svc, i) => (
+              <span key={svc.id} className="home-summary__avatar" style={{ zIndex: 10 - i }} title={svc.label}>
+                {svc.logo
+                  ? <img src={`${import.meta.env.BASE_URL}${svc.logo}`} alt="" />
+                  : <span aria-hidden>{svc.icon}</span>}
+              </span>
+            ))}
+            {missingServices.length > 0 && (
+              <button
+                className="home-summary__plus"
+                onClick={(e) => { e.stopPropagation(); setActive("packages4"); }}
+                title={`Dodaj ${missingServices.length} ${missingServices.length === 1 ? "kolejną usługę" : "kolejnych usług"}`}
+                aria-label="Dodaj kolejne usługi"
+              >
+                +{SERVICE_CATALOG.length - ownedServices.length}
+              </button>
             )}
           </div>
-
-          {/* Worek B: Pakiet LP (conditional) */}
-          {lpSub?.active ? (
-            <div className="home-bag home-bag--lp-active" onClick={() => setActive("packages")} role="button" tabIndex={0}>
-              <div className="home-bag__eyebrow home-bag__eyebrow--lime">Twój pakiet</div>
-              <div className="home-bag__title-xl">Lekarz Przedsiębiorca</div>
-              <div className="home-bag__meta-row">
-                <div className="home-bag__meta-item">
-                  <div className="home-bag__meta-lbl">Lloyd's</div>
-                  <div className="home-bag__meta-val">{lpSub.lloydSum / 1000}k zł</div>
-                </div>
-                <div className="home-bag__meta-item">
-                  <div className="home-bag__meta-lbl">Rozliczenie</div>
-                  <div className="home-bag__meta-val">{lpSub.billing === "rok" ? "Roczne" : "Miesięczne"}</div>
-                </div>
-                <div className="home-bag__meta-item">
-                  <div className="home-bag__meta-lbl">Następne</div>
-                  <div className="home-bag__meta-val">{lpSub.nextRenewal || "—"}</div>
-                </div>
-              </div>
-              <button className="home-bag__cta home-bag__cta--dark" onClick={(e) => { e.stopPropagation(); setActive("packages"); }}>
-                Zarządzaj pakietem →
-              </button>
-            </div>
-          ) : (
-            <div className="home-bag home-bag--lp-offer" onClick={() => setActive("packages")} role="button" tabIndex={0}>
-              <div className="home-bag__sparkle" aria-hidden>
-                <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M10 2l2.4 5.4L18 9l-4 3.8L15 19l-5-3-5 3 1-6.2L2 9l5.6-1.6z" fill="currentColor"/></svg>
-              </div>
-              <div className="home-bag__eyebrow home-bag__eyebrow--lime">Pakiet</div>
-              <div className="home-bag__title-xl">Lekarz Przedsiębiorca</div>
-              <div className="home-bag__pitch">Wszystkie kluczowe usługi w jednym pakiecie. Dedykowany opiekun, negocjowane rabaty, prelimit LeaseLink.</div>
-              <div className="home-bag__savings-chip">Zaoszczędzisz <strong>~{lpSavings} zł / mies.</strong></div>
-              <button className="home-bag__cta home-bag__cta--lime" onClick={(e) => { e.stopPropagation(); setActive("packages"); }}>
-                Zobacz pakiet →
-              </button>
-            </div>
-          )}
+          <div className="home-summary__text">
+            Masz <strong>{ownedServices.length} {ownedServices.length === 1 ? "aktywną usługę" : ownedServices.length < 5 ? "aktywne usługi" : "aktywnych usług"}</strong>
+            {ownedMonthly > 0 && <> · <strong>{ownedMonthly} zł / mies.</strong></>}
+            {nextRenewalDate && <> · najbliższe odnowienie <strong>{nextRenewalDate}</strong></>}
+          </div>
+          <div className="home-summary__cta">
+            Zarządzaj
+            <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M6 3l5 5-5 5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/></svg>
+          </div>
         </div>
       </InView>
+
+      {/* 3. KILLER OFERTY — wyróżnione deale (hero + 2 mniejsze) */}
+      <InView>
+        <SectionHeader title="🔥 Killer oferty" action="Wszystkie zniżki" onAction={() => setActive("discounts")} />
+        <div className="home-killer">
+          {killerOffers[0] && (
+            <div className="home-killer__hero" onClick={() => setSelectedDiscount(killerOffers[0])} role="button" tabIndex={0}>
+              <div className="home-killer__hero-img">
+                <img src={killerOffers[0].hero} alt={killerOffers[0].partner} />
+                <span className="home-killer__hero-badge">{killerOffers[0].badge}</span>
+                <span className="home-killer__hero-exclusive" data-tooltip="Oferta dedykowana dla Klubu Medyka">
+                  <img src={`${import.meta.env.BASE_URL}sygnet-negative.svg`} alt="" className="home-killer__hero-exclusive-sygnet" />
+                  TYLKO W KLUBIE
+                </span>
+              </div>
+              <div className="home-killer__hero-body">
+                <div className="home-killer__hero-partner">
+                  <img src={killerOffers[0].logo} alt="" />
+                  {killerOffers[0].partner}
+                </div>
+                <div className="home-killer__hero-title">{killerOffers[0].title}</div>
+                <div className="home-killer__hero-desc">{killerOffers[0].desc}</div>
+                <button className="home-killer__hero-cta" onClick={(e) => { e.stopPropagation(); setSelectedDiscount(killerOffers[0]); }}>
+                  Wykorzystaj
+                  <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M6 3l5 5-5 5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                </button>
+              </div>
+            </div>
+          )}
+          <div className="home-killer__side">
+            {killerOffers.slice(1, 3).map(d => (
+              <div key={d.id} className="home-killer__card" onClick={() => setSelectedDiscount(d)} role="button" tabIndex={0}>
+                <div className="home-killer__card-img">
+                  <img src={d.hero} alt={d.partner} />
+                  <span className="home-killer__card-badge">{d.badge}</span>
+                </div>
+                <div className="home-killer__card-body">
+                  <div className="home-killer__card-partner">
+                    <img src={d.logo} alt="" />
+                    {d.partner}
+                  </div>
+                  <div className="home-killer__card-title">{d.title}</div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </InView>
+
+      {/* 4. TWOJE USŁUGI — 5 kafelków (aktywne vs dostępne) */}
+      <InView>
+        <SectionHeader title="Usługi" action="Wszystkie" onAction={() => setActive("packages4")} />
+        <div className="home-services">
+          {SERVICE_CATALOG.map(svc => {
+            const isActive = !!purchased[svc.id];
+            const partner = svc.landing?.partner?.split("·")[0]?.trim() || "Remedium";
+            return (
+              <div
+                key={svc.id}
+                className={`home-service${isActive ? " is-active" : ""}`}
+                onClick={() => isActive ? openManageService && openManageService(svc.id) : setActive("packages4")}
+                role="button"
+                tabIndex={0}
+              >
+                {svc.cover && (
+                  <img src={`${import.meta.env.BASE_URL}${svc.cover}`} alt="" className="home-service__cover" />
+                )}
+                <div className="home-service__shade" />
+                <div className="home-service__body">
+                  {svc.logo && <img src={`${import.meta.env.BASE_URL}${svc.logo}`} alt="" className="home-service__logo" />}
+                  <div className="home-service__name">{svc.short || svc.label}</div>
+                  <div className="home-service__status">
+                    {isActive ? (
+                      <><span className="home-service__dot home-service__dot--active" /> Aktywna</>
+                    ) : (
+                      <><span className="home-service__dot" /> {svc.soloPrice} zł/mies.</>
+                    )}
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </InView>
+
+      {/* 5. DOKOŃCZ OCHRONĘ — upsell brakujących usług */}
+      {missingServices.length > 0 && (
+        <InView>
+          <SectionHeader title="Dokończ ochronę" action="Zobacz wszystkie" onAction={() => setActive("packages4")} />
+          <div className="home-upsell">
+            {missingServices.map(svc => (
+              <div key={svc.id} className="home-upsell__card" onClick={() => setActive("packages4")} role="button" tabIndex={0}>
+                {svc.logo && <img src={`${import.meta.env.BASE_URL}${svc.logo}`} alt="" className="home-upsell__logo" />}
+                <div className="home-upsell__body">
+                  <div className="home-upsell__title">{svc.label}</div>
+                  <div className="home-upsell__desc">{svc.desc}</div>
+                </div>
+                <div className="home-upsell__side">
+                  <div className="home-upsell__price">{svc.soloPrice} <span>zł/mies.</span></div>
+                  <button className="home-upsell__cta" onClick={(e) => { e.stopPropagation(); setActive("packages4"); }}>
+                    Dodaj →
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </InView>
+      )}
 
       {/* 4. AKCJE WYMAGAJĄCE UWAGI (warunkowo) */}
       {actionsNeeded.length > 0 && (
@@ -2519,7 +2650,7 @@ function Overview({ setActive, profile, setProfile, unlockedDiscounts, unlockDis
 
       {/* 5. NOWE DLA CIEBIE — temptation row */}
       <InView>
-        <SectionHeader title="Nowe dla Ciebie" action="Wszystkie zniżki" onAction={() => setActive("discounts")} />
+        <SectionHeader title="Świeżo w Klubie" action="Wszystkie zniżki" onAction={() => setActive("discounts")} />
         <div className="scroll-row">
           {newestDiscounts.slice(0, 6).map(d => (
             <div key={d.id} className="scroll-row__item home-offer" onClick={() => setSelectedDiscount(d)}>
@@ -5599,7 +5730,7 @@ function Services4View({ cart, addToCart, removeFromCart, lpSub, setLpSub, setAc
             exit={{ opacity: 0, y: -8 }}
             transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
           >
-            {!lpSub?.active && !lpStripDismissed && (
+            {LP_ENABLED && !lpSub?.active && !lpStripDismissed && (
               <LPPromoStrip
                 lpSub={lpSub}
                 onOpenLP={() => setActive && setActive("packages")}
@@ -5699,25 +5830,35 @@ function Service4Card({ service, inCart, isPurchased, onOpen, onManage }) {
       layout
       transition={{ duration: 0.2 }}
     >
-      <div className="s4-card__hero" style={{ background: theme.bg, color: theme.fg }}>
-        <div className="s4-card__hero-icon" aria-hidden>{service.icon}</div>
+      <div
+        className={`s4-card__hero${service.cover ? " s4-card__hero--cover" : ""}`}
+        style={service.cover ? undefined : { background: theme.bg, color: theme.fg }}
+      >
+        {service.cover && (
+          <img src={`${import.meta.env.BASE_URL}${service.cover}`} alt="" className="s4-card__hero-img" />
+        )}
+        <span className="s4-card__cat-hero">{categoryLabel}</span>
+        {!service.cover && <div className="s4-card__hero-icon" aria-hidden>{service.icon}</div>}
         {isPurchased ? (
           <span className="s4-card__badge s4-card__badge--active">Aktywna</span>
-        ) : service.inLP && LP_SERVICE_PERK_SHORT[service.id] ? (
+        ) : LP_ENABLED && service.inLP && LP_SERVICE_PERK_SHORT[service.id] ? (
           <span className="s4-card__badge s4-card__badge--lp" title="Korzyść w pakiecie Lekarz Przedsiębiorca">
             W LP: {LP_SERVICE_PERK_SHORT[service.id]}
           </span>
-        ) : service.inLP ? (
+        ) : LP_ENABLED && service.inLP ? (
           <span className="s4-card__badge">W LP</span>
         ) : null}
       </div>
       <div className="s4-card__body">
         <div className="s4-card__meta">
-          <span className="s4-card__logo" style={{ background: theme.fg }} aria-hidden>
-            {partner.charAt(0).toUpperCase()}
-          </span>
+          {service.logo ? (
+            <img src={`${import.meta.env.BASE_URL}${service.logo}`} alt={partner} className="s4-card__logo-img" />
+          ) : (
+            <span className="s4-card__logo" style={{ background: theme.fg }} aria-hidden>
+              {partner.charAt(0).toUpperCase()}
+            </span>
+          )}
           <span className="s4-card__partner">{partner}</span>
-          <span className="s4-card__cat">{categoryLabel}</span>
         </div>
         <h3 className="s4-card__title">{service.label}</h3>
         <p className="s4-card__desc">{short}</p>
@@ -5891,7 +6032,7 @@ function WGConfig({ params, onSave }) {
 
 function MedicoverConfig({ params, onSave }) {
   const [scope, setScope] = useState(params.scope || "individual");
-  const [plan, setPlan] = useState(params.plan || "Komfort");
+  const [plan, setPlan] = useState(params.plan || "goFIT");
   return (
     <div className="kcfg">
       <div className="kcfg__field">
@@ -5899,7 +6040,7 @@ function MedicoverConfig({ params, onSave }) {
         <div className="kcfg__seg">
           {[
             { id: "individual", label: "Indywidualny" },
-            { id: "partner", label: "+ Partner" },
+            { id: "partner", label: "+ Osoba towarzysząca" },
             { id: "family", label: "+ Rodzina" },
           ].map(s => (
             <button key={s.id} className={`kcfg__seg-opt${scope === s.id ? " is-active" : ""}`} onClick={() => setScope(s.id)}>
@@ -5909,12 +6050,11 @@ function MedicoverConfig({ params, onSave }) {
         </div>
       </div>
       <div className="kcfg__field">
-        <label className="kcfg__label">Pakiet</label>
+        <label className="kcfg__label">Plan</label>
         <div className="kcfg__radio-grid">
           {[
-            { id: "Standard", desc: "Podstawowa opieka medyczna" },
-            { id: "Komfort",  desc: "+ diagnostyka i specjaliści" },
-            { id: "Optimum",  desc: "Pełna diagnostyka + rehab." },
+            { id: "goFIT",    desc: "4 800+ obiektów · 50 aktywności" },
+            { id: "FIT&more", desc: "6 000+ obiektów · 85+ aktywności, coaching, mindfulness" },
           ].map(p => (
             <button key={p.id} className={`kcfg__radio${plan === p.id ? " is-active" : ""}`} onClick={() => setPlan(p.id)}>
               <div className="kcfg__radio-name">{p.id}</div>
@@ -6002,7 +6142,11 @@ function KreatorConfigRow({ item, expanded, onToggleExpand, onSave, recommended 
   return (
     <motion.div layout className={`kcfg-row${configured ? " is-configured" : ""}${expanded ? " is-expanded" : ""}`}>
       <button className="kcfg-row__head" onClick={onToggleExpand}>
-        <div className="kcfg-row__icon" aria-hidden>{service.icon}</div>
+        <div className="kcfg-row__icon" aria-hidden>
+          {service.logo
+            ? <img src={`${import.meta.env.BASE_URL}${service.logo}`} alt="" className="kcfg-row__logo-img" />
+            : service.icon}
+        </div>
         <div className="kcfg-row__body">
           <div className="kcfg-row__name">{service.label}</div>
           <div className="kcfg-row__sub">
@@ -6277,7 +6421,11 @@ function Services4Kreator({ purchasedServices, purchaseService, lpSub, setLpSub,
                         onClick={() => toggleCart(svc.id)}
                         transition={{ duration: 0.2 }}
                       >
-                        <div className="kreator-card__icon" aria-hidden>{svc.icon}</div>
+                        <div className="kreator-card__icon" aria-hidden>
+                          {svc.logo
+                            ? <img src={`${import.meta.env.BASE_URL}${svc.logo}`} alt="" className="kreator-card__logo-img" />
+                            : svc.icon}
+                        </div>
                         <div className="kreator-card__body">
                           <div className="kreator-card__title">{svc.short || svc.label}</div>
                           <div className="kreator-card__price">
@@ -6363,7 +6511,7 @@ function Services4Kreator({ purchasedServices, purchaseService, lpSub, setLpSub,
                 <p className="kreator-checkout__desc">Potwierdź wybór i uruchom {cartItems.length} usług.</p>
               </div>
 
-              {lpSwap && (
+              {LP_ENABLED && lpSwap && (
                 <div className="kreator-lpswap">
                   <div className="kreator-lpswap__body">
                     <div className="kreator-lpswap__eyebrow">Oszczędność</div>
@@ -6383,7 +6531,11 @@ function Services4Kreator({ purchasedServices, purchaseService, lpSub, setLpSub,
                   const summary = kreatorParamSummary(item.id, item.params);
                   return (
                     <div key={item.id} className="kreator-checkout__row">
-                      <div className="kreator-checkout__icon" aria-hidden>{item.service.icon}</div>
+                      <div className="kreator-checkout__icon" aria-hidden>
+                        {item.service.logo
+                          ? <img src={`${import.meta.env.BASE_URL}${item.service.logo}`} alt="" className="kreator-checkout__logo-img" />
+                          : item.service.icon}
+                      </div>
                       <div className="kreator-checkout__body">
                         <div className="kreator-checkout__name">{item.service.label}</div>
                         {summary && <div className="kreator-checkout__params">{summary}</div>}
@@ -6423,7 +6575,7 @@ function Services4Kreator({ purchasedServices, purchaseService, lpSub, setLpSub,
           <div className="kreator-bar__sum">
             <SlidingNumber value={cartMonthly} /> <span>zł/mies.</span>
           </div>
-          {lpCoreInCart >= 2 && (
+          {LP_ENABLED && lpCoreInCart >= 2 && (
             <div className="kreator-bar__lp">
               {lpCoreInCart}/{LP_CORE_IDS.size} z pakietu LP
             </div>
@@ -6552,7 +6704,7 @@ function MyServicesView({ purchasedServices, cancelService, updateServiceParams,
         </div>
       )}
 
-      {lpSub?.active && (
+      {LP_ENABLED && lpSub?.active && (
         <div className="ms-lp-hero">
           <div className="ms-lp-hero__left">
             <div className="ms-lp-hero__eyebrow">Pakiet</div>
@@ -6568,7 +6720,7 @@ function MyServicesView({ purchasedServices, cancelService, updateServiceParams,
         </div>
       )}
 
-      {showLPMigration && (
+      {LP_ENABLED && showLPMigration && (
         <div className="ms-migrate">
           <div className="ms-migrate__badge">Oszczędność</div>
           <div className="ms-migrate__body">
@@ -6605,7 +6757,11 @@ function MyServicesView({ purchasedServices, cancelService, updateServiceParams,
             const isLPCovered = lpSub?.active && LP_CORE_IDS.has(svc.id);
             return (
               <div key={svc.id} className="ms-card" onClick={() => setSelectedId(svc.id)}>
-                <div className="ms-card__icon" aria-hidden>{svc.icon}</div>
+                <div className="ms-card__icon" aria-hidden>
+                  {svc.logo
+                    ? <img src={`${import.meta.env.BASE_URL}${svc.logo}`} alt="" className="ms-card__logo-img" />
+                    : svc.icon}
+                </div>
                 <div className="ms-card__body">
                   <div className="ms-card__title">{svc.label}</div>
                   <div className="ms-card__meta">
@@ -6649,7 +6805,11 @@ function ServiceManagePanel({ service, purchase, lpSub, onBack, onCancel, onUpda
       </button>
 
       <div className="ms-panel__head">
-        <div className="ms-panel__icon" aria-hidden>{service.icon}</div>
+        <div className="ms-panel__icon" aria-hidden>
+          {service.logo
+            ? <img src={`${import.meta.env.BASE_URL}${service.logo}`} alt="" className="ms-panel__logo-img" />
+            : service.icon}
+        </div>
         <div className="ms-panel__head-body">
           <div className="ms-panel__eyebrow">{categoryLabel}</div>
           <h2 className="ms-panel__title">{service.label}</h2>
@@ -9557,7 +9717,7 @@ function App() {
   const [onboarded, setOnboarded] = useState(() => {
     try { const s = localStorage.getItem(PROFILE_KEY); return s ? !!JSON.parse(s).role : false; } catch { return false; }
   });
-  const [loading,   setLoading]   = useState(true);
+  const [loading,   setLoading]   = useState(false);
   const [active,    setActive_]   = useState("overview");
   const [navKey,    setNavKey]    = useState(0);
   const [cart,      setCart]      = useState([]);
