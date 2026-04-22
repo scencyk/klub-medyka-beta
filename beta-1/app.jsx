@@ -5911,10 +5911,11 @@ function Service4Card({ service, inCart, isPurchased, onOpen, onManage }) {
       layout
       transition={{ duration: 0.2 }}
       className={[
-        "group/card relative flex cursor-pointer flex-col overflow-hidden rounded-[20px] bg-bg transition-[translate,box-shadow,border-color] duration-200 [transition-timing-function:ease]",
-        "border",
+        "group/card relative flex cursor-pointer flex-col overflow-hidden rounded-[20px] bg-bg transition-[translate,box-shadow,border-color] duration-200 [transition-timing-function:ease] border",
         inCart
           ? "border-lime shadow-[inset_0_0_0_1px_var(--color-lime)]"
+          : isPurchased
+          ? "border-[color-mix(in_srgb,#16A34A_35%,var(--color-border))] can-hover:hover:-translate-y-0.5 can-hover:hover:shadow-[0_8px_24px_-8px_color-mix(in_srgb,var(--color-fg)_18%,transparent)]"
           : "border-border can-hover:hover:-translate-y-0.5 can-hover:hover:border-[color-mix(in_srgb,var(--color-fg)_18%,var(--color-border))] can-hover:hover:shadow-[0_8px_24px_-8px_color-mix(in_srgb,var(--color-fg)_18%,transparent)]",
       ].join(" ")}
     >
@@ -5938,7 +5939,7 @@ function Service4Card({ service, inCart, isPurchased, onOpen, onManage }) {
           </div>
         )}
         {isPurchased ? (
-          <span className="absolute top-3 right-3 z-[1] rounded-full bg-lime px-3 py-1.5 text-[11px] font-bold uppercase tracking-[0.02em] text-[#0A0A0A]">
+          <span className="absolute top-3 right-3 z-[1] rounded-full bg-[#16A34A] px-3 py-1.5 text-[11px] font-bold uppercase tracking-[0.02em] text-white">
             Aktywna
           </span>
         ) : LP_ENABLED && service.inLP && LP_SERVICE_PERK_SHORT[service.id] ? (
@@ -5986,7 +5987,7 @@ function Service4Card({ service, inCart, isPurchased, onOpen, onManage }) {
         {isPurchased ? (
           <button
             onClick={(e) => { e.stopPropagation(); onManage && onManage(); }}
-            className="inline-flex cursor-pointer items-center gap-1.5 rounded-full border-none bg-fg px-3 py-[7px] text-xs font-semibold text-bg transition-[translate,scale] duration-150 [transition-timing-function:ease] can-hover:hover:translate-x-0.5 press:scale-[0.97]"
+            className="inline-flex cursor-pointer items-center gap-1.5 rounded-full border-none bg-[color-mix(in_srgb,var(--color-fg)_6%,transparent)] px-3 py-[7px] text-xs font-semibold text-fg transition-[translate,scale,background-color,color] duration-150 [transition-timing-function:ease] can-hover:hover:translate-x-0.5 can-hover:hover:bg-fg can-hover:hover:text-bg press:scale-[0.97]"
           >
             <svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden>
               <path d="M8 5v3l2 1.5M14 8A6 6 0 11 2 8a6 6 0 0112 0z" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/>
