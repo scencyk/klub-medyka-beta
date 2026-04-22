@@ -25,6 +25,14 @@
   }
 }
 
+/* can-hover — only apply on devices with real hover capability.
+   Use as: can-hover:hover:bg-secondary (instead of bare hover:).
+   Prevents sticky hover states on touch devices. */
+@custom-variant can-hover (@media (hover: hover) and (pointer: fine));
+
+/* press — shorthand for :active state (better semantics than bare active:) */
+@custom-variant press (&:active);
+
 /* Tokens (defines @theme block + dark mode overrides) */
 @import './tokens.css';
 @import './base.css' layer(base);
@@ -71,7 +79,6 @@
 @import './views/services-lp.css' layer(components);
 @import './views/services-lp2.css' layer(components);
 @import './views/services-lp3.css' layer(components);
-@import './views/services-lp4.css' layer(components);
 @import './views/my-services.css' layer(components);
 @import './views/home.css' layer(components);
 @import './views/kreator.css' layer(components);

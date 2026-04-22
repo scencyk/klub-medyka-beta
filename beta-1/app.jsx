@@ -5695,12 +5695,34 @@ function Services4View({ cart, addToCart, removeFromCart, lpSub, setLpSub, setAc
 
   const ownedCount = Object.keys(purchased).length;
 
+  const subnavTab = (id, label, extra) => {
+    const active = subTab === id;
+    return (
+      <button
+        role="tab"
+        aria-selected={active}
+        className={`group relative inline-flex cursor-pointer items-center gap-2 rounded-full border-none bg-transparent px-[18px] py-2 text-[13px] font-medium transition-colors duration-150 [transition-timing-function:ease] ${active ? "text-fg" : "text-muted"} can-hover:hover:text-fg`}
+        onClick={() => setSubTab(id)}
+      >
+        {active && (
+          <motion.span
+            layoutId="s4-subnav-indicator"
+            className="absolute inset-0 z-0 rounded-full bg-bg shadow-[0_1px_3px_rgba(0,0,0,0.08)]"
+            transition={{ type: "spring", stiffness: 420, damping: 34 }}
+          />
+        )}
+        <span className="relative z-[1]">{label}</span>
+        {extra}
+      </button>
+    );
+  };
+
   return (
-    <div className="s4-view">
+    <div className="flex w-full max-w-[1240px] flex-col gap-5">
       {/* Nagłówek + sub-taby — widoczne tylko na widoku katalog/my (nie na detail) */}
       {!selectedService && (
-        <div className="s4-view__header">
-          <div className="s4-view__intro">
+        <div className="mb-1 flex flex-wrap items-end justify-between gap-5">
+          <div className="min-w-[260px] flex-1">
             <h2 className="text-[20px] font-bold tracking-[-0.02em]">Usługi</h2>
             <p className="text-sm text-muted mt-1">
               {subTab === "catalog"
@@ -5710,36 +5732,17 @@ function Services4View({ cart, addToCart, removeFromCart, lpSub, setLpSub, setAc
                 : "Aktywne subskrypcje i usługi — parametry, dokumenty, akcje w jednym miejscu."}
             </p>
           </div>
-          <div className="s4-subnav" role="tablist">
-            <button
-              role="tab"
-              aria-selected={subTab === "catalog"}
-              className={`s4-subnav__tab${subTab === "catalog" ? " is-active" : ""}`}
-              onClick={() => setSubTab("catalog")}
-            >
-              {subTab === "catalog" && <motion.span layoutId="s4-subnav-indicator" className="s4-subnav__indicator" transition={{ type: "spring", stiffness: 420, damping: 34 }} />}
-              <span className="s4-subnav__label">Katalog</span>
-            </button>
-            <button
-              role="tab"
-              aria-selected={subTab === "kreator"}
-              className={`s4-subnav__tab${subTab === "kreator" ? " is-active" : ""}`}
-              onClick={() => setSubTab("kreator")}
-            >
-              {subTab === "kreator" && <motion.span layoutId="s4-subnav-indicator" className="s4-subnav__indicator" transition={{ type: "spring", stiffness: 420, damping: 34 }} />}
-              <span className="s4-subnav__label">Kreator</span>
-              <span className="s4-subnav__dot" aria-hidden>✨</span>
-            </button>
-            <button
-              role="tab"
-              aria-selected={subTab === "my"}
-              className={`s4-subnav__tab${subTab === "my" ? " is-active" : ""}`}
-              onClick={() => setSubTab("my")}
-            >
-              {subTab === "my" && <motion.span layoutId="s4-subnav-indicator" className="s4-subnav__indicator" transition={{ type: "spring", stiffness: 420, damping: 34 }} />}
-              <span className="s4-subnav__label">Moje usługi</span>
-              {ownedCount > 0 && <span className="s4-subnav__count">{ownedCount}</span>}
-            </button>
+          <div
+            role="tablist"
+            className="inline-flex gap-1 rounded-full bg-[color-mix(in_srgb,var(--color-fg)_5%,transparent)] p-1"
+          >
+            {subnavTab("catalog", "Katalog")}
+            {subnavTab("kreator", "Kreator", <span className="relative z-[1]" aria-hidden>✨</span>)}
+            {subnavTab("my", "Moje usługi", ownedCount > 0 && (
+              <span className="relative z-[1] inline-flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-[color-mix(in_srgb,var(--color-fg)_10%,transparent)] px-1.5 text-[11px] font-semibold group-aria-[selected=true]:bg-lime group-aria-[selected=true]:text-[#0A0A0A]">
+                {ownedCount}
+              </span>
+            ))}
           </div>
         </div>
       )}
@@ -5748,7 +5751,7 @@ function Services4View({ cart, addToCart, removeFromCart, lpSub, setLpSub, setAc
         {selectedService ? (
           <motion.div
             key="detail"
-            className="s4-view__inner"
+            className="flex flex-col gap-5"
             initial={{ opacity: 0, x: 16 }}
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: -16 }}
@@ -5772,7 +5775,7 @@ function Services4View({ cart, addToCart, removeFromCart, lpSub, setLpSub, setAc
         ) : subTab === "kreator" ? (
           <motion.div
             key="kreator"
-            className="s4-view__inner"
+            className="flex flex-col gap-5"
             initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -8 }}
@@ -5789,7 +5792,7 @@ function Services4View({ cart, addToCart, removeFromCart, lpSub, setLpSub, setAc
         ) : subTab === "catalog" ? (
           <motion.div
             key="catalog"
-            className="s4-view__inner"
+            className="flex flex-col gap-5"
             initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -8 }}
@@ -5803,7 +5806,7 @@ function Services4View({ cart, addToCart, removeFromCart, lpSub, setLpSub, setAc
               />
             )}
 
-            <div className="filter-bar s4-filter">
+            <div className="flex flex-wrap gap-2">
               {SERVICE_CATEGORIES.map(c => (
                 <button
                   key={c.id}
@@ -5815,7 +5818,7 @@ function Services4View({ cart, addToCart, removeFromCart, lpSub, setLpSub, setAc
               ))}
             </div>
 
-            <div className="s4-grid">
+            <div className="grid grid-cols-[repeat(auto-fill,minmax(280px,1fr))] gap-5 max-[720px]:grid-cols-1">
               {visibleServices.map(svc => (
                 <Service4Card
                   key={svc.id}
@@ -5831,7 +5834,7 @@ function Services4View({ cart, addToCart, removeFromCart, lpSub, setLpSub, setAc
         ) : (
           <motion.div
             key="my"
-            className="s4-view__inner"
+            className="flex flex-col gap-5"
             initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -8 }}
@@ -5860,19 +5863,33 @@ function LPPromoStrip({ lpSub, onOpenLP, onDismiss }) {
   const lpPrice = calcLPPrice(lpSub || { billing: "rok", lloydSum: 5000, infaktAddon: true });
   const savings = Math.max(0, LP_ALL_SOLO_MONTHLY - lpPrice.effective);
   return (
-    <div className="s4-lp-strip" role="region" aria-label="Promocja pakietu Lekarz Przedsiębiorca">
-      <div className="s4-lp-strip__icon" aria-hidden>
+    <div
+      role="region"
+      aria-label="Promocja pakietu Lekarz Przedsiębiorca"
+      className="flex items-center gap-3.5 rounded-[14px] border border-[color-mix(in_srgb,var(--color-lime)_60%,transparent)] bg-[linear-gradient(135deg,color-mix(in_srgb,var(--color-lime)_40%,var(--color-bg))_0%,color-mix(in_srgb,var(--color-lime)_18%,var(--color-bg))_100%)] px-4 py-3 max-[720px]:flex-wrap"
+    >
+      <div
+        aria-hidden
+        className="flex h-8 w-8 shrink-0 items-center justify-center rounded-[10px] bg-[#0A0A0A] text-lime"
+      >
         <svg width="18" height="18" viewBox="0 0 20 20" fill="none"><path d="M10 2l2.4 5.4L18 9l-4 3.8L15 19l-5-3-5 3 1-6.2L2 9l5.6-1.6z" fill="currentColor"/></svg>
       </div>
-      <div className="s4-lp-strip__text">
-        Kupujesz kilka usług? W pakiecie <strong>Lekarz Przedsiębiorca</strong> zaoszczędzisz
-        <strong className="s4-lp-strip__savings"> ~{savings} zł/mies.</strong>
+      <div className="flex-1 text-[13px] leading-normal text-fg max-[720px]:order-3 max-[720px]:min-w-full">
+        Kupujesz kilka usług? W pakiecie <strong className="font-bold">Lekarz Przedsiębiorca</strong> zaoszczędzisz
+        <strong className="font-bold text-[#0A0A0A]"> ~{savings} zł/mies.</strong>
       </div>
-      <button className="s4-lp-strip__cta" onClick={onOpenLP}>
+      <button
+        onClick={onOpenLP}
+        className="inline-flex cursor-pointer items-center gap-1 whitespace-nowrap rounded-full border-none bg-[#0A0A0A] px-3.5 py-2 text-xs font-semibold text-lime transition-[translate,scale] duration-150 [transition-timing-function:ease] can-hover:hover:translate-x-0.5 press:scale-[0.97]"
+      >
         Zobacz pakiet
         <svg width="12" height="12" viewBox="0 0 16 16" fill="none"><path d="M6 3l5 5-5 5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/></svg>
       </button>
-      <button className="s4-lp-strip__close" onClick={onDismiss} aria-label="Ukryj">
+      <button
+        onClick={onDismiss}
+        aria-label="Ukryj"
+        className="flex h-7 w-7 shrink-0 cursor-pointer items-center justify-center rounded-full border-none bg-transparent text-muted transition-colors duration-150 [transition-timing-function:ease] can-hover:hover:bg-[color-mix(in_srgb,var(--color-fg)_10%,transparent)]"
+      >
         <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M3 3l8 8M11 3l-8 8" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round"/></svg>
       </button>
     </div>
@@ -5890,58 +5907,97 @@ function Service4Card({ service, inCart, isPurchased, onOpen, onManage }) {
   };
   return (
     <motion.div
-      className={`s4-card${inCart ? " is-in-cart" : ""}${isPurchased ? " is-purchased" : ""}`}
       onClick={handleClick}
       layout
       transition={{ duration: 0.2 }}
+      className={[
+        "group/card relative flex cursor-pointer flex-col overflow-hidden rounded-[20px] bg-bg transition-[translate,box-shadow,border-color] duration-200 [transition-timing-function:ease]",
+        "border",
+        inCart
+          ? "border-lime shadow-[inset_0_0_0_1px_var(--color-lime)]"
+          : "border-border can-hover:hover:-translate-y-0.5 can-hover:hover:border-[color-mix(in_srgb,var(--color-fg)_18%,var(--color-border))] can-hover:hover:shadow-[0_8px_24px_-8px_color-mix(in_srgb,var(--color-fg)_18%,transparent)]",
+      ].join(" ")}
     >
       <div
-        className={`s4-card__hero${service.cover ? " s4-card__hero--cover" : ""}`}
+        className={`relative flex h-[180px] items-center justify-center overflow-hidden text-[56px] leading-none max-[720px]:h-[140px] max-[720px]:text-[48px] ${service.cover ? "text-white" : ""}`}
         style={service.cover ? undefined : { background: theme.bg, color: theme.fg }}
       >
         {service.cover && (
-          <img src={`${import.meta.env.BASE_URL}${service.cover}`} alt="" className="s4-card__hero-img" />
+          <img
+            src={`${import.meta.env.BASE_URL}${service.cover}`}
+            alt=""
+            className="absolute inset-0 h-full w-full object-cover object-[left_center]"
+          />
         )}
-        <span className="s4-card__cat-hero">{categoryLabel}</span>
-        {!service.cover && <div className="s4-card__hero-icon" aria-hidden>{service.icon}</div>}
+        <span className="absolute top-3 left-3 z-[1] max-w-[calc(100%-24px)] overflow-hidden text-ellipsis whitespace-nowrap rounded-full bg-white/85 px-2.5 py-1 text-[11px] font-semibold tracking-[-0.01em] text-[#0A0A0A] backdrop-blur-md">
+          {categoryLabel}
+        </span>
+        {!service.cover && (
+          <div aria-hidden className="drop-shadow-[0_2px_6px_rgba(0,0,0,0.08)]">
+            {service.icon}
+          </div>
+        )}
         {isPurchased ? (
-          <span className="s4-card__badge s4-card__badge--active">Aktywna</span>
+          <span className="absolute top-3 right-3 z-[1] rounded-full bg-lime px-3 py-1.5 text-[11px] font-bold uppercase tracking-[0.02em] text-[#0A0A0A]">
+            Aktywna
+          </span>
         ) : LP_ENABLED && service.inLP && LP_SERVICE_PERK_SHORT[service.id] ? (
-          <span className="s4-card__badge s4-card__badge--lp" title="Korzyść w pakiecie Lekarz Przedsiębiorca">
+          <span
+            title="Korzyść w pakiecie Lekarz Przedsiębiorca"
+            className="absolute top-3 right-3 z-[1] max-w-[calc(100%-24px)] overflow-hidden text-ellipsis whitespace-nowrap rounded-full bg-lime px-2.5 py-[5px] text-[11px] font-semibold text-[#0A0A0A]"
+          >
             W LP: {LP_SERVICE_PERK_SHORT[service.id]}
           </span>
         ) : LP_ENABLED && service.inLP ? (
-          <span className="s4-card__badge">W LP</span>
+          <span className="absolute top-3 right-3 z-[1] rounded-full bg-lime px-3 py-1.5 text-[11px] font-bold uppercase tracking-[0.02em] text-[#0A0A0A]">
+            W LP
+          </span>
         ) : null}
       </div>
-      <div className="s4-card__body">
-        <div className="s4-card__meta">
+      <div className="flex flex-1 flex-col gap-2 px-[18px] pt-4 pb-3.5">
+        <div className="flex items-center gap-2 text-xs text-muted">
           {service.logo ? (
-            <img src={`${import.meta.env.BASE_URL}${service.logo}`} alt={partner} className="s4-card__logo-img" />
+            <img
+              src={`${import.meta.env.BASE_URL}${service.logo}`}
+              alt={partner}
+              className="h-6 w-6 shrink-0 rounded-md border border-border bg-bg object-contain p-0.5"
+            />
           ) : (
-            <span className="s4-card__logo" style={{ background: theme.fg }} aria-hidden>
+            <span
+              aria-hidden
+              className="inline-flex h-[22px] w-[22px] shrink-0 items-center justify-center rounded-md text-[11px] font-bold text-white"
+              style={{ background: theme.fg }}
+            >
               {partner.charAt(0).toUpperCase()}
             </span>
           )}
-          <span className="s4-card__partner">{partner}</span>
+          <span className="font-semibold text-fg">{partner}</span>
         </div>
-        <h3 className="s4-card__title">{service.label}</h3>
-        <p className="s4-card__desc">{short}</p>
+        <h3 className="mt-0.5 text-base font-bold leading-[1.3] tracking-[-0.01em] text-fg">
+          {service.label}
+        </h3>
+        <p className="m-0 line-clamp-3 text-[13px] leading-[1.5] text-muted">{short}</p>
       </div>
-      <div className="s4-card__footer">
-        <div className="s4-card__price">
-          <span className="s4-card__price-num">{service.soloPrice}</span>
-          <span className="s4-card__price-unit">zł / mies.</span>
+      <div className="flex items-center justify-between gap-3 border-t border-dashed border-border px-[18px] pt-3 pb-3.5">
+        <div className="flex items-baseline gap-1">
+          <span className="text-lg font-bold tracking-[-0.01em] text-fg">{service.soloPrice}</span>
+          <span className="text-[11px] font-medium text-muted">zł / mies.</span>
         </div>
         {isPurchased ? (
-          <button className="s4-card__cta s4-card__cta--manage" onClick={(e) => { e.stopPropagation(); onManage && onManage(); }}>
+          <button
+            onClick={(e) => { e.stopPropagation(); onManage && onManage(); }}
+            className="inline-flex cursor-pointer items-center gap-1.5 rounded-full border-none bg-fg px-3 py-[7px] text-xs font-semibold text-bg transition-[translate,scale] duration-150 [transition-timing-function:ease] can-hover:hover:translate-x-0.5 press:scale-[0.97]"
+          >
             <svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden>
               <path d="M8 5v3l2 1.5M14 8A6 6 0 11 2 8a6 6 0 0112 0z" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/>
             </svg>
             Zarządzaj
           </button>
         ) : (
-          <button className="s4-card__cta" onClick={(e) => { e.stopPropagation(); onOpen(); }}>
+          <button
+            onClick={(e) => { e.stopPropagation(); onOpen(); }}
+            className="inline-flex cursor-pointer items-center gap-1.5 rounded-full border-none bg-fg px-3 py-[7px] text-xs font-semibold text-bg transition-[translate,scale] duration-150 [transition-timing-function:ease] can-hover:hover:translate-x-0.5 press:scale-[0.97]"
+          >
             <svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden>
               <path d="M6 3l5 5-5 5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/>
             </svg>
