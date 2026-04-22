@@ -5979,7 +5979,7 @@ function Service4Card({ service, inCart, isPurchased, onOpen, onManage }) {
         </h3>
         <p className="m-0 line-clamp-3 text-[13px] leading-[1.5] text-muted">{short}</p>
       </div>
-      <div className="flex items-center justify-between gap-3 border-t border-dashed border-border px-[18px] pt-3 pb-3.5">
+      <div className="flex items-center justify-between gap-3 border-t border-dashed border-[color-mix(in_srgb,var(--color-fg)_8%,transparent)] px-[18px] pt-3 pb-3.5">
         <div className="flex items-baseline gap-1">
           <span className="text-lg font-bold tracking-[-0.01em] text-fg">{service.soloPrice}</span>
           <span className="text-[11px] font-medium text-muted">zł / mies.</span>
