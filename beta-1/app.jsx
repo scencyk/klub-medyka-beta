@@ -131,9 +131,11 @@ function SlidingDigitNum({ mv, number }) {
   );
 }
 
-function SlidingNumber({ value, decimalSeparator = ',', suffix = '' }) {
+function SlidingNumber({ value, decimalSeparator = ',', suffix = '', decimals = 2 }) {
   const absValue = Math.abs(value);
-  const [intPart, decPart] = absValue.toFixed(2).split('.');
+  const fixed = absValue.toFixed(decimals);
+  const hasDecimals = decimals > 0 && fixed.includes('.');
+  const [intPart, decPart] = hasDecimals ? fixed.split('.') : [fixed, null];
   const intValue = parseInt(intPart, 10);
   const intDigits = intPart.split('');
   const intPlaces = intDigits.map((_, i) => Math.pow(10, intDigits.length - i - 1));
@@ -141,7 +143,7 @@ function SlidingNumber({ value, decimalSeparator = ',', suffix = '' }) {
     <span style={{ display: 'inline-flex', alignItems: 'center' }}>
       {value < 0 && '−'}
       {intDigits.map((_, i) => <SlidingDigit key={`i-${intPlaces[i]}`} value={intValue} place={intPlaces[i]} />)}
-      {decPart && (
+      {hasDecimals && decPart && (
         <>
           <span>{decimalSeparator}</span>
           {decPart.split('').map((_, i) => <SlidingDigit key={`d-${i}`} value={parseInt(decPart, 10)} place={Math.pow(10, decPart.length - i - 1)} />)}
@@ -1483,6 +1485,19 @@ const INSURANCE_CATEGORIES = [
   { id: "income", name: "Utrata dochodu", icon: "wallet", tag: "Zalecane",    tagVariant: "warn", priceLabel: "~80–350 zł/mies.",  desc: "Ochrona przychodu przy chorobie lub wypadku.", noMissing: false },
 ];
 
+// ─── SERVICES — KATEGORIE (taby wewnątrz zakładki "Usługi") ────────────────
+// Każda kategoria = osobny widok z własną strukturą (kalkulator, ankieta, lista ofert itd.),
+// nie zwykły filtr po jednym katalogu. Domyślnie otwieramy "ubezpieczenia" (jedyna w pełni zbudowana).
+const SERVICES_CATEGORIES = [
+  { id: "praktyka",     label: "Praktyka lekarska",     emoji: "🩺", desc: "Księgowość, prawne, dokumenty, kontrakty." },
+  { id: "ubezpieczenia", label: "Ubezpieczenia",          emoji: "🛡", desc: "OC lekarskie, utrata dochodu, NNW — kalkulator i skan obecnej polisy." },
+  { id: "finansowanie",  label: "Finansowanie i sprzęt",  emoji: "💼", desc: "Leasing, kredyty, sprzęt medyczny na raty." },
+  { id: "mobilnosc",     label: "Mobilność",              emoji: "🚗", desc: "Samochody, car-sharing, taxi medyczne." },
+  { id: "sport",         label: "Sport i aktywność",      emoji: "🏃", desc: "Medicover Sport, MultiSport, siłownie, baseny." },
+  { id: "rozrywka",      label: "Rozrywka",               emoji: "🎬", desc: "Kino, teatr, streaming, wydarzenia." },
+];
+const DEFAULT_SERVICES_CATEGORY = "ubezpieczenia";
+
 /* ── OC DATA ─────────────────────────────────────────── */
 const OC_SPEC_III = [
   "Anestezjologia i intensywna terapia","Chirurgia dziecięca","Chirurgia klatki piersiowej",
@@ -2044,7 +2059,7 @@ function Onboarding({ onComplete, setProfile }) {
 
 // ─── SIDEBAR ──────────────────────────────────────────────────────────────────
 
-function Sidebar({ active, setActive, theme, setTheme, profile }) {
+function Sidebar({ active, setActive, theme, setTheme, profile, servicesCategory, setServicesCategory }) {
   const displayName = profile && profile.firstName ? `Dr ${profile.firstName} ${profile.lastName}` : "Dr Kowalska";
   const roleLabel = profile && profile.role ? (OB_ROLES.find(r => r.id === profile.role)?.label || "") : "Rezydent";
   return (
@@ -2097,32 +2112,63 @@ function Sidebar({ active, setActive, theme, setTheme, profile }) {
                 : isActive
                   ? "bg-[#E8E4D5] font-semibold text-fg [&_svg]:opacity-100"
                   : "bg-transparent font-normal text-fg hover:bg-[#EDE9DB] hover:text-fg";
+              // Submenu rozwija się pod "Usługi" gdy zakładka jest aktywna — kategorie jako deep-linki.
+              const hasSubmenu = item.id === "packages4";
+              const submenuOpen = hasSubmenu && isActive;
               return (
-                <button key={item.id} onClick={() => !item.soon && setActive(item.id)} className={`${baseCls} ${stateCls}`}>
-                  <span className="flex items-center gap-2.5 [&_svg]:shrink-0 [&_svg]:opacity-70">
-                    {item.icon && (
-                      <motion.span
-                        key={isActive ? "active" : "idle"}
-                        initial={isActive ? { scale: 0.6, rotate: -15 } : false}
-                        animate={isActive ? { scale: 1, rotate: 0 } : { scale: 1, rotate: 0 }}
-                        transition={{ type: "spring", stiffness: 400, damping: 15 }}
-                        style={{ display: "inline-flex" }}
-                      >
-                        {ICONS[item.icon]}
-                      </motion.span>
+                <React.Fragment key={item.id}>
+                  <button onClick={() => !item.soon && setActive(item.id)} className={`${baseCls} ${stateCls}`}>
+                    <span className="flex items-center gap-2.5 [&_svg]:shrink-0 [&_svg]:opacity-70">
+                      {item.icon && (
+                        <motion.span
+                          key={isActive ? "active" : "idle"}
+                          initial={isActive ? { scale: 0.6, rotate: -15 } : false}
+                          animate={isActive ? { scale: 1, rotate: 0 } : { scale: 1, rotate: 0 }}
+                          transition={{ type: "spring", stiffness: 400, damping: 15 }}
+                          style={{ display: "inline-flex" }}
+                        >
+                          {ICONS[item.icon]}
+                        </motion.span>
+                      )}
+                      {item.label}
+                    </span>
+                    {item.badge && !isActive && (
+                      <span className="flex h-[18px] w-[18px] items-center justify-center rounded-full bg-warn-bg text-[10px] font-bold text-warn">{item.badge}</span>
                     )}
-                    {item.label}
-                  </span>
-                  {item.badge && !isActive && (
-                    <span className="flex h-[18px] w-[18px] items-center justify-center rounded-full bg-warn-bg text-[10px] font-bold text-warn">{item.badge}</span>
-                  )}
-                  {item.tag && (
-                    <span className="rounded-[10px] bg-lime px-2 py-0.5 text-[9px] font-semibold tracking-[0.02em] text-lime-fg">{item.tag}</span>
-                  )}
-                  {item.soon && (
-                    <span className="rounded-[10px] bg-secondary px-[7px] py-px text-[9px] text-muted">wkrótce</span>
-                  )}
-                </button>
+                    {item.tag && (
+                      <span className="rounded-[10px] bg-lime px-2 py-0.5 text-[9px] font-semibold tracking-[0.02em] text-lime-fg">{item.tag}</span>
+                    )}
+                    {item.soon && (
+                      <span className="rounded-[10px] bg-secondary px-[7px] py-px text-[9px] text-muted">wkrótce</span>
+                    )}
+                  </button>
+                  <AnimatePresence initial={false}>
+                    {submenuOpen && (
+                      <motion.div
+                        key={`${item.id}-submenu`}
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: "auto" }}
+                        exit={{ opacity: 0, height: 0 }}
+                        transition={{ duration: 0.18, ease: [0.22, 1, 0.36, 1] }}
+                        className="overflow-hidden pl-4"
+                      >
+                        {SERVICES_CATEGORIES.map(cat => {
+                          const catActive = servicesCategory === cat.id;
+                          return (
+                            <button
+                              key={cat.id}
+                              onClick={() => setServicesCategory && setServicesCategory(cat.id)}
+                              className={`mb-0.5 flex w-full items-center gap-2 rounded-md border-none px-2.5 py-1.5 text-left text-[12px] transition-[background,color] duration-100 ${catActive ? "bg-[#EDE9DB] font-semibold text-fg" : "bg-transparent font-normal text-muted hover:bg-[#F2EFE3] hover:text-fg"}`}
+                            >
+                              <span className="text-[13px] leading-none">{cat.emoji}</span>
+                              <span className="truncate">{cat.label}</span>
+                            </button>
+                          );
+                        })}
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </React.Fragment>
               );
             })}
           </div>
@@ -5651,209 +5697,293 @@ const SERVICE_CAT_THEME = {
   legal:      { bg: "linear-gradient(135deg, #FEF3C7 0%, #FDE68A 100%)", fg: "#92400E" },
 };
 
-function Services4View({ cart, addToCart, removeFromCart, lpSub, setLpSub, setActive, purchasedServices, purchaseService, openManageService, cancelService, updateServiceParams, pendingManageId, setPendingManageId }) {
-  const [subTab, setSubTab] = useState("catalog"); // "catalog" | "kreator" | "my"
-  const [filter, setFilter] = useState("all");
-  const [selectedId, setSelectedId] = useState(null);
-  const [lpStripDismissed, setLpStripDismissed] = useState(false);
+// Shared button styles dla kafelków usług — hierarchia: primary (akcent, kupno) > dark (akcja nie-sprzedażowa) > outline.
+// Custom easing wg Emila Kowalskiego — silniejsza krzywa niż Tailwind default ease-out.
+const SERVICE_BTN_BASE = "inline-flex items-center justify-center gap-2 rounded-[10px] border-none px-4 py-2.5 text-sm font-semibold transition-[background-color,transform,box-shadow] duration-150 ease-[cubic-bezier(0.23,1,0.32,1)] cursor-pointer active:scale-[0.97]";
+const SERVICE_BTN_PRIMARY = `${SERVICE_BTN_BASE} bg-accent text-white can-hover:hover:bg-accent-hover can-hover:hover:-translate-y-[1px] can-hover:hover:shadow-[0_4px_12px_rgba(46,53,255,0.25)] disabled:opacity-50 disabled:cursor-default disabled:hover:translate-y-0 disabled:hover:shadow-none`;
+const SERVICE_BTN_DARK    = `${SERVICE_BTN_BASE} bg-fg text-bg can-hover:hover:-translate-y-[1px] can-hover:hover:shadow-[0_4px_12px_rgba(0,0,0,0.18)] can-hover:hover:opacity-90`;
+const SERVICE_BTN_OUTLINE = `${SERVICE_BTN_BASE} border border-border bg-transparent text-fg can-hover:hover:bg-secondary`;
 
-  // Deep-link: jeśli ktoś wywołał openManageService, przełącz na "Moje usługi"
-  React.useEffect(() => {
-    if (pendingManageId) setSubTab("my");
-  }, [pendingManageId]);
+function ServiceCategoryPlaceholder({ category }) {
+  const storageKey = `km-notify-${category.id}`;
+  const [notified, setNotified] = useState(() => {
+    try { return localStorage.getItem(storageKey) === "1"; } catch { return false; }
+  });
 
-  const handleManage = (id) => {
-    setPendingManageId && setPendingManageId(id);
-    setSubTab("my");
+  const toggle = () => {
+    const next = !notified;
+    setNotified(next);
+    try {
+      if (next) localStorage.setItem(storageKey, "1");
+      else localStorage.removeItem(storageKey);
+    } catch {}
   };
-  const cartServices = (cart || []).filter(i => i.product?.categoryId === "service");
-  const cartServiceIds = new Set(cartServices.map(i => i.product.id));
-  const { lpInCart, cartTotal, missingLpServices, level } = calcServices2Reveal(cartServices);
+
+  return (
+    <div className="flex flex-col items-center justify-center rounded-2xl border border-border/60 bg-secondary/30 px-6 py-16 text-center">
+      <div className="mb-4 text-[48px] leading-none">{category.emoji}</div>
+      <h3 className="text-[20px] font-bold tracking-[-0.02em]">{category.label}</h3>
+      <p className="mt-2 max-w-md text-sm text-muted">{category.desc}</p>
+      <span className="mt-5 inline-flex items-center gap-1.5 rounded-full bg-secondary px-3 py-1 text-[11px] font-medium text-muted">
+        <span className="h-1.5 w-1.5 rounded-full bg-warn" />
+        Wkrótce — kalkulator i oferty partnerów
+      </span>
+
+      <button
+        onClick={toggle}
+        aria-pressed={notified}
+        className={`mt-6 inline-flex cursor-pointer items-center gap-2 rounded-[10px] border-none px-4 py-2.5 text-sm font-semibold transition-[background-color,transform,box-shadow] duration-150 ease-[cubic-bezier(0.23,1,0.32,1)] active:scale-[0.97] ${
+          notified
+            ? "bg-[#16a34a1a] text-[#16a34a]"
+            : "bg-fg text-bg can-hover:hover:-translate-y-[1px] can-hover:hover:shadow-[0_4px_12px_rgba(0,0,0,0.18)] can-hover:hover:opacity-90"
+        }`}
+      >
+        {notified ? (
+          <>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden><path d="M20 6L9 17l-5-5"/></svg>
+            Powiadomimy Cię
+          </>
+        ) : (
+          <>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+            Powiadom mnie
+          </>
+        )}
+      </button>
+    </div>
+  );
+}
+
+// PraktykaView — zakładka "Praktyka lekarska": księgowość (inFakt) + Wirtualny gabinet.
+// Wzorzec identyczny z Ubezpieczeniami: aktywne usługi w horizontalnym pasie, oferty jako kafelki produktowe.
+function PraktykaView({ purchasedServices, openManageService, setActive }) {
+  const catalog  = SERVICE_CATALOG.filter(s => s.category === "accounting");
   const purchased = purchasedServices || {};
+  const activeSvcs = catalog.filter(s => purchased[s.id]);
+  const offerSvcs  = catalog.filter(s => !purchased[s.id]);
 
-  const selectedService = selectedId ? SERVICE_CATALOG.find(s => s.id === selectedId) : null;
-  const visibleServices = filter === "all" ? SERVICE_CATALOG : SERVICE_CATALOG.filter(s => s.category === filter);
+  const quickLinks = [
+    { key: "invoice", label: "Faktury",    icon: (<><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M9 13h6"/><path d="M9 17h6"/></>) },
+    { key: "docs",    label: "Dokumenty",  icon: (<><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10l5 5 5-5"/><path d="M12 15V3"/></>) },
+    { key: "info",    label: "Szczegóły",  icon: (<><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></>) },
+  ];
 
-  const toggleService = (svc) => {
-    if (cartServiceIds.has(svc.id)) removeFromCart(svc.id);
-    else addToCart(serviceToCartProduct(svc), null, { silent: true });
-  };
+  return (
+    <div className="mx-auto flex w-full max-w-[900px] flex-col gap-8">
 
-  const swapToLP = (opts = {}) => {
-    cartServices.forEach(i => removeFromCart(i.key));
-    setLpSub(s => ({
-      ...s,
-      active: true,
-      billing: opts.billing ?? s.billing,
-      lloydSum: opts.lloydSum ?? s.lloydSum,
-      infaktAddon: opts.infaktAddon ?? s.infaktAddon,
-      activatedAt: "15 kwi 2026",
-      nextRenewal: (opts.billing ?? s.billing) === "rok" ? "15 kwi 2027" : "15 maj 2026",
-    }));
-    setTimeout(() => setActive && setActive("packages"), 150);
-  };
+      {activeSvcs.length > 0 && (
+        <section className="flex flex-col gap-4">
+          <div className="flex items-baseline justify-between">
+            <h2 className="m-0 text-[15px] font-semibold text-fg">Twoje aktywne usługi</h2>
+            <span className="text-[11px] text-muted tabular-nums">{activeSvcs.length} z {catalog.length}</span>
+          </div>
+          <div className="flex flex-col gap-3">
+            {activeSvcs.map(svc => {
+              const p = purchased[svc.id];
+              return (
+                <div
+                  key={svc.id}
+                  className="flex items-start gap-4 rounded-2xl border border-[#16a34a33] bg-bg p-5 transition-[border-color,box-shadow] duration-200 ease-[cubic-bezier(0.23,1,0.32,1)] max-[640px]:flex-col max-[640px]:p-4 can-hover:hover:shadow-[0_2px_12px_rgba(0,0,0,0.04)]"
+                >
+                  <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-secondary text-[22px]">
+                    {svc.icon || <img src={svc.logo} alt={svc.short} className="h-6 object-contain" />}
+                  </div>
 
-  const ownedCount = Object.keys(purchased).length;
+                  <div className="flex min-w-0 flex-1 flex-col gap-3">
+                    <div className="flex flex-col gap-0.5">
+                      <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+                        <h3 className="m-0 text-[17px] font-bold text-fg">{svc.short || svc.label}</h3>
+                        <span className="inline-flex items-center gap-1.5 rounded-full bg-[#16a34a1a] px-2 py-0.5 text-[11px] font-semibold text-[#16a34a]">
+                          <span className="h-1.5 w-1.5 rounded-full bg-[#16a34a]" />
+                          Aktywna
+                        </span>
+                      </div>
+                      <p className="m-0 truncate text-[13px] text-muted">
+                        {svc.landing?.partner || "Partner"}
+                        {p.params?.plan && <> · plan <span className="text-fg">{p.params.plan}</span></>}
+                      </p>
+                    </div>
 
-  const subnavTab = (id, label, extra) => {
-    const active = subTab === id;
+                    <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-0.5 text-[11px] text-muted">
+                      <span>Kolejne pobranie: <span className="font-medium text-fg">{p.nextRenewal || "—"}</span></span>
+                      <span>Składka: <span className="font-medium text-fg">{svc.soloPrice} zł/mies.</span></span>
+                    </div>
+
+                    <div className="flex flex-wrap items-center gap-2 pt-1 max-[640px]:flex-col max-[640px]:items-stretch">
+                      <div className="flex gap-2 max-[640px]:w-full">
+                        <button className={SERVICE_BTN_DARK} onClick={() => openManageService && openManageService(svc.id)}>
+                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09a1.65 1.65 0 0 0 1.51-1 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33h0a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51h0a1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82v0a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+                          Zarządzaj
+                        </button>
+                        <button className={SERVICE_BTN_OUTLINE} onClick={() => openManageService && openManageService(svc.id)}>
+                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                          Kontakt
+                        </button>
+                      </div>
+                      <span className="text-border max-[640px]:hidden" aria-hidden>·</span>
+                      <div className="flex flex-wrap items-center gap-0.5">
+                        {quickLinks.map(a => (
+                          <button
+                            key={a.key}
+                            onClick={() => openManageService && openManageService(svc.id)}
+                            className="inline-flex cursor-pointer items-center gap-1.5 rounded-md border-none bg-transparent px-2.5 py-1.5 text-[11px] font-medium text-muted transition-colors duration-150 ease-[cubic-bezier(0.23,1,0.32,1)] can-hover:hover:bg-secondary can-hover:hover:text-fg active:scale-[0.97]"
+                          >
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden>{a.icon}</svg>
+                            {a.label}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </section>
+      )}
+
+      {offerSvcs.length > 0 && (
+        <section className="flex flex-col gap-4">
+          <h2 className="m-0 text-[15px] font-semibold text-fg">
+            {activeSvcs.length > 0 ? "Uzupełnij praktykę" : "Zbuduj praktykę lekarską"}
+          </h2>
+          <div className="flex flex-col gap-4">
+            {offerSvcs.map(svc => (
+              <div
+                key={svc.id}
+                className="group grid overflow-hidden rounded-2xl border border-border bg-bg transition-[transform,border-color,box-shadow] duration-200 ease-[cubic-bezier(0.23,1,0.32,1)] max-[720px]:grid-cols-1 grid-cols-[280px,1fr] can-hover:hover:-translate-y-[2px] can-hover:hover:border-accent can-hover:hover:shadow-[0_8px_24px_rgba(0,0,0,0.06)]"
+              >
+                {/* Cover */}
+                <div className="relative bg-secondary max-[720px]:aspect-[3/1]">
+                  {svc.cover ? (
+                    <img src={svc.cover} alt={svc.short || svc.label} className="h-full w-full object-cover" />
+                  ) : (
+                    <div className="flex h-full w-full items-center justify-center text-[64px]">{svc.icon}</div>
+                  )}
+                </div>
+
+                {/* Content */}
+                <div className="flex flex-col gap-5 p-6">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-secondary text-[22px]">
+                      {svc.icon || <img src={svc.logo} alt="" className="h-7 object-contain" />}
+                    </div>
+                    {svc.landing?.partner && (
+                      <span className="inline-flex items-center gap-1.5 rounded-full bg-secondary px-2.5 py-1 text-[11px] font-semibold text-muted">
+                        {svc.landing.partner.split("·")[0].trim()}
+                      </span>
+                    )}
+                  </div>
+
+                  <div className="flex flex-col gap-1">
+                    <h3 className="m-0 text-[17px] font-bold text-fg">{svc.short || svc.label}</h3>
+                    <p className="m-0 text-[13px] leading-[1.5] text-muted">{svc.desc}</p>
+                  </div>
+
+                  {svc.landing?.valueProps?.length > 0 && (
+                    <ul className="flex flex-col gap-2 p-0 m-0 list-none">
+                      {svc.landing.valueProps.slice(0, 3).map((v, i) => (
+                        <li key={i} className="flex items-start gap-2 text-[13px] text-fg">
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#16a34a" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="mt-0.5 shrink-0" aria-hidden><path d="M20 6L9 17l-5-5"/></svg>
+                          <span><span className="font-medium">{v.title}</span> <span className="text-muted">— {v.desc}</span></span>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+
+                  <div className="mt-auto flex items-end justify-between gap-3 max-[520px]:flex-col max-[520px]:items-stretch">
+                    <div className="flex flex-col gap-0.5">
+                      <div className="flex items-baseline gap-1.5">
+                        <span className="text-[28px] font-bold tracking-tight text-fg">{svc.soloPrice} zł</span>
+                        <span className="text-[13px] text-muted">/mies.</span>
+                      </div>
+                      {svc.lpAdvantage && (
+                        <span className="text-[11px] text-muted">{svc.lpAdvantage}</span>
+                      )}
+                    </div>
+                    <div className="flex gap-2 max-[520px]:w-full">
+                      <button className={`${SERVICE_BTN_PRIMARY} max-[520px]:flex-1`} onClick={() => openManageService && openManageService(svc.id)}>
+                        Zamów
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden><path d="M5 12h14"/><path d="M12 5l7 7-7 7"/></svg>
+                      </button>
+                      <button className={SERVICE_BTN_OUTLINE} onClick={() => openManageService && openManageService(svc.id)}>
+                        Szczegóły
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {activeSvcs.length === 0 && offerSvcs.length === 0 && (
+        <ServiceCategoryPlaceholder category={SERVICES_CATEGORIES.find(c => c.id === "praktyka")} />
+      )}
+    </div>
+  );
+}
+
+function Services4View({ servicesCategory, setServicesCategory, purchasedServices, openManageService, setActive }) {
+  const activeCategory = servicesCategory || DEFAULT_SERVICES_CATEGORY;
+  const activeCat = SERVICES_CATEGORIES.find(c => c.id === activeCategory) || SERVICES_CATEGORIES[0];
+
+  const subnavTab = (cat) => {
+    const isActive = activeCategory === cat.id;
     return (
       <button
+        key={cat.id}
         role="tab"
-        aria-selected={active}
-        className={`group relative inline-flex cursor-pointer items-center gap-2 rounded-full border-none bg-transparent px-[18px] py-2 text-[13px] font-medium transition-colors duration-150 [transition-timing-function:ease] ${active ? "text-fg" : "text-muted"} can-hover:hover:text-fg`}
-        onClick={() => setSubTab(id)}
+        aria-selected={isActive}
+        className={`group relative inline-flex cursor-pointer items-center gap-1.5 rounded-full border-none bg-transparent px-[14px] py-2 text-[13px] font-medium transition-colors duration-150 [transition-timing-function:ease] ${isActive ? "text-fg" : "text-muted"} can-hover:hover:text-fg`}
+        onClick={() => setServicesCategory && setServicesCategory(cat.id)}
       >
-        {active && (
+        {isActive && (
           <motion.span
-            layoutId="s4-subnav-indicator"
+            layoutId="s4-category-indicator"
             className="absolute inset-0 z-0 rounded-full bg-bg shadow-[0_1px_3px_rgba(0,0,0,0.08)]"
             transition={{ type: "spring", stiffness: 420, damping: 34 }}
           />
         )}
-        <span className="relative z-[1]">{label}</span>
-        {extra}
+        <span className="relative z-[1] text-[13px] leading-none">{cat.emoji}</span>
+        <span className="relative z-[1]">{cat.label}</span>
       </button>
     );
   };
 
   return (
     <div className="flex w-full max-w-[1240px] flex-col gap-5">
-      {/* Nagłówek + sub-taby — widoczne tylko na widoku katalog/my (nie na detail) */}
-      {!selectedService && (
-        <div className="mb-1 flex flex-wrap items-end justify-between gap-5">
+      <div className="mb-1 flex flex-col gap-3">
+        <div className="flex flex-wrap items-end justify-between gap-5">
           <div className="min-w-[260px] flex-1">
-            <h2 className="text-[20px] font-bold tracking-[-0.02em]">Usługi</h2>
-            <p className="text-sm text-muted mt-1">
-              {subTab === "catalog"
-                ? "Wszystkie usługi w jednym miejscu. Wybierz kategorię albo kliknij kafelek, aby zobaczyć szczegóły."
-                : subTab === "kreator"
-                ? "Zabaw się suwakami — dobierzemy Ci ochronę, księgowość i usługi pod Twój profil. Uzbierasz paczkę, potem skonfigurujesz każdą osobno."
-                : "Aktywne subskrypcje i usługi — parametry, dokumenty, akcje w jednym miejscu."}
-            </p>
-          </div>
-          <div
-            role="tablist"
-            className="inline-flex gap-1 rounded-full bg-[color-mix(in_srgb,var(--color-fg)_5%,transparent)] p-1"
-          >
-            {subnavTab("catalog", "Katalog")}
-            {subnavTab("kreator", "Kreator", <span className="relative z-[1]" aria-hidden>✨</span>)}
-            {subnavTab("my", "Moje usługi", ownedCount > 0 && (
-              <span className="relative z-[1] inline-flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-[color-mix(in_srgb,var(--color-fg)_10%,transparent)] px-1.5 text-[11px] font-semibold group-aria-[selected=true]:bg-lime group-aria-[selected=true]:text-[#0A0A0A]">
-                {ownedCount}
-              </span>
-            ))}
+            <h2 className="text-[20px] font-bold tracking-[-0.02em]">{activeCat.label}</h2>
+            <p className="mt-1 text-sm text-muted">{activeCat.desc}</p>
           </div>
         </div>
-      )}
+        <div
+          role="tablist"
+          className="inline-flex flex-wrap gap-1 self-start rounded-full bg-[color-mix(in_srgb,var(--color-fg)_5%,transparent)] p-1"
+        >
+          {SERVICES_CATEGORIES.map(subnavTab)}
+        </div>
+      </div>
 
       <AnimatePresence mode="wait" initial={false}>
-        {selectedService ? (
-          <motion.div
-            key="detail"
-            className="flex flex-col gap-5"
-            initial={{ opacity: 0, x: 16 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: -16 }}
-            transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
-          >
-            <ServiceDetailView
-              service={selectedService}
-              inCart={cartServiceIds.has(selectedService.id)}
-              onToggle={() => toggleService(selectedService)}
-              onBack={() => setSelectedId(null)}
-              onOpenRelated={(id) => setSelectedId(id)}
-              cartServices={cartServices}
-              cartTotal={cartTotal}
-              lpInCart={lpInCart}
-              missingLpServices={missingLpServices}
-              level={level}
-              onRemove={removeFromCart}
-              onSwap={swapToLP}
-            />
-          </motion.div>
-        ) : subTab === "kreator" ? (
-          <motion.div
-            key="kreator"
-            className="flex flex-col gap-5"
-            initial={{ opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -8 }}
-            transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
-          >
-            <Services4Kreator
-              purchasedServices={purchased}
-              purchaseService={purchaseService}
-              lpSub={lpSub}
-              setLpSub={setLpSub}
-              onFinish={() => setSubTab("my")}
-            />
-          </motion.div>
-        ) : subTab === "catalog" ? (
-          <motion.div
-            key="catalog"
-            className="flex flex-col gap-5"
-            initial={{ opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -8 }}
-            transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
-          >
-            {LP_ENABLED && !lpSub?.active && !lpStripDismissed && (
-              <LPPromoStrip
-                lpSub={lpSub}
-                onOpenLP={() => setActive && setActive("packages")}
-                onDismiss={() => setLpStripDismissed(true)}
-              />
-            )}
-
-            <div className="flex flex-wrap gap-2">
-              {SERVICE_CATEGORIES.map(c => (
-                <button
-                  key={c.id}
-                  className={`filter-pill${filter === c.id ? " filter-pill--active" : ""}`}
-                  onClick={() => setFilter(c.id)}
-                >
-                  {c.label}
-                </button>
-              ))}
-            </div>
-
-            <div className="grid grid-cols-[repeat(auto-fill,minmax(280px,1fr))] gap-5 max-[720px]:grid-cols-1">
-              {visibleServices.map(svc => (
-                <Service4Card
-                  key={svc.id}
-                  service={svc}
-                  inCart={cartServiceIds.has(svc.id)}
-                  isPurchased={!!purchased[svc.id]}
-                  onOpen={() => setSelectedId(svc.id)}
-                  onManage={() => handleManage(svc.id)}
-                />
-              ))}
-            </div>
-          </motion.div>
-        ) : (
-          <motion.div
-            key="my"
-            className="flex flex-col gap-5"
-            initial={{ opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -8 }}
-            transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
-          >
-            <MyServicesView
-              purchasedServices={purchasedServices}
-              cancelService={cancelService}
-              updateServiceParams={updateServiceParams}
-              lpSub={lpSub}
-              setLpSub={setLpSub}
-              pendingManageId={pendingManageId}
-              setPendingManageId={setPendingManageId}
-              setActive={setActive}
-              onGoToCatalog={() => setSubTab("catalog")}
-              embedded
-            />
-          </motion.div>
-        )}
+        <motion.div
+          key={activeCategory}
+          className="flex flex-col gap-5"
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -8 }}
+          transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
+        >
+          {activeCategory === "ubezpieczenia" ? (
+            <InsuranceDashView />
+          ) : (
+            <ServiceCategoryPlaceholder category={activeCat} />
+          )}
+        </motion.div>
       </AnimatePresence>
     </div>
   );
@@ -8736,50 +8866,41 @@ function OcrModal({ catId, onConfirm, onCancel }) {
 
 // ─── INSURANCE DASHBOARD ──────────────────────────────────────────────────────
 
-const INS_DASH_DEFAULT_POLICIES = {};
+// Demo-seed: jedna polisa OC u Ergo Hestii żeby prototyp pokazywał oba stany naraz
+// (aktywna polisa OC → panel zarządzania, brak utraty dochodu → kalkulator).
+// Produkcyjnie ten seed zastąpi realny stan z backendu; lokalny override tkwi w localStorage.
+const INS_DASH_DEFAULT_POLICIES = {
+  oc: { source: "km", provider: "Ergo Hestia", policyNumber: "EH/OC-2025/78341", expiryDate: "2026-11-30", sumInsured: "2 000 000 zł", premium: "189 zł/mies.", scope: "OC obowiązkowe + nadwyżkowe", extras: ["Ochrona prawna 100 000 zł", "Profilaktyka HIV/WZW", "Kary NFZ 200 000 zł"] },
+};
 
 function InsuranceDashView() {
-  const [mode, setMode] = useState(() => {
-    try { return localStorage.getItem("km-ins-mode") || "new"; } catch { return "new"; }
-  });
   const [policies, setPolicies] = useState(() => {
     try { return JSON.parse(localStorage.getItem("km-ins-policies")) || INS_DASH_DEFAULT_POLICIES; }
     catch { return INS_DASH_DEFAULT_POLICIES; }
   });
   const [selectedCat, setSelectedCat] = useState(null);
   const [ocrModal, setOcrModal] = useState(null);
-  const [contactOpen, setContactOpen] = useState(null);
-  const [contactSlot, setContactSlot] = useState(null);
-  const [contactSent, setContactSent] = useState({});
-  const [expandedPolicy, setExpandedPolicy] = useState(null);
+  // Kalkulatory inline — domyślnie rezydent (grupa I) + min. suma + średni dochód
+  const [ocRisk, setOcRisk] = useState(1);           // 1 | 2 | 3
+  const [ocSum,  setOcSum]  = useState("1 000 000 zł");
+  const [incMonthly, setIncMonthly] = useState(10000); // PLN/mies. dochodu
+  const [incCare,    setIncCare]    = useState(30);    // 14 | 30 | 60 dni karencji
 
-  // Persist
   useEffect(() => {
     try { localStorage.setItem("km-ins-policies", JSON.stringify(policies)); } catch {}
   }, [policies]);
-  useEffect(() => {
-    try { localStorage.setItem("km-ins-mode", mode); } catch {}
-  }, [mode]);
 
-  // Drill-down to InsuranceDetail
   if (selectedCat) {
     return <InsuranceDetail cat={selectedCat} onBack={() => setSelectedCat(null)} />;
   }
 
-  const handleOcrConfirm = (data, fileName) => {
+  const handleOcrConfirm = (data) => {
     const catId = ocrModal;
     setPolicies(prev => ({
       ...prev,
       [catId]: { source: "external", provider: data.insurer || "Nieznany", policyNumber: data.policyNumber || "", expiryDate: data.expiryDate || "", sumInsured: data.sumInsured || "" }
     }));
     setOcrModal(null);
-  };
-
-  const handleContactSend = (catId) => {
-    if (!contactSlot) return;
-    setContactSent(prev => ({ ...prev, [catId]: true }));
-    setContactOpen(null);
-    setContactSlot(null);
   };
 
   const daysLeft = (dateStr) => {
@@ -8789,235 +8910,314 @@ function InsuranceDashView() {
     return Math.max(0, Math.ceil((d - new Date()) / 86400000));
   };
 
-  // ── Demo data for "existing customer" mode ──
-  const DEMO_POLICIES = {
-    oc: { source: "km", provider: "Ergo Hestia", policyNumber: "EH/OC-2025/78341", expiryDate: "2026-11-30", sumInsured: "75 000 EUR", premium: "149 zł/mies.", scope: "OC obowiązkowe + nadwyżkowe", extras: ["Ochrona prawna 100 000 zł", "Profilaktyka HIV/WZW", "Kary NFZ 200 000 zł"] },
-    income: { source: "km", provider: "Lloyd's", policyNumber: "LL/UD-2025/42190", expiryDate: "2026-08-15", sumInsured: "10 000 zł/mies.", premium: "189 zł/mies.", scope: "Utrata dochodu — choroba i wypadek", extras: ["Karencja 30 dni", "Świadczenie do 12 miesięcy"] },
-  };
-
-  const activePolicies = mode === "existing" ? DEMO_POLICIES : policies;
+  // Button styles — share z PraktykaView / innymi widokami usług
+  const pickBtnBase = SERVICE_BTN_BASE;
+  const pickBtnPrimary = SERVICE_BTN_PRIMARY;
+  const pickBtnDark    = SERVICE_BTN_DARK;
+  const pickBtnOutline = SERVICE_BTN_OUTLINE;
 
   return (
-    <div className="ins-dash">
+    <div className="mx-auto w-full max-w-[900px]">
       {/* Toggle */}
-      <div className="ins-toggle">
-        <button className={`ins-toggle__btn${mode === "new" ? " ins-toggle__btn--active" : ""}`} onClick={() => setMode("new")}>
-          Szukam ubezpieczenia
-        </button>
-        <button className={`ins-toggle__btn${mode === "existing" ? " ins-toggle__btn--active" : ""}`} onClick={() => setMode("existing")}>
-          Mam ubezpieczenie u nas
-        </button>
-      </div>
+      {(() => {
+        // Stub realistycznych miesięcznych stawek — liczone od grupy ryzyka + sumy gwarancyjnej.
+        // Synchronizowane z priceLabel w INSURANCE_CATEGORIES („od 69 zł/mies.").
+        const OC_PRICE = {
+          1: { base: 59,  sum: { "1 000 000 zł": 10, "1 500 000 zł": 25,  "2 000 000 zł": 50  } },
+          2: { base: 129, sum: { "1 000 000 zł": 30, "1 500 000 zł": 65,  "2 000 000 zł": 120 } },
+          3: { base: 259, sum: { "1 000 000 zł": 70, "1 500 000 zł": 130, "2 000 000 zł": 220 } },
+        };
+        const INC_CARE = { 14: 1.2, 30: 1.0, 60: 0.75 };
+        const OC_SUM_SHORT = { "1 000 000 zł": "1 mln", "1 500 000 zł": "1,5 mln", "2 000 000 zł": "2 mln" };
+        const RISK_LABEL  = { 1: "I", 2: "II", 3: "III" };
+        const RISK_HINT   = { 1: "GP, pediatria, interna", 2: "okulistyka, dermatologia, psychiatria", 3: "chirurgia, ginekologia, anestezjologia" };
+        const ocMonthly = OC_PRICE[ocRisk].base + OC_PRICE[ocRisk].sum[ocSum];
+        const incMonthlyPrice = Math.max(49, Math.round((incMonthly / 1000) * 18 * INC_CARE[incCare]));
+        const fmt = (n) => n.toLocaleString("pl-PL");
 
-      {/* ═══ MODE: NEW ═══ */}
-      {mode === "new" && (
-        <>
-          <div className="ins-dash__header" style={{ textAlign: "center", display: "flex", flexDirection: "column", alignItems: "center" }}>
-            <h2 className="ins-dash__title">Wybierz ubezpieczenie</h2>
-            <p className="ins-dash__subtitle">Oferty od Ergo Hestii i Lloyd's — dopasowane do lekarzy</p>
-          </div>
+        const chip = (active) =>
+          `cursor-pointer rounded-lg border px-2.5 py-1.5 text-xs font-medium transition-colors duration-150 ${active ? "border-accent bg-accent-bg text-accent" : "border-border bg-bg text-muted can-hover:hover:border-accent can-hover:hover:text-fg"}`;
 
-          <div className="ins-pick">
-            {INSURANCE_CATEGORIES.map(cat => (
-              <div key={cat.id} className="ins-pick__card">
-                <div className="ins-pick__icon">
-                  {cat.id === "oc" && <img src="ubezpieczenia/loga/ergohestia.png" alt="Ergo Hestia" style={{ height: 28, objectFit: "contain" }} />}
-                  {cat.id === "income" && <img src="ubezpieczenia/loga/lloyds.png" alt="Lloyd's" style={{ height: 16, objectFit: "contain" }} />}
-                </div>
-                <h3 className="ins-pick__name">{cat.name}</h3>
-                {cat.tag && <Pill variant={cat.tagVariant}>{cat.tag}</Pill>}
-                <p className="ins-pick__desc">{cat.desc}</p>
-                {cat.priceLabel && <span className="ins-pick__price">{cat.priceLabel}</span>}
-                <button className="ins-pick__btn" onClick={() => setSelectedCat(cat)}>
-                  Sprawdź ofertę
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14"/><path d="M12 5l7 7-7 7"/></svg>
+        return (
+          <>
+            {/* ═══ OCR HERO — wyeksponowany upsell po skan polisy ═══ */}
+            <div className="relative mb-8 flex items-center gap-6 overflow-hidden rounded-2xl bg-accent-bg p-6 max-[720px]:flex-col max-[720px]:items-start">
+              <div className="pointer-events-none absolute -right-8 -top-8 h-32 w-32 rounded-full bg-accent/10 blur-2xl" />
+              <div className="relative flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-bg text-accent shadow-[0_1px_3px_rgba(0,0,0,0.06)]">
+                <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M12 18v-6"/><path d="M9 15l3-3 3 3"/></svg>
+              </div>
+              <div className="relative min-w-0 flex-1">
+                <h3 className="m-0 text-[15px] font-bold text-fg">Masz już polisę? Wrzuć PDF i odzyskaj kontrolę</h3>
+                <p className="m-0 mt-1 text-[13px] leading-[1.5] text-muted">Wrzuć PDF — przypomnimy przed wygaśnięciem i wrócimy z lepszą ofertą.</p>
+              </div>
+              <div className="relative flex shrink-0 gap-2 max-[720px]:w-full max-[720px]:flex-col">
+                <button onClick={() => setOcrModal("oc")} className={pickBtnDark}>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M17 8l-5-5-5 5"/><path d="M12 3v12"/></svg>
+                  Wrzuć polisę OC
+                </button>
+                <button onClick={() => setOcrModal("income")} className={`${pickBtnOutline} bg-bg/60`}>
+                  Wrzuć utratę dochodu
                 </button>
               </div>
-            ))}
-          </div>
-
-          <div className="ins-divider">
-            <span className="ins-divider__line" />
-            <span className="ins-divider__text">lub</span>
-            <span className="ins-divider__line" />
-          </div>
-
-          <div className="ins-scan">
-            <div className="ins-scan__icon">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M16 13H8"/><path d="M16 17H8"/><path d="M10 9H8"/></svg>
             </div>
-            <div className="ins-scan__content">
-              <h3 className="ins-scan__title">Masz już ubezpieczenie?</h3>
-              <p className="ins-scan__desc">Zeskanuj obecną polisę — odczytamy datę wygaśnięcia i przypomnimy o odnowieniu z lepszą ofertą.</p>
-            </div>
-            <div className="ins-scan__actions">
-              <button className="ins-scan__btn" onClick={() => setOcrModal("oc")}>
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M16 13H8"/><path d="M16 17H8"/></svg>
-                Skanuj polisę OC
-              </button>
-              <button className="ins-scan__btn" onClick={() => setOcrModal("income")}>
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M16 13H8"/><path d="M16 17H8"/></svg>
-                Skanuj polisę od utraty dochodu
-              </button>
-            </div>
-          </div>
-        </>
-      )}
 
-      {/* ═══ MODE: EXISTING CUSTOMER ═══ */}
-      {mode === "existing" && (
-        <>
-          <div className="ins-dash__header" style={{ textAlign: "center", display: "flex", flexDirection: "column", alignItems: "center" }}>
-            <h2 className="ins-dash__title">Twoje polisy</h2>
-            <p className="ins-dash__subtitle">Śledź status, szczegóły i daty odnowienia</p>
-          </div>
-
-          <div className="ins-tracker">
-            {INSURANCE_CATEGORIES.map(cat => {
-              const policy = activePolicies[cat.id];
-              if (!policy) return null;
-              const days = daysLeft(policy.expiryDate);
-              const isExpanded = expandedPolicy === cat.id;
-              const urgent = days !== null && days < 30;
-              const warn = days !== null && days < 90 && !urgent;
-
+            {(() => {
+              // Rozdzielamy kategorie: status (masz) vs oferta (nie masz).
+              // Status renderowany jako poziomy pas — szybki overview, akcje zarządzania.
+              // Oferta w grid 2-col z kalkulatorem — focus na upsell / sprzedaż.
+              const activeCats = INSURANCE_CATEGORIES.filter(c => policies[c.id]);
+              const offerCats  = INSURANCE_CATEGORIES.filter(c => !policies[c.id]);
+              const quickLinks = [
+                { key: "pdf",   label: "Polisa PDF",      icon: (<><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M9 13h6"/><path d="M9 17h6"/></>) },
+                { key: "renew", label: "Odnów wcześniej", icon: (<><path d="M21 12a9 9 0 0 1-9 9 9 9 0 0 1-6.36-2.64L3 16"/><path d="M3 12a9 9 0 0 1 9-9 9 9 0 0 1 6.36 2.64L21 8"/><path d="M21 3v5h-5"/><path d="M3 21v-5h5"/></>) },
+                { key: "info",  label: "Szczegóły",       icon: (<><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></>) },
+              ];
               return (
-                <div key={cat.id} className={`ins-tracker__card${urgent ? " ins-tracker__card--urgent" : warn ? " ins-tracker__card--warn" : ""}`}>
-                  {/* Card header — always visible */}
-                  <button className="ins-tracker__header" onClick={() => setExpandedPolicy(isExpanded ? null : cat.id)}>
-                    <div className="ins-tracker__left">
-                      <div className="ins-tracker__logo">
-                        {cat.id === "oc" && <img src="ubezpieczenia/loga/ergohestia.png" alt="Ergo Hestia" style={{ height: 22, objectFit: "contain" }} />}
-                        {cat.id === "income" && <img src="ubezpieczenia/loga/lloyds.png" alt="Lloyd's" style={{ height: 12, objectFit: "contain" }} />}
-                      </div>
-                      <div>
-                        <span className="ins-tracker__name">{cat.name}</span>
-                        <span className="ins-tracker__nr">Nr {policy.policyNumber}</span>
-                      </div>
-                    </div>
-                    <div className="ins-tracker__right">
-                      <span className="ins-tracker__status">Aktywna</span>
-                      {days !== null && (
-                        <span className={`ins-tracker__days${urgent ? " ins-tracker__days--urgent" : warn ? " ins-tracker__days--warn" : ""}`}>
-                          {days === 0 ? "Wygasła" : `${days} dni`}
-                        </span>
-                      )}
-                      <svg className={`ins-tracker__chevron${isExpanded ? " ins-tracker__chevron--open" : ""}`} width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M6 9l6 6 6-6"/></svg>
-                    </div>
-                  </button>
+                <div className="flex flex-col gap-8">
 
-                  {/* Expiry progress bar */}
-                  {days !== null && (
-                    <div className="ins-tracker__bar">
-                      <div className={`ins-tracker__bar-fill${urgent ? " ins-tracker__bar-fill--urgent" : warn ? " ins-tracker__bar-fill--warn" : ""}`} style={{ width: `${Math.min(100, (days / 365) * 100)}%` }} />
-                    </div>
+                  {activeCats.length > 0 && (
+                    <section className="flex flex-col gap-4">
+                      <div className="flex items-baseline justify-between">
+                        <h2 className="m-0 text-[15px] font-semibold text-fg">Twoje aktywne polisy</h2>
+                        <span className="text-[11px] text-muted tabular-nums">{activeCats.length} z {INSURANCE_CATEGORIES.length}</span>
+                      </div>
+                      <div className="flex flex-col gap-3">
+                        {activeCats.map(cat => {
+                          const policy = policies[cat.id];
+                          const days = daysLeft(policy.expiryDate);
+                          const urgent = days !== null && days < 30;
+                          const warn   = days !== null && days < 90 && !urgent;
+                          const barFillCls = urgent ? "bg-[#ef4444]" : warn ? "bg-[#f59e0b]" : "bg-[#16a34a]";
+                          const daysCls    = urgent ? "text-[#ef4444]" : warn ? "text-[#f59e0b]" : "text-[#16a34a]";
+
+                          return (
+                            <div
+                              key={cat.id}
+                              className="flex items-start gap-4 rounded-2xl border border-[#16a34a33] bg-bg p-5 transition-[border-color,box-shadow] duration-200 ease-[cubic-bezier(0.23,1,0.32,1)] max-[640px]:flex-col max-[640px]:p-4 can-hover:hover:shadow-[0_2px_12px_rgba(0,0,0,0.04)]"
+                            >
+                              {/* Logo */}
+                              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-secondary">
+                                {cat.id === "oc" && <img src="ubezpieczenia/loga/ergohestia.png" alt="Ergo Hestia" className="h-6 object-contain" />}
+                                {cat.id === "income" && <img src="ubezpieczenia/loga/lloyds.png" alt="Lloyd's" className="h-[14px] object-contain" />}
+                              </div>
+
+                              <div className="flex min-w-0 flex-1 flex-col gap-3">
+                                {/* Title + status */}
+                                <div className="flex flex-col gap-0.5">
+                                  <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+                                    <h3 className="m-0 text-[17px] font-bold text-fg">{cat.name}</h3>
+                                    <span className="inline-flex items-center gap-1.5 rounded-full bg-[#16a34a1a] px-2 py-0.5 text-[11px] font-semibold text-[#16a34a]">
+                                      <span className="h-1.5 w-1.5 rounded-full bg-[#16a34a]" />
+                                      Aktywna
+                                    </span>
+                                  </div>
+                                  <p className="m-0 truncate text-[13px] text-muted">{policy.provider} · nr {policy.policyNumber}</p>
+                                </div>
+
+                                {/* Expiry bar + quick facts */}
+                                <div className="flex flex-col gap-1.5">
+                                  <div className="flex items-baseline justify-between gap-3 text-[12px]">
+                                    <span className="text-muted">Ważna do <span className="font-semibold text-fg">{new Date(policy.expiryDate).toLocaleDateString("pl-PL")}</span></span>
+                                    {days !== null && (
+                                      <span className={`font-semibold tabular-nums ${daysCls}`}>
+                                        {days === 0 ? "Wygasła" : `${days} dni`}
+                                      </span>
+                                    )}
+                                  </div>
+                                  {days !== null && (
+                                    <div className="h-1.5 overflow-hidden rounded-full bg-border">
+                                      <div
+                                        className={`h-full rounded-full transition-[width] duration-[400ms] ease-[cubic-bezier(0.23,1,0.32,1)] ${barFillCls}`}
+                                        style={{ width: `${Math.min(100, (days / 365) * 100)}%` }}
+                                      />
+                                    </div>
+                                  )}
+                                  <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-0.5 text-[11px] text-muted">
+                                    <span>Suma gwarancyjna: <span className="font-medium text-fg">{policy.sumInsured}</span></span>
+                                    <span>Składka: <span className="font-medium text-fg">{policy.premium}</span></span>
+                                  </div>
+                                </div>
+
+                                {/* Actions row */}
+                                <div className="flex flex-wrap items-center gap-2 pt-1 max-[640px]:flex-col max-[640px]:items-stretch">
+                                  <div className="flex gap-2 max-[640px]:w-full">
+                                    <button className={pickBtnDark} onClick={() => setSelectedCat(cat)}>
+                                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 12 2 2 4-4"/></svg>
+                                      Zgłoś szkodę
+                                    </button>
+                                    <button className={pickBtnOutline} onClick={() => setSelectedCat(cat)}>
+                                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                                      Kontakt
+                                    </button>
+                                  </div>
+                                  <span className="text-border max-[640px]:hidden" aria-hidden>·</span>
+                                  <div className="flex flex-wrap items-center gap-0.5">
+                                    {quickLinks.map(a => (
+                                      <button
+                                        key={a.key}
+                                        onClick={() => setSelectedCat(cat)}
+                                        className="inline-flex cursor-pointer items-center gap-1.5 rounded-md border-none bg-transparent px-2.5 py-1.5 text-[11px] font-medium text-muted transition-colors duration-150 ease-[cubic-bezier(0.23,1,0.32,1)] can-hover:hover:bg-secondary can-hover:hover:text-fg active:scale-[0.97]"
+                                      >
+                                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden>{a.icon}</svg>
+                                        {a.label}
+                                      </button>
+                                    ))}
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </section>
                   )}
 
-                  {/* Expanded details */}
-                  {isExpanded && (
-                    <div className="ins-tracker__details">
-                      <div className="ins-tracker__grid">
-                        <div className="ins-tracker__field">
-                          <span className="ins-tracker__label">Ubezpieczyciel</span>
-                          <span className="ins-tracker__value">{policy.provider}</span>
-                        </div>
-                        <div className="ins-tracker__field">
-                          <span className="ins-tracker__label">Składka</span>
-                          <span className="ins-tracker__value">{policy.premium}</span>
-                        </div>
-                        <div className="ins-tracker__field">
-                          <span className="ins-tracker__label">Suma gwarancyjna</span>
-                          <span className="ins-tracker__value">{policy.sumInsured}</span>
-                        </div>
-                        <div className="ins-tracker__field">
-                          <span className="ins-tracker__label">Ważna do</span>
-                          <span className="ins-tracker__value">{policy.expiryDate && new Date(policy.expiryDate).toLocaleDateString("pl-PL")}</span>
-                        </div>
-                      </div>
-
-                      {policy.scope && (
-                        <div className="ins-tracker__field" style={{ marginTop: 12 }}>
-                          <span className="ins-tracker__label">Zakres</span>
-                          <span className="ins-tracker__value">{policy.scope}</span>
-                        </div>
-                      )}
-
-                      {policy.extras?.length > 0 && (
-                        <div className="ins-tracker__extras">
-                          <span className="ins-tracker__label">Rozszerzenia</span>
-                          <ul className="ins-tracker__extras-list">
-                            {policy.extras.map((e, i) => (
-                              <li key={i}>
-                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#16a34a" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M20 6L9 17l-5-5"/></svg>
-                                {e}
-                              </li>
-                            ))}
-                          </ul>
-                        </div>
-                      )}
-
-                      {/* Contact advisor */}
-                      <div className="ins-tracker__actions">
-                        {contactOpen !== cat.id && !contactSent[cat.id] && (
-                          <>
-                            <button className="ins-pick__btn" onClick={() => { setContactOpen(cat.id); setContactSlot(null); }}>
-                              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
-                              Skontaktuj się z doradcą
-                            </button>
-                            <button className="ins-pick__btn ins-pick__btn--outline" onClick={() => setSelectedCat(cat)}>
-                              Szczegóły polisy
-                            </button>
-                          </>
-                        )}
-
-                        {contactOpen === cat.id && !contactSent[cat.id] && (
-                          <div className="ins-tracker__contact">
-                            <p className="ins-tracker__contact-label">Kiedy możemy zadzwonić?</p>
-                            <div className="ins-tracker__contact-slots">
-                              {CONTACT_SLOTS.map(s => (
-                                <button key={s.id} className={`ins-tracker__slot${contactSlot === s.id ? " ins-tracker__slot--active" : ""}`} onClick={() => setContactSlot(s.id)}>
-                                  {s.label}
-                                </button>
-                              ))}
+                  {offerCats.length > 0 && (
+                    <section className="flex flex-col gap-4">
+                      <h2 className="m-0 text-[15px] font-semibold text-fg">
+                        {activeCats.length > 0 ? "Zbuduj pełną ochronę" : "Wybierz ubezpieczenie"}
+                      </h2>
+                      <div className={`grid gap-5 max-[720px]:grid-cols-1 max-[720px]:gap-4 ${offerCats.length > 1 ? "grid-cols-2" : "grid-cols-1 max-w-[440px]"}`}>
+                        {offerCats.map(cat => (
+                          <div
+                            key={cat.id}
+                            className="group flex flex-col gap-5 rounded-2xl border border-border bg-bg p-6 transition-[transform,border-color,box-shadow] duration-200 ease-[cubic-bezier(0.23,1,0.32,1)] can-hover:hover:-translate-y-[2px] can-hover:hover:border-accent can-hover:hover:shadow-[0_8px_24px_rgba(0,0,0,0.06)]"
+                          >
+                            <div className="flex items-start justify-between gap-3">
+                              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-secondary">
+                                {cat.id === "oc" && <img src="ubezpieczenia/loga/ergohestia.png" alt="Ergo Hestia" className="h-6 object-contain" />}
+                                {cat.id === "income" && <img src="ubezpieczenia/loga/lloyds.png" alt="Lloyd's" className="h-[14px] object-contain" />}
+                              </div>
+                              {cat.tag && <Pill variant={cat.tagVariant}>{cat.tag}</Pill>}
                             </div>
-                            <div style={{ display: "flex", gap: 8 }}>
-                              <button className="ins-pick__btn" onClick={() => handleContactSend(cat.id)} disabled={!contactSlot} style={{ flex: 1 }}>
-                                Wyślij prośbę
-                              </button>
-                              <button className="ins-pick__btn ins-pick__btn--outline" onClick={() => setContactOpen(null)} style={{ flex: 0 }}>
-                                Anuluj
-                              </button>
-                            </div>
-                          </div>
-                        )}
 
-                        {contactSent[cat.id] && (
-                          <div className="ins-tracker__contact-done">
-                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#16a34a" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M20 6L9 17l-5-5"/></svg>
-                            <span>Prośba wysłana — doradca odezwie się wkrótce</span>
+                            <div className="flex flex-col gap-1">
+                              <h3 className="m-0 text-[17px] font-bold text-fg">{cat.name}</h3>
+                              <p className="m-0 text-[13px] leading-[1.5] text-muted">{cat.desc}</p>
+                            </div>
+
+                            <div className="flex flex-col gap-4 rounded-xl bg-secondary/60 p-4">
+                              <span className="text-[11px] font-semibold uppercase tracking-[0.04em] text-muted">Dopasuj do siebie</span>
+
+                              {cat.id === "oc" && (
+                                <>
+                                  <div className="flex flex-col gap-2">
+                                    <div className="flex items-baseline justify-between">
+                                      <span className="text-[12px] font-medium text-fg">Grupa ryzyka</span>
+                                      <span className="text-[11px] text-muted">{RISK_HINT[ocRisk]}</span>
+                                    </div>
+                                    <div className="flex gap-1.5">
+                                      {[1, 2, 3].map(g => (
+                                        <button key={g} onClick={() => setOcRisk(g)} className={`flex-1 ${chip(ocRisk === g)}`}>
+                                          {RISK_LABEL[g]}
+                                        </button>
+                                      ))}
+                                    </div>
+                                  </div>
+                                  <div className="flex flex-col gap-2">
+                                    <span className="text-[12px] font-medium text-fg">Suma gwarancyjna</span>
+                                    <div className="flex gap-1.5">
+                                      {OC_SUMS.map(s => (
+                                        <button key={s} onClick={() => setOcSum(s)} className={`flex-1 ${chip(ocSum === s)}`}>
+                                          {OC_SUM_SHORT[s]}
+                                        </button>
+                                      ))}
+                                    </div>
+                                  </div>
+                                </>
+                              )}
+
+                              {cat.id === "income" && (
+                                <>
+                                  <div className="flex flex-col gap-2">
+                                    <div className="flex items-baseline justify-between">
+                                      <span className="text-[12px] font-medium text-fg">Miesięczny dochód</span>
+                                      <span className="text-[12px] font-semibold text-accent tabular-nums">{fmt(incMonthly)} zł</span>
+                                    </div>
+                                    <input
+                                      type="range"
+                                      min="3000" max="25000" step="1000"
+                                      value={incMonthly}
+                                      onChange={(e) => setIncMonthly(Number(e.target.value))}
+                                      className="block w-full cursor-pointer accent-[var(--color-accent)]"
+                                    />
+                                    <div className="flex justify-between text-[10px] text-muted">
+                                      <span>3 tys.</span>
+                                      <span>25 tys.</span>
+                                    </div>
+                                  </div>
+                                  <div className="flex flex-col gap-2">
+                                    <div className="flex items-baseline justify-between">
+                                      <span className="text-[12px] font-medium text-fg">Karencja</span>
+                                      <span className="text-[11px] text-muted">im dłużej, tym taniej</span>
+                                    </div>
+                                    <div className="flex gap-1.5">
+                                      {[14, 30, 60].map(d => (
+                                        <button key={d} onClick={() => setIncCare(d)} className={`flex-1 ${chip(incCare === d)}`}>
+                                          {d} dni
+                                        </button>
+                                      ))}
+                                    </div>
+                                  </div>
+                                </>
+                              )}
+                            </div>
+
+                            <div className="flex flex-col gap-0.5">
+                              <div className="flex items-baseline gap-1.5">
+                                <span className="text-[28px] font-bold tracking-tight text-fg">
+                                  <SlidingNumber value={cat.id === "oc" ? ocMonthly : incMonthlyPrice} suffix=" zł" decimals={0} />
+                                </span>
+                                <span className="text-[13px] text-muted">/mies.</span>
+                              </div>
+                              <span className="text-[11px] text-muted">* składka orientacyjna · pełna wycena po wybraniu oferty</span>
+                            </div>
+
+                            <button className={`${pickBtnPrimary} mt-auto w-full`} onClick={() => setSelectedCat(cat)}>
+                              Sprawdź pełną ofertę
+                              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden><path d="M5 12h14"/><path d="M12 5l7 7-7 7"/></svg>
+                            </button>
                           </div>
-                        )}
+                        ))}
                       </div>
-                    </div>
+                    </section>
                   )}
                 </div>
               );
-            })}
-          </div>
-        </>
-      )}
+            })()}
+          </>
+        );
+      })()}
 
       {/* Partners */}
-      <div className="ins-partners" style={{ marginTop: 32 }}>
-        <span className="ins-partners__label">Ubezpieczamy z</span>
-        <div className="ins-partners__logos">
+      <div className="mt-12 flex flex-col items-center gap-3 py-6">
+        <span className="text-[11px] font-semibold uppercase tracking-[0.06em] text-muted">Ubezpieczamy z</span>
+        <div className="flex items-center justify-center gap-7">
           {INS_PARTNERS.map(p => (
-            <img key={p.name} src={p.logo} alt={p.name} className="ins-partners__logo" title={p.name} style={{ height: p.h }} />
+            <img
+              key={p.name}
+              src={p.logo}
+              alt={p.name}
+              title={p.name}
+              className="w-auto object-contain grayscale opacity-50 transition-all duration-200 can-hover:hover:opacity-100 can-hover:hover:grayscale-0"
+              style={{ height: p.h }}
+            />
           ))}
         </div>
       </div>
 
-      {/* OCR Modal */}
+      {/* Demo toggle — prototype only, usuń przed wdrożeniem produkcyjnym */}
+      <div className="mt-10 flex justify-center">
+        <button
+          onClick={() => setPolicies(Object.keys(policies).length === 0 ? INS_DASH_DEFAULT_POLICIES : {})}
+          className="inline-flex cursor-pointer items-center gap-1.5 rounded-full border border-dashed border-border bg-transparent px-3 py-1 text-[11px] text-muted transition-colors duration-150 can-hover:hover:border-fg can-hover:hover:text-fg"
+          title="Tylko prototyp: przełącz między stanem 'masz polisę OC' a 'nie masz polis'"
+        >
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
+          {Object.keys(policies).length === 0 ? "Symuluj: masz polisę OC" : "Wyczyść polisy demo"}
+        </button>
+      </div>
+
       {ocrModal && (
         <OcrModal catId={ocrModal} onConfirm={handleOcrConfirm} onCancel={() => setOcrModal(null)} />
       )}
@@ -9842,6 +10042,8 @@ function App() {
   const [loading,   setLoading]   = useState(false);
   const [active,    setActive_]   = useState("overview");
   const [navKey,    setNavKey]    = useState(0);
+  // Kategoria wewnątrz zakładki "Usługi" (packages4). Submenu w Sidebar deep-linkuje przez nią.
+  const [servicesCategory, setServicesCategory] = useState(DEFAULT_SERVICES_CATEGORY);
   const [cart,      setCart]      = useState([]);
   const [cartOpen,  setCartOpen]  = useState(false);
   const [notifOpen, setNotifOpen] = useState(false);
@@ -9933,7 +10135,16 @@ function App() {
     setActive("packages4");
   };
 
-  const setActive = (id) => { setActive_(id); setNavKey(k => k + 1); };
+  const setActive = (id) => {
+    // Legacy alias: stare CTA używają "insurance" — kierujemy do Usługi → Ubezpieczenia.
+    if (id === "insurance") {
+      setServicesCategory("ubezpieczenia");
+      setActive_("packages4");
+    } else {
+      setActive_(id);
+    }
+    setNavKey(k => k + 1);
+  };
 
   const addToCart = (product, variant, options = {}) => {
     setCart(prev => {
@@ -9990,11 +10201,11 @@ function App() {
 
   return (
     <div className="app-layout">
-      <Sidebar active={active} setActive={setActive} theme={theme} setTheme={setTheme} profile={profile} />
+      <Sidebar active={active} setActive={setActive} theme={theme} setTheme={setTheme} profile={profile} servicesCategory={servicesCategory} setServicesCategory={setServicesCategory} />
       <div className={`main${topbarHidden ? " main--topbar-hidden" : ""}`}>
         <TopBar active={active} setActive={setActive} cart={cart} onCartClick={() => setCartOpen(true)} onNotifClick={() => setNotifOpen(true)} theme={theme} setTheme={setTheme} />
         <main className="main__content" ref={scrollRef}>
-          <View key={navKey} setActive={setActive} addToCart={addToCart} cart={cart} removeFromCart={removeFromCart} profile={profile} setProfile={setProfile} unlockedDiscounts={unlockedDiscounts} unlockDiscount={unlockDiscount} lpSub={lpSub} setLpSub={setLpSub} activeServices={activeServices} toggleActiveService={toggleActiveService} purchasedServices={purchasedServices} purchaseService={purchaseService} cancelService={cancelService} updateServiceParams={updateServiceParams} openManageService={openManageService} pendingManageId={pendingManageId} setPendingManageId={setPendingManageId} />
+          <View key={navKey} setActive={setActive} addToCart={addToCart} cart={cart} removeFromCart={removeFromCart} profile={profile} setProfile={setProfile} unlockedDiscounts={unlockedDiscounts} unlockDiscount={unlockDiscount} lpSub={lpSub} setLpSub={setLpSub} activeServices={activeServices} toggleActiveService={toggleActiveService} purchasedServices={purchasedServices} purchaseService={purchaseService} cancelService={cancelService} updateServiceParams={updateServiceParams} openManageService={openManageService} pendingManageId={pendingManageId} setPendingManageId={setPendingManageId} servicesCategory={servicesCategory} setServicesCategory={setServicesCategory} />
         </main>
       </div>
       {notifOpen && <NotificationsDrawer onClose={() => setNotifOpen(false)} profile={profile} />}

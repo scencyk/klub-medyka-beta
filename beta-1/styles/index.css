@@ -62,15 +62,12 @@
 /* Views (in source order) */
 @import './views/dashboard-insurance-widget.css' layer(components);
 @import './views/insurance-hub.css' layer(components);
-@import './views/insurance-dashboard.css' layer(components);
 @import './views/oc-form.css' layer(components);
 @import './views/advisors.css' layer(components);
 @import './views/interests.css' layer(components);
 @import './views/marketplace.css' layer(components);
 @import './views/product-detail.css' layer(components);
 @import './views/discounts-legacy.css' layer(components);
-@import './views/discounts-v2.css' layer(components);
-@import './views/discounts-v3.css' layer(components);
 @import './views/discounts-v4.css' layer(components);
 @import './views/cart-drawer.css' layer(components);
 @import './views/profile.css' layer(components);
