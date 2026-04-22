@@ -228,6 +228,145 @@
   flex-shrink: 0;
 }
 
+/* ─── CO NOWEGO? band ─── */
+.home-news {
+  position: relative;
+  padding: 18px 22px 16px;
+  border-radius: 18px;
+  background:
+    radial-gradient(120% 140% at 0% 0%, color-mix(in srgb, var(--color-accent) 10%, transparent) 0%, transparent 55%),
+    linear-gradient(135deg, color-mix(in srgb, var(--color-accent) 6%, var(--color-bg)) 0%, var(--color-bg) 80%);
+  border: 1px solid color-mix(in srgb, var(--color-accent) 18%, var(--color-border));
+  overflow: hidden;
+}
+.home-news::before {
+  content: "";
+  position: absolute;
+  top: -40%;
+  right: -10%;
+  width: 280px;
+  height: 280px;
+  background: radial-gradient(circle, color-mix(in srgb, var(--color-accent) 10%, transparent) 0%, transparent 70%);
+  pointer-events: none;
+}
+.home-news__header {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+  position: relative;
+}
+.home-news__sparkle {
+  color: var(--color-accent);
+  filter: drop-shadow(0 0 6px color-mix(in srgb, var(--color-accent) 35%, transparent));
+}
+.home-news__title {
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--color-accent);
+}
+.home-news__pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  position: relative;
+}
+.home-news__pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px 8px 12px;
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-full, 999px);
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--color-fg);
+  cursor: pointer;
+  transition:
+    transform var(--duration-fast) var(--ease-out),
+    border-color var(--duration-fast) var(--ease-out),
+    box-shadow var(--duration-ui) var(--ease-out);
+  box-shadow: 0 1px 0 color-mix(in srgb, var(--color-fg) 4%, transparent);
+}
+@media (hover: hover) and (pointer: fine) {
+  .home-news__pill:hover {
+    transform: translateY(-1px);
+    border-color: color-mix(in srgb, var(--color-accent) 45%, var(--color-border));
+    box-shadow: 0 6px 16px -8px color-mix(in srgb, var(--color-accent) 30%, transparent);
+  }
+  .home-news__pill:hover .home-news__pill-dot {
+    transform: scale(1.25);
+  }
+}
+.home-news__pill:active {
+  transform: scale(0.97);
+  transition-duration: var(--duration-press);
+}
+.home-news__pill-icon {
+  font-size: 13px;
+  line-height: 1;
+  filter: grayscale(0.15);
+}
+.home-news__pill-cat {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--color-muted);
+  letter-spacing: 0.02em;
+}
+.home-news__pill-sep {
+  color: color-mix(in srgb, var(--color-muted) 60%, transparent);
+  font-weight: 500;
+}
+.home-news__pill-label {
+  font-weight: 600;
+  letter-spacing: -0.005em;
+}
+.home-news__pill-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--color-lime, #CEFF3E);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-lime, #CEFF3E) 25%, transparent);
+  transition: transform var(--duration-fast) var(--ease-out);
+  margin-left: 2px;
+  flex-shrink: 0;
+}
+.home-news__soon {
+  display: inline-flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+  position: relative;
+}
+.home-news__soon-lbl {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--color-muted);
+}
+.home-news__soon-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  background: transparent;
+  border: 1px dashed color-mix(in srgb, var(--color-muted) 45%, transparent);
+  border-radius: var(--radius-full, 999px);
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--color-muted);
+  cursor: help;
+  transition: border-color var(--duration-fast) var(--ease-out), color var(--duration-fast) var(--ease-out);
+}
+@media (hover: hover) and (pointer: fine) {
+  .home-news__soon-chip:hover {
+    border-color: color-mix(in srgb, var(--color-muted) 70%, transparent);
+    color: var(--color-fg);
+  }
+}
+
 /* ─── KILLER OFERTY ─── */
 .home-killer {
   display: grid;
@@ -1087,7 +1226,13 @@
   .home-strip__cta:active,
   .home-bag,
   .home-bag:hover,
-  .home-bag:active {
+  .home-bag:active,
+  .home-news__pill,
+  .home-news__pill:hover,
+  .home-news__pill:active,
+  .home-news__pill-dot,
+  .home-news__soon-chip,
+  .home-news__soon-chip:hover {
     transform: none !important;
     transition-duration: 0.01ms !important;
   }

@@ -2282,6 +2282,66 @@ function timeOfDayGreeting() {
   return "Dobry wieczór";
 }
 
+// "Co nowego?" band — świeże dodatki w Klubie
+const HOME_NEWS_ITEMS = [
+  { id: "n-medicover",  category: "Usługi",     icon: "🩺",  label: "Medicover Sport",                        target: "packages4" },
+  { id: "n-wesub",      category: "Zakupy",     icon: "🛍",  label: "Wynajem w Wesub",                         target: "purchases" },
+  { id: "n-alior",      category: "Samochody",  icon: "🚗",  label: "Wynajem długoterminowy dla firm w Alior Rent", target: "cars" },
+  { id: "n-mercedes",   category: "Samochody",  icon: "🚗",  label: "Mercedes",                                target: "cars" },
+  { id: "n-vehis",      category: "Samochody",  icon: "🚗",  label: "Leasing w Vehis",                         target: "cars" },
+];
+const HOME_NEWS_SOON = [
+  { id: "s-insurance", label: "Ubezpieczenia", when: "Q3 2026" },
+];
+
+function HomeNewsBand({ setActive }) {
+  return (
+    <div className="home-news">
+      <div className="home-news__header">
+        <motion.svg
+          className="home-news__sparkle"
+          width="16" height="16" viewBox="0 0 24 24" fill="none"
+          initial={{ rotate: -12, scale: 0.8, opacity: 0 }}
+          animate={{ rotate: 0, scale: 1, opacity: 1 }}
+          transition={{ duration: 0.5, ease: [0.23, 1, 0.32, 1], delay: 0.1 }}
+        >
+          <path d="M12 3l1.8 5.4L19 10l-5.2 1.6L12 17l-1.8-5.4L5 10l5.2-1.6L12 3z" fill="currentColor"/>
+          <path d="M19 15l0.8 2L22 18l-2.2 1L19 21l-0.8-2L16 18l2.2-1L19 15z" fill="currentColor" opacity="0.6"/>
+          <path d="M5 4l0.5 1.3L7 6l-1.5 0.7L5 8l-0.5-1.3L3 6l1.5-0.7L5 4z" fill="currentColor" opacity="0.45"/>
+        </motion.svg>
+        <span className="home-news__title">Co nowego?</span>
+      </div>
+      <div className="home-news__pills">
+        {HOME_NEWS_ITEMS.map((item, i) => (
+          <motion.button
+            key={item.id}
+            type="button"
+            className="home-news__pill"
+            onClick={() => setActive && setActive(item.target)}
+            initial={{ opacity: 0, y: 6 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3, ease: [0.23, 1, 0.32, 1], delay: 0.15 + i * 0.04 }}
+          >
+            <span className="home-news__pill-icon" aria-hidden>{item.icon}</span>
+            <span className="home-news__pill-cat">{item.category}</span>
+            <span className="home-news__pill-sep" aria-hidden>·</span>
+            <span className="home-news__pill-label">{item.label}</span>
+            <span className="home-news__pill-dot" aria-hidden />
+          </motion.button>
+        ))}
+      </div>
+      {HOME_NEWS_SOON.length > 0 && (
+        <div className="home-news__soon">
+          <span className="home-news__soon-lbl">Już niedługo:</span>
+          {HOME_NEWS_SOON.map(s => (
+            <span key={s.id} className="home-news__soon-chip" title={s.when}>{s.label}</span>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 // Upsell teaser per service — headline + tagline
 const SERVICE_UPSELL_TEASERS = {
   lloyds:    { headline: "Lloyd's od 115 zł/mies.",          tagline: "Wypłata do 24 miesięcy — ochrona dochodu w chorobie." },
@@ -2517,6 +2577,11 @@ function Overview({ setActive, profile, setProfile, unlockedDiscounts, unlockDis
             <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M6 3l5 5-5 5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/></svg>
           </div>
         </div>
+      </InView>
+
+      {/* 2b. CO NOWEGO? — band z świeżymi dodatkami */}
+      <InView>
+        <HomeNewsBand setActive={setActive} />
       </InView>
 
       {/* 3. KILLER OFERTY — wyróżnione deale (hero + 2 mniejsze) */}
