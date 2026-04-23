@@ -5963,7 +5963,7 @@ function Services4View({ servicesCategory, setServicesCategory, purchasedService
         </div>
         <div
           role="tablist"
-          className="inline-flex flex-wrap gap-1 self-start rounded-full bg-[color-mix(in_srgb,var(--color-fg)_5%,transparent)] p-1"
+          className="inline-flex flex-wrap gap-1 self-center rounded-full bg-[color-mix(in_srgb,var(--color-fg)_5%,transparent)] p-1"
         >
           {SERVICES_CATEGORIES.map(subnavTab)}
         </div>
@@ -8886,9 +8886,31 @@ function InsuranceDashView() {
   const [incMonthly, setIncMonthly] = useState(10000); // PLN/mies. dochodu
   const [incCare,    setIncCare]    = useState(30);    // 14 | 30 | 60 dni karencji
 
+  // Kalkulator luki dochodowej — uświadamiający upsell dla Utraty dochodu.
+  // 5 pól → szacowana liczba miesięcy, które rodzina przetrwa bez dochodu lekarza.
+  const [gapOpen,       setGapOpen]       = useState(false);
+  const [gapSpec,       setGapSpec]       = useState(2);      // 1 | 2 | 3 (grupa → dochód bazowy)
+  const [gapYears,      setGapYears]      = useState(5);      // 0-30
+  const [gapWorkplace,  setGapWorkplace]  = useState("mix");  // public | mix | private
+  const [gapEmployment, setGapEmployment] = useState("uop");  // uop | jdg | kontrakt
+  const [gapKids,       setGapKids]       = useState(1);      // 0-3
+
   useEffect(() => {
     try { localStorage.setItem("km-ins-policies", JSON.stringify(policies)); } catch {}
   }, [policies]);
+
+  // Zamknij modal kalkulatora luki na ESC + blokuj scroll tła gdy otwarty
+  useEffect(() => {
+    if (!gapOpen) return;
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    const onKey = e => { if (e.key === "Escape") setGapOpen(false); };
+    window.addEventListener("keydown", onKey);
+    return () => {
+      document.body.style.overflow = prevOverflow;
+      window.removeEventListener("keydown", onKey);
+    };
+  }, [gapOpen]);
 
   if (selectedCat) {
     return <InsuranceDetail cat={selectedCat} onBack={() => setSelectedCat(null)} />;
@@ -8931,7 +8953,11 @@ function InsuranceDashView() {
         const OC_SUM_SHORT = { "1 000 000 zł": "1 mln", "1 500 000 zł": "1,5 mln", "2 000 000 zł": "2 mln" };
         const RISK_LABEL  = { 1: "I", 2: "II", 3: "III" };
         const RISK_HINT   = { 1: "GP, pediatria, interna", 2: "okulistyka, dermatologia, psychiatria", 3: "chirurgia, ginekologia, anestezjologia" };
-        const ocMonthly = OC_PRICE[ocRisk].base + OC_PRICE[ocRisk].sum[ocSum];
+        // OC lekarskie składa się z dwóch komponentów: obowiązkowego (base, wymagane prawnie)
+        // + dobrowolnego nadwyżkowego (addon, opcjonalne). ocSum === "none" = tylko obowiązkowe.
+        const ocBase  = OC_PRICE[ocRisk].base;
+        const ocAddon = ocSum === "none" ? 0 : (OC_PRICE[ocRisk].sum[ocSum] || 0);
+        const ocMonthly = ocBase + ocAddon;
         const incMonthlyPrice = Math.max(49, Math.round((incMonthly / 1000) * 18 * INC_CARE[incCare]));
         const fmt = (n) => n.toLocaleString("pl-PL");
 
@@ -8950,13 +8976,10 @@ function InsuranceDashView() {
                 <h3 className="m-0 text-[15px] font-bold text-fg">Masz już polisę? Wrzuć PDF i odzyskaj kontrolę</h3>
                 <p className="m-0 mt-1 text-[13px] leading-[1.5] text-muted">Wrzuć PDF — przypomnimy przed wygaśnięciem i wrócimy z lepszą ofertą.</p>
               </div>
-              <div className="relative flex shrink-0 gap-2 max-[720px]:w-full max-[720px]:flex-col">
-                <button onClick={() => setOcrModal("oc")} className={pickBtnDark}>
+              <div className="relative flex shrink-0 max-[720px]:w-full">
+                <button onClick={() => setOcrModal("oc")} className={`${pickBtnDark} max-[720px]:w-full`}>
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M17 8l-5-5-5 5"/><path d="M12 3v12"/></svg>
-                  Wrzuć polisę OC
-                </button>
-                <button onClick={() => setOcrModal("income")} className={`${pickBtnOutline} bg-bg/60`}>
-                  Wrzuć utratę dochodu
+                  Dodaj polisę
                 </button>
               </div>
             </div>
@@ -9088,7 +9111,14 @@ function InsuranceDashView() {
                                 {cat.id === "oc" && <img src="ubezpieczenia/loga/ergohestia.png" alt="Ergo Hestia" className="h-6 object-contain" />}
                                 {cat.id === "income" && <img src="ubezpieczenia/loga/lloyds.png" alt="Lloyd's" className="h-[14px] object-contain" />}
                               </div>
-                              {cat.tag && <Pill variant={cat.tagVariant}>{cat.tag}</Pill>}
+                              <div className="flex flex-wrap items-center justify-end gap-1.5">
+                                {cat.tag && <Pill variant={cat.tagVariant}>{cat.tag}</Pill>}
+                                {cat.id === "oc" && (
+                                  <span className="inline-flex items-center whitespace-nowrap rounded-full bg-secondary px-2 py-0.5 text-[11px] font-semibold leading-[1.4] text-muted">
+                                    + Dobrowolne
+                                  </span>
+                                )}
+                              </div>
                             </div>
 
                             <div className="flex flex-col gap-1">
@@ -9115,11 +9145,17 @@ function InsuranceDashView() {
                                     </div>
                                   </div>
                                   <div className="flex flex-col gap-2">
-                                    <span className="text-[12px] font-medium text-fg">Suma gwarancyjna</span>
-                                    <div className="flex gap-1.5">
+                                    <div className="flex items-baseline justify-between gap-2">
+                                      <span className="text-[12px] font-medium text-fg">OC dodatkowe (nadwyżka)</span>
+                                      <span className="text-[11px] text-muted">dobrowolne, ponad obowiązkowe</span>
+                                    </div>
+                                    <div className="flex gap-1.5 max-[520px]:flex-wrap">
+                                      <button onClick={() => setOcSum("none")} className={`flex-1 ${chip(ocSum === "none")}`}>
+                                        Bez
+                                      </button>
                                       {OC_SUMS.map(s => (
                                         <button key={s} onClick={() => setOcSum(s)} className={`flex-1 ${chip(ocSum === s)}`}>
-                                          {OC_SUM_SHORT[s]}
+                                          + {OC_SUM_SHORT[s]}
                                         </button>
                                       ))}
                                     </div>
@@ -9170,8 +9206,28 @@ function InsuranceDashView() {
                                 </span>
                                 <span className="text-[13px] text-muted">/mies.</span>
                               </div>
-                              <span className="text-[11px] text-muted">* składka orientacyjna · pełna wycena po wybraniu oferty</span>
+                              {cat.id === "oc" ? (
+                                <span className="text-[11px] text-muted">
+                                  {ocAddon > 0
+                                    ? <>OC obowiązkowe <span className="tabular-nums text-fg/80">{ocBase} zł</span> + nadwyżka {OC_SUM_SHORT[ocSum]} <span className="tabular-nums text-fg/80">{ocAddon} zł</span></>
+                                    : <>Tylko OC obowiązkowe · dodaj nadwyżkę dla większej ochrony</>
+                                  }
+                                </span>
+                              ) : (
+                                <span className="text-[11px] text-muted">* składka orientacyjna · pełna wycena po wybraniu oferty</span>
+                              )}
                             </div>
+
+                            {cat.id === "income" && (
+                              <button
+                                onClick={() => setGapOpen(true)}
+                                className="inline-flex cursor-pointer items-center gap-1.5 self-start border-none bg-transparent px-0 py-1 text-[12px] font-semibold text-accent transition-colors duration-150 can-hover:hover:underline"
+                              >
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden><path d="M3 3v18h18"/><path d="m7 14 4-4 4 4 5-5"/></svg>
+                                Policz swoją lukę dochodową
+                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden><path d="M5 12h14"/><path d="M12 5l7 7-7 7"/></svg>
+                              </button>
+                            )}
 
                             <button className={`${pickBtnPrimary} mt-auto w-full`} onClick={() => setSelectedCat(cat)}>
                               Sprawdź pełną ofertę
@@ -9220,6 +9276,217 @@ function InsuranceDashView() {
 
       {ocrModal && (
         <OcrModal catId={ocrModal} onConfirm={handleOcrConfirm} onCancel={() => setOcrModal(null)} />
+      )}
+
+      {/* Kalkulator luki dochodowej — modal (portal → body) */}
+      {createPortal(
+        <AnimatePresence>
+          {gapOpen && (() => {
+            const SPEC_INCOME = { 1: 13000, 2: 18000, 3: 26000 };
+            const KIDS_COST   = { 0: 0, 1: 2500, 2: 4500, 3: 6500 };
+            const SICK_RATE   = { uop: 0.8, jdg: 0, kontrakt: 0 };
+            const WORKPLACE_MULT = { public: 0.85, mix: 1.0, private: 1.25 };
+            const income = Math.round(SPEC_INCOME[gapSpec] * (1 + 0.025 * gapYears) * WORKPLACE_MULT[gapWorkplace]);
+            const cost   = 6500 + KIDS_COST[gapKids];
+            const buffer = income * 3;
+            const sickPay = Math.round(income * SICK_RATE[gapEmployment]);
+            const netBurn = Math.max(100, cost - sickPay);
+            const survival = Math.round((buffer / netBurn) * 10) / 10;
+            const survivalClamped = Math.min(24, survival);
+            const premium = Math.max(89, Math.round((income / 1000) * 14));
+            const cat = INSURANCE_CATEGORIES.find(c => c.id === "income");
+            const chipCls = (active) =>
+              `cursor-pointer rounded-lg border px-2.5 py-1.5 text-xs font-medium transition-colors duration-150 ${active ? "border-accent bg-accent-bg text-accent" : "border-border bg-bg text-muted can-hover:hover:border-accent can-hover:hover:text-fg"}`;
+
+            return (
+              <motion.div
+                key="gap-backdrop"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.18 }}
+                onClick={() => setGapOpen(false)}
+                className="fixed inset-0 z-[100] flex items-center justify-center bg-black/45 p-4 backdrop-blur-sm"
+              >
+                <motion.div
+                  key="gap-dialog"
+                  initial={{ opacity: 0, scale: 0.96, y: 12 }}
+                  animate={{ opacity: 1, scale: 1, y: 0 }}
+                  exit={{ opacity: 0, scale: 0.96, y: 8 }}
+                  transition={{ duration: 0.22, ease: [0.23, 1, 0.32, 1] }}
+                  onClick={e => e.stopPropagation()}
+                  className="relative flex max-h-[92vh] w-full max-w-[560px] flex-col overflow-hidden rounded-2xl bg-bg shadow-[0_24px_80px_rgba(0,0,0,0.3)]"
+                >
+                  {/* Header */}
+                  <div className="flex items-start justify-between gap-3 border-b border-border px-6 pt-6 pb-4">
+                    <div>
+                      <h3 className="m-0 text-[18px] font-bold tracking-[-0.01em] text-fg">Jak długo rodzina wytrzyma bez Ciebie?</h3>
+                      <p className="m-0 mt-1 text-[13px] leading-[1.5] text-muted">5 pytań — pokażemy lukę, którą warto zabezpieczyć zanim coś się stanie.</p>
+                    </div>
+                    <button
+                      onClick={() => setGapOpen(false)}
+                      className="flex h-8 w-8 shrink-0 cursor-pointer items-center justify-center rounded-full border-none bg-transparent text-muted transition-colors duration-150 ease-[cubic-bezier(0.23,1,0.32,1)] can-hover:hover:bg-secondary can-hover:hover:text-fg active:scale-[0.9]"
+                      aria-label="Zamknij"
+                    >
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6L6 18"/><path d="M6 6l12 12"/></svg>
+                    </button>
+                  </div>
+
+                  {/* Body — scrollable */}
+                  <div className="flex flex-col gap-4 overflow-y-auto px-6 py-5">
+                    <div className="flex flex-col gap-2">
+                      <span className="text-[12px] font-medium text-fg">Specjalizacja</span>
+                      <div className="flex gap-1.5 max-[480px]:flex-col">
+                        {[
+                          { v: 1, label: "GP, interna, pediatria" },
+                          { v: 2, label: "Okulist., dermat., psych." },
+                          { v: 3, label: "Chirurgia, anestezjo." },
+                        ].map(s => (
+                          <button key={s.v} onClick={() => setGapSpec(s.v)} className={`flex-1 ${chipCls(gapSpec === s.v)}`}>
+                            {s.label}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div className="flex flex-col gap-2">
+                      <div className="flex items-baseline justify-between">
+                        <span className="text-[12px] font-medium text-fg">Staż</span>
+                        <span className="text-[12px] font-semibold text-accent tabular-nums">{gapYears} lat</span>
+                      </div>
+                      <input
+                        type="range" min="0" max="30" step="1"
+                        value={gapYears} onChange={e => setGapYears(Number(e.target.value))}
+                        className="block w-full cursor-pointer accent-[var(--color-accent)]"
+                      />
+                      <div className="flex justify-between text-[10px] text-muted">
+                        <span>rezydent</span>
+                        <span>30+ lat</span>
+                      </div>
+                    </div>
+
+                    <div className="flex flex-col gap-2">
+                      <span className="text-[12px] font-medium text-fg">Gdzie pracujesz</span>
+                      <div className="flex gap-1.5">
+                        {[
+                          { v: "public",  label: "Publiczne" },
+                          { v: "mix",     label: "Mix" },
+                          { v: "private", label: "Prywatne" },
+                        ].map(w => (
+                          <button key={w.v} onClick={() => setGapWorkplace(w.v)} className={`flex-1 ${chipCls(gapWorkplace === w.v)}`}>
+                            {w.label}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div className="flex flex-col gap-2">
+                      <div className="flex items-baseline justify-between gap-2">
+                        <span className="text-[12px] font-medium text-fg">Forma zatrudnienia</span>
+                        <span className="text-[11px] text-muted">
+                          {gapEmployment === "uop" ? "ZUS wypłaca zasiłek" : "brak zasiłku z ZUS"}
+                        </span>
+                      </div>
+                      <div className="flex gap-1.5">
+                        {[
+                          { v: "uop",      label: "UoP" },
+                          { v: "jdg",      label: "JDG" },
+                          { v: "kontrakt", label: "Kontrakt" },
+                        ].map(e => (
+                          <button key={e.v} onClick={() => setGapEmployment(e.v)} className={`flex-1 ${chipCls(gapEmployment === e.v)}`}>
+                            {e.label}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div className="flex flex-col gap-2">
+                      <span className="text-[12px] font-medium text-fg">Dzieci na utrzymaniu</span>
+                      <div className="flex gap-1.5">
+                        {[0, 1, 2, 3].map(k => (
+                          <button key={k} onClick={() => setGapKids(k)} className={`flex-1 ${chipCls(gapKids === k)}`}>
+                            {k === 3 ? "3+" : k}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Timeline strachu → komfortu */}
+                    <div className="flex flex-col gap-2 pt-1">
+                      <div className="flex items-baseline justify-between">
+                        <span className="text-[11px] font-semibold uppercase tracking-[0.04em] text-muted">Luka dochodowa</span>
+                        <span className="text-[11px] text-muted">
+                          bufor ~<span className="tabular-nums text-fg">{Math.round(buffer/1000)}</span> tys. · koszty ~<span className="tabular-nums text-fg">{Math.round(netBurn/1000)}</span> tys./mies.
+                        </span>
+                      </div>
+
+                      <div className="relative h-16 overflow-hidden rounded-2xl">
+                        <div className="absolute inset-0 bg-[linear-gradient(90deg,#ef4444_0%,#f59e0b_18%,#eab308_32%,#84cc16_55%,#16a34a_85%)]" />
+                        <div className="absolute inset-0">
+                          {[0, 3, 6, 12, 24].map((m, i) => (
+                            <div
+                              key={m}
+                              className={`absolute top-0 bottom-0 ${i > 0 ? "border-l border-white/30" : ""}`}
+                              style={{ left: `${(m / 24) * 100}%` }}
+                            >
+                              <span className="absolute top-1 left-1 text-[9px] font-medium text-white/85">{m}m</span>
+                            </div>
+                          ))}
+                        </div>
+                        <motion.div
+                          initial={false}
+                          animate={{ left: `${Math.min(100, (survivalClamped / 24) * 100)}%` }}
+                          transition={{ type: "spring", stiffness: 140, damping: 18 }}
+                          className="absolute top-0 bottom-0 w-[2px] bg-white"
+                          style={{ boxShadow: "0 0 14px rgba(0,0,0,0.5)" }}
+                        >
+                          <div className="absolute bottom-1 -translate-x-1/2 whitespace-nowrap rounded-md bg-fg px-2 py-0.5 text-[10px] font-bold text-bg shadow-lg">
+                            Ty: <SlidingNumber value={survivalClamped} suffix={" mies."} decimals={1} />
+                          </div>
+                        </motion.div>
+                      </div>
+                    </div>
+
+                    <div className={`flex items-start gap-2 rounded-lg px-3 py-2.5 text-[12px] leading-[1.4] ${
+                      survivalClamped < 3 ? "bg-[#ef444414] text-[#ef4444]"
+                      : survivalClamped < 6 ? "bg-[#f59e0b14] text-[#b45309]"
+                      : "bg-[#16a34a14] text-[#16a34a]"
+                    }`}>
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className="mt-px shrink-0" aria-hidden>
+                        {survivalClamped < 3
+                          ? <><circle cx="12" cy="12" r="10"/><path d="M12 8v4"/><path d="M12 16h.01"/></>
+                          : survivalClamped < 6
+                          ? <><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><path d="M12 9v4"/><path d="M12 17h.01"/></>
+                          : <><path d="M20 6L9 17l-5-5"/></>
+                        }
+                      </svg>
+                      <span>
+                        {survivalClamped < 3
+                          ? <>Rodzina przetrwa tylko ~{survivalClamped} miesięcy — to za krótko na rekonwalescencję po poważnej chorobie.</>
+                          : survivalClamped < 6
+                          ? <>Rodzina wytrzyma ~{survivalClamped} miesięcy — bezpieczniej dać jej więcej przestrzeni.</>
+                          : <>~{survivalClamped} miesięcy to sensowna poduszka — ale utrata dochodu da komfort na dłużej.</>
+                        }
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Footer — CTA */}
+                  <div className="border-t border-border px-6 py-4">
+                    <button
+                      onClick={() => { setGapOpen(false); setSelectedCat(cat); }}
+                      className={`${SERVICE_BTN_PRIMARY} w-full`}
+                    >
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                      Zabezpiecz lukę — od <SlidingNumber value={premium} suffix=" zł/mies." decimals={0} />
+                    </button>
+                  </div>
+                </motion.div>
+              </motion.div>
+            );
+          })()}
+        </AnimatePresence>,
+        document.body
       )}
     </div>
   );
