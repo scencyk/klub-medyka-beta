@@ -210,6 +210,12 @@
   border-radius: 12px;
   font-size: 22px;
   flex-shrink: 0;
+  overflow: hidden;
+}
+.ms-card__logo-img {
+  width: 70%;
+  height: 70%;
+  object-fit: contain;
 }
 .ms-card__body { flex: 1; min-width: 0; }
 .ms-card__title {
@@ -294,6 +300,12 @@
   border-radius: 14px;
   font-size: 28px;
   flex-shrink: 0;
+  overflow: hidden;
+}
+.ms-panel__logo-img {
+  width: 70%;
+  height: 70%;
+  object-fit: contain;
 }
 .ms-panel__head-body { flex: 1; }
 .ms-panel__eyebrow {

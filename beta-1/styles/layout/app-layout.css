@@ -3,5 +3,5 @@
 .app-layout {
   display: flex;
   height: 100vh;
-  background: var(--color-bg);
+  background: #F5F4EE; /* ciepły stone — warm neutral (Linear-ish) */
 }

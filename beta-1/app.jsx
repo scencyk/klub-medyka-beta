@@ -1489,14 +1489,15 @@ const INSURANCE_CATEGORIES = [
 // Każda kategoria = osobny widok z własną strukturą (kalkulator, ankieta, lista ofert itd.),
 // nie zwykły filtr po jednym katalogu. Domyślnie otwieramy "ubezpieczenia" (jedyna w pełni zbudowana).
 const SERVICES_CATEGORIES = [
-  { id: "praktyka",     label: "Praktyka lekarska",     emoji: "🩺", desc: "Księgowość, prawne, dokumenty, kontrakty." },
-  { id: "ubezpieczenia", label: "Ubezpieczenia",          emoji: "🛡", desc: "OC lekarskie, utrata dochodu, NNW — kalkulator i skan obecnej polisy." },
-  { id: "finansowanie",  label: "Finansowanie i sprzęt",  emoji: "💼", desc: "Leasing, kredyty, sprzęt medyczny na raty." },
-  { id: "mobilnosc",     label: "Mobilność",              emoji: "🚗", desc: "Samochody, car-sharing, taxi medyczne." },
-  { id: "sport",         label: "Sport i aktywność",      emoji: "🏃", desc: "Medicover Sport, MultiSport, siłownie, baseny." },
-  { id: "rozrywka",      label: "Rozrywka",               emoji: "🎬", desc: "Kino, teatr, streaming, wydarzenia." },
+  { id: "praktyka",     label: "Praktyka lekarska",     emoji: "🩺", desc: "Księgowość, prawne, dokumenty, kontrakty.", visible: true },
+  { id: "ubezpieczenia", label: "Ubezpieczenia",          emoji: "🛡", desc: "OC lekarskie, utrata dochodu, NNW — kalkulator i skan obecnej polisy.", visible: true },
+  { id: "finansowanie",  label: "Finansowanie i sprzęt",  emoji: "💼", desc: "Leasing, kredyty, sprzęt medyczny na raty.", visible: false },
+  { id: "mobilnosc",     label: "Mobilność",              emoji: "🚗", desc: "Samochody, car-sharing, taxi medyczne.", visible: false },
+  { id: "sport",         label: "Sport i aktywność",      emoji: "🏃", desc: "Medicover Sport, MultiSport, siłownie, baseny.", visible: true },
+  { id: "rozrywka",      label: "Rozrywka",               emoji: "🎬", desc: "Kino, teatr, streaming, wydarzenia.", visible: false },
 ];
-const DEFAULT_SERVICES_CATEGORY = "ubezpieczenia";
+const VISIBLE_SERVICES_CATEGORIES = SERVICES_CATEGORIES.filter(c => c.visible);
+const DEFAULT_SERVICES_CATEGORY = "overview";
 
 /* ── OC DATA ─────────────────────────────────────────── */
 const OC_SPEC_III = [
@@ -2117,7 +2118,14 @@ function Sidebar({ active, setActive, theme, setTheme, profile, servicesCategory
               const submenuOpen = hasSubmenu && isActive;
               return (
                 <React.Fragment key={item.id}>
-                  <button onClick={() => !item.soon && setActive(item.id)} className={`${baseCls} ${stateCls}`}>
+                  <button
+                    onClick={() => {
+                      if (item.soon) return;
+                      setActive(item.id);
+                      if (item.id === "packages4" && setServicesCategory) setServicesCategory("overview");
+                    }}
+                    className={`${baseCls} ${stateCls}`}
+                  >
                     <span className="flex items-center gap-2.5 [&_svg]:shrink-0 [&_svg]:opacity-70">
                       {item.icon && (
                         <motion.span
@@ -2152,7 +2160,7 @@ function Sidebar({ active, setActive, theme, setTheme, profile, servicesCategory
                         transition={{ duration: 0.18, ease: [0.22, 1, 0.36, 1] }}
                         className="overflow-hidden pl-4"
                       >
-                        {SERVICES_CATEGORIES.map(cat => {
+                        {VISIBLE_SERVICES_CATEGORIES.map(cat => {
                           const catActive = servicesCategory === cat.id;
                           return (
                             <button
@@ -2342,10 +2350,11 @@ const HOME_NEWS_SOON = [
 
 function HomeNewsBand({ setActive }) {
   return (
-    <div className="home-news">
-      <div className="home-news__header">
+    <div className="relative overflow-hidden rounded-[18px] border border-[color-mix(in_srgb,var(--color-accent)_18%,var(--color-border))] bg-[radial-gradient(120%_140%_at_0%_0%,color-mix(in_srgb,var(--color-accent)_10%,transparent)_0%,transparent_55%),linear-gradient(135deg,color-mix(in_srgb,var(--color-accent)_6%,var(--color-bg))_0%,var(--color-bg)_80%)] px-[22px] pb-4 pt-[18px]">
+      <div className="pointer-events-none absolute -right-[10%] -top-[40%] h-[280px] w-[280px] bg-[radial-gradient(circle,color-mix(in_srgb,var(--color-accent)_10%,transparent)_0%,transparent_70%)]" aria-hidden />
+      <div className="relative mb-3 inline-flex items-center gap-2">
         <motion.svg
-          className="home-news__sparkle"
+          className="text-accent [filter:drop-shadow(0_0_6px_color-mix(in_srgb,var(--color-accent)_35%,transparent))]"
           width="16" height="16" viewBox="0 0 24 24" fill="none"
           initial={{ rotate: -12, scale: 0.8, opacity: 0 }}
           animate={{ rotate: 0, scale: 1, opacity: 1 }}
@@ -2355,32 +2364,38 @@ function HomeNewsBand({ setActive }) {
           <path d="M19 15l0.8 2L22 18l-2.2 1L19 21l-0.8-2L16 18l2.2-1L19 15z" fill="currentColor" opacity="0.6"/>
           <path d="M5 4l0.5 1.3L7 6l-1.5 0.7L5 8l-0.5-1.3L3 6l1.5-0.7L5 4z" fill="currentColor" opacity="0.45"/>
         </motion.svg>
-        <span className="home-news__title">Co nowego?</span>
+        <span className="text-[13px] font-bold tracking-[-0.01em] text-accent">Co nowego?</span>
       </div>
-      <div className="home-news__pills">
+      <div className="relative flex flex-wrap gap-2">
         {HOME_NEWS_ITEMS.map((item, i) => (
           <motion.button
             key={item.id}
             type="button"
-            className="home-news__pill"
+            className="group/pill inline-flex cursor-pointer items-center gap-2 rounded-full border border-border bg-bg py-2 pl-3 pr-[14px] text-[13px] font-medium text-fg shadow-[0_1px_0_color-mix(in_srgb,var(--color-fg)_4%,transparent)] transition-[transform,border-color,box-shadow] duration-200 [transition-timing-function:cubic-bezier(0.23,1,0.32,1)] can-hover:hover:-translate-y-px can-hover:hover:border-[color-mix(in_srgb,var(--color-accent)_45%,var(--color-border))] can-hover:hover:shadow-[0_6px_16px_-8px_color-mix(in_srgb,var(--color-accent)_30%,transparent)] active:scale-[0.97]"
             onClick={() => setActive && setActive(item.target)}
             initial={{ opacity: 0, y: 6 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.3, ease: [0.23, 1, 0.32, 1], delay: 0.15 + i * 0.04 }}
           >
-            <span className="home-news__pill-icon" aria-hidden>{item.icon}</span>
-            <span className="home-news__pill-cat">{item.category}</span>
-            <span className="home-news__pill-sep" aria-hidden>·</span>
-            <span className="home-news__pill-label">{item.label}</span>
-            <span className="home-news__pill-dot" aria-hidden />
+            <span className="text-[13px] leading-none [filter:grayscale(0.15)]" aria-hidden>{item.icon}</span>
+            <span className="text-[11px] font-semibold tracking-[0.02em] text-muted">{item.category}</span>
+            <span className="font-medium text-[color-mix(in_srgb,var(--color-muted)_60%,transparent)]" aria-hidden>·</span>
+            <span className="font-semibold tracking-[-0.005em]">{item.label}</span>
+            <span className="ml-0.5 h-1.5 w-1.5 shrink-0 rounded-full bg-lime shadow-[0_0_0_3px_color-mix(in_srgb,var(--color-lime)_25%,transparent)] transition-transform duration-150 can-hover:group-hover/pill:scale-125" aria-hidden />
           </motion.button>
         ))}
       </div>
       {HOME_NEWS_SOON.length > 0 && (
-        <div className="home-news__soon">
-          <span className="home-news__soon-lbl">Już niedługo:</span>
+        <div className="relative mt-3 inline-flex flex-wrap items-center gap-2">
+          <span className="text-xs font-medium text-muted">Już niedługo:</span>
           {HOME_NEWS_SOON.map(s => (
-            <span key={s.id} className="home-news__soon-chip" title={s.when}>{s.label}</span>
+            <span
+              key={s.id}
+              title={s.when}
+              className="inline-flex cursor-help items-center gap-1.5 rounded-full border border-dashed border-[color-mix(in_srgb,var(--color-muted)_45%,transparent)] bg-transparent px-3 py-1.5 text-xs font-medium text-muted transition-[border-color,color] duration-150 can-hover:hover:border-[color-mix(in_srgb,var(--color-muted)_70%,transparent)] can-hover:hover:text-fg"
+            >
+              {s.label}
+            </span>
           ))}
         </div>
       )}
@@ -2399,46 +2414,88 @@ const SERVICE_UPSELL_TEASERS = {
 
 function HomeUpsellTeaser({ services, onOpen }) {
   const [idx, setIdx] = useState(0);
+  const [collapsed, setCollapsed] = useState(() => {
+    try { return localStorage.getItem("km-upsell-collapsed") === "1"; } catch { return false; }
+  });
   useEffect(() => {
-    if (services.length <= 1) return;
+    try { localStorage.setItem("km-upsell-collapsed", collapsed ? "1" : "0"); } catch {}
+  }, [collapsed]);
+  useEffect(() => {
+    if (collapsed || services.length <= 1) return;
     const t = setInterval(() => setIdx(i => (i + 1) % services.length), 5000);
     return () => clearInterval(t);
-  }, [services.length]);
+  }, [services.length, collapsed]);
   const current = services[idx];
   if (!current) return null;
   const teaser = SERVICE_UPSELL_TEASERS[current.id] || { headline: `${current.label} od ${current.soloPrice} zł/mies.`, tagline: current.desc };
+
+  if (collapsed) {
+    return (
+      <button
+        type="button"
+        onClick={() => setCollapsed(false)}
+        aria-label="Pokaż propozycję z Klubu"
+        className="inline-flex shrink-0 cursor-pointer items-center gap-1.5 self-start rounded-full border border-border bg-[color-mix(in_srgb,var(--color-fg)_4%,transparent)] px-3 py-2 text-[10px] font-bold uppercase tracking-[0.12em] text-muted transition-[background,transform,color] duration-150 [transition-timing-function:cubic-bezier(0.23,1,0.32,1)] can-hover:hover:bg-[color-mix(in_srgb,var(--color-fg)_8%,transparent)] can-hover:hover:text-fg active:scale-[0.97]"
+      >
+        <img src={`${import.meta.env.BASE_URL}sygnet.svg`} alt="" className="h-3.5 w-3.5 shrink-0 rounded-[3px] object-contain" />
+        <span>W Klubie możesz mieć</span>
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+          <path d="M12 5v14M5 12h14" />
+        </svg>
+      </button>
+    );
+  }
+
   return (
     <div
-      className="home-teaser"
       role="button"
       tabIndex={0}
       onClick={() => onOpen && onOpen(current.id)}
       onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onOpen && onOpen(current.id); } }}
+      className="relative w-full shrink-0 cursor-pointer overflow-hidden rounded-2xl border border-border bg-[color-mix(in_srgb,var(--color-fg)_4%,transparent)] px-[18px] py-[14px] transition-[transform,border-color,box-shadow] duration-200 [transition-timing-function:cubic-bezier(0.23,1,0.32,1)] lg:w-[420px] can-hover:hover:-translate-y-0.5 can-hover:hover:border-[color-mix(in_srgb,var(--color-fg)_20%,transparent)] can-hover:hover:shadow-[0_6px_20px_-10px_color-mix(in_srgb,var(--color-fg)_20%,transparent)] active:scale-[0.98]"
     >
-      <div className="home-teaser__eyebrow">
-        <img src={`${import.meta.env.BASE_URL}sygnet.svg`} alt="" className="home-teaser__eyebrow-sygnet" />
+      <div className="mb-2 inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-[0.12em] text-muted">
+        <img src={`${import.meta.env.BASE_URL}sygnet.svg`} alt="" className="h-3.5 w-3.5 shrink-0 rounded-[3px] object-contain" />
         W Klubie możesz mieć
       </div>
-      <div className="home-teaser__body">
+      <div className="flex items-center gap-3">
         {current.logo && (
-          <img key={`logo-${current.id}`} src={`${import.meta.env.BASE_URL}${current.logo}`} alt="" className="home-teaser__logo" />
+          <img
+            key={`logo-${current.id}`}
+            src={`${import.meta.env.BASE_URL}${current.logo}`}
+            alt=""
+            className="h-10 w-10 shrink-0 rounded-[10px] border border-border bg-bg object-contain p-1"
+          />
         )}
-        <div className="home-teaser__text">
-          <div className="home-teaser__headline">
+        <div className="min-w-0 flex-1 text-fg">
+          <div className="mb-0.5 text-[15px] font-bold leading-[1.25] tracking-[-0.01em]">
             <TextRoll key={`h-${current.id}`}>{teaser.headline}</TextRoll>
           </div>
-          <div className="home-teaser__tagline">
+          <div className="text-xs leading-[1.45] text-muted">
             <TextRoll key={`t-${current.id}`}>{teaser.tagline}</TextRoll>
           </div>
         </div>
       </div>
       {services.length > 1 && (
-        <div className="home-teaser__dots">
+        <div className="absolute right-11 top-[18px] flex gap-1">
           {services.map((_, i) => (
-            <span key={i} className={`home-teaser__dot${i === idx ? " is-active" : ""}`} />
+            <span
+              key={i}
+              className={`h-1 rounded-full transition-[width,background] duration-200 [transition-timing-function:cubic-bezier(0.23,1,0.32,1)] ${i === idx ? "w-4 bg-fg" : "w-1 bg-[color-mix(in_srgb,var(--color-fg)_15%,transparent)]"}`}
+            />
           ))}
         </div>
       )}
+      <button
+        type="button"
+        onClick={(e) => { e.stopPropagation(); setCollapsed(true); }}
+        aria-label="Zwiń"
+        className="absolute right-2 top-2 inline-flex h-7 w-7 cursor-pointer items-center justify-center rounded-full border-0 bg-transparent text-muted transition-[background,color,transform] duration-150 [transition-timing-function:cubic-bezier(0.23,1,0.32,1)] can-hover:hover:bg-[color-mix(in_srgb,var(--color-fg)_8%,transparent)] can-hover:hover:text-fg active:scale-[0.94]"
+      >
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+          <path d="M5 12h14" />
+        </svg>
+      </button>
     </div>
   );
 }
@@ -2532,14 +2589,14 @@ function Overview({ setActive, profile, setProfile, unlockedDiscounts, unlockDis
     <div style={{ maxWidth: 1100, display: "flex", flexDirection: "column", gap: 40 }}>
 
       {/* 1. Greeting + upsell teaser (right-side rotating) */}
-      <div className="home-hero">
-        <div className="home-hero__greeting">
-          <h1 style={{ fontSize: 30, fontWeight: 700, letterSpacing: "-0.04em", lineHeight: 1.15, margin: 0 }}>
+      <div className="flex flex-wrap items-start justify-between gap-6">
+        <div className="min-w-[280px] flex-1 pt-1">
+          <h1 className="m-0 text-[30px] font-bold leading-[1.15] tracking-[-0.04em]">
             <TextEffect per="char" preset="fade-in-blur" delay={0.1} as="span">{`${timeOfDayGreeting()}, ${displayName}.`}</TextEffect>
           </h1>
           {roleLabel && (
-            <div className="role-chip">
-              <span className="role-chip__dot" />
+            <div className="mt-2.5 inline-flex items-center gap-1.5 rounded-full bg-[color-mix(in_srgb,var(--color-fg)_5%,transparent)] px-3 py-[5px] text-xs font-medium text-fg">
+              <span className="h-1.5 w-1.5 rounded-full bg-accent" />
               {roleLabel}
             </div>
           )}
@@ -2593,34 +2650,44 @@ function Overview({ setActive, profile, setProfile, unlockedDiscounts, unlockDis
 
       {/* 2. SERVICE STATUS LINE — logo stack + summary + +N plus */}
       <InView>
-        <div className="home-summary" onClick={() => setActive("packages4")} role="button" tabIndex={0}>
-          <div className="home-summary__stack">
+        <div
+          role="button"
+          tabIndex={0}
+          onClick={() => setActive("packages4")}
+          className="flex cursor-pointer items-center justify-between gap-4 rounded-[14px] bg-[color-mix(in_srgb,var(--color-fg)_4%,transparent)] px-5 py-[14px] transition-[background,transform] duration-150 [transition-timing-function:cubic-bezier(0.23,1,0.32,1)] can-hover:hover:bg-[color-mix(in_srgb,var(--color-fg)_7%,transparent)] active:scale-[0.99]"
+        >
+          <div className="flex shrink-0 items-center">
             {ownedServices.slice(0, 5).map((svc, i) => (
-              <span key={svc.id} className="home-summary__avatar" style={{ zIndex: 10 - i }} title={svc.label}>
+              <span
+                key={svc.id}
+                className="relative -ml-2 inline-flex h-8 w-8 items-center justify-center overflow-hidden rounded-full border-2 border-bg bg-bg text-sm shadow-[0_0_0_1px_var(--color-border)] first:ml-0"
+                style={{ zIndex: 10 - i }}
+                title={svc.label}
+              >
                 {svc.logo
-                  ? <img src={`${import.meta.env.BASE_URL}${svc.logo}`} alt="" />
+                  ? <img src={`${import.meta.env.BASE_URL}${svc.logo}`} alt="" className="h-3/4 w-3/4 object-contain" />
                   : <span aria-hidden>{svc.icon}</span>}
               </span>
             ))}
             {missingServices.length > 0 && (
               <button
-                className="home-summary__plus"
                 onClick={(e) => { e.stopPropagation(); setActive("packages4"); }}
                 title={`Dodaj ${missingServices.length} ${missingServices.length === 1 ? "kolejną usługę" : "kolejnych usług"}`}
                 aria-label="Dodaj kolejne usługi"
+                className="relative z-0 -ml-2 inline-flex h-8 w-8 cursor-pointer items-center justify-center rounded-full border-2 border-bg bg-fg text-[11px] font-bold text-bg shadow-[0_0_0_1px_var(--color-border)] transition-[background,color,transform] duration-150 [transition-timing-function:cubic-bezier(0.23,1,0.32,1)] can-hover:hover:scale-[1.04] can-hover:hover:bg-lime can-hover:hover:text-[#0A0A0A] active:scale-[0.96]"
               >
                 +{SERVICE_CATALOG.length - ownedServices.length}
               </button>
             )}
           </div>
-          <div className="home-summary__text">
+          <div className="flex-1 text-[13px] leading-[1.45] text-muted [&_strong]:font-bold [&_strong]:text-fg">
             Masz <strong>{ownedServices.length} {ownedServices.length === 1 ? "aktywną usługę" : ownedServices.length < 5 ? "aktywne usługi" : "aktywnych usług"}</strong>
             {ownedMonthly > 0 && <> · <strong>{ownedMonthly} zł / mies.</strong></>}
             {nextRenewalDate && <> · najbliższe odnowienie <strong>{nextRenewalDate}</strong></>}
           </div>
-          <div className="home-summary__cta">
+          <div className="inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full bg-fg px-[14px] py-[7px] text-xs font-semibold text-bg">
             Zarządzaj
-            <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M6 3l5 5-5 5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/></svg>
+            <svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden><path d="M6 3l5 5-5 5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/></svg>
           </div>
         </div>
       </InView>
@@ -2633,44 +2700,64 @@ function Overview({ setActive, profile, setProfile, unlockedDiscounts, unlockDis
       {/* 3. KILLER OFERTY — wyróżnione deale (hero + 2 mniejsze) */}
       <InView>
         <SectionHeader title="🔥 Killer oferty" action="Wszystkie zniżki" onAction={() => setActive("discounts")} />
-        <div className="home-killer">
+        <div className="grid gap-4 lg:grid-cols-[1.6fr_1fr]">
           {killerOffers[0] && (
-            <div className="home-killer__hero" onClick={() => setSelectedDiscount(killerOffers[0])} role="button" tabIndex={0}>
-              <div className="home-killer__hero-img">
-                <img src={killerOffers[0].hero} alt={killerOffers[0].partner} />
-                <span className="home-killer__hero-badge">{killerOffers[0].badge}</span>
-                <span className="home-killer__hero-exclusive" data-tooltip="Oferta dedykowana dla Klubu Medyka">
-                  <img src={`${import.meta.env.BASE_URL}sygnet-negative.svg`} alt="" className="home-killer__hero-exclusive-sygnet" />
+            <div
+              role="button"
+              tabIndex={0}
+              onClick={() => setSelectedDiscount(killerOffers[0])}
+              className="group/hero relative flex cursor-pointer flex-col overflow-hidden rounded-[20px] border border-border bg-bg transition-[transform,box-shadow] duration-200 [transition-timing-function:cubic-bezier(0.23,1,0.32,1)] can-hover:hover:-translate-y-0.5 can-hover:hover:shadow-[0_10px_30px_-12px_color-mix(in_srgb,var(--color-fg)_20%,transparent)] active:scale-[0.99]"
+            >
+              <div className="relative aspect-[16/9] overflow-hidden bg-[color-mix(in_srgb,var(--color-fg)_4%,transparent)]">
+                <img src={killerOffers[0].hero} alt={killerOffers[0].partner} className="h-full w-full object-cover" />
+                <span className="absolute right-[14px] top-[14px] rounded-full bg-lime px-[14px] py-1.5 text-xs font-bold text-[#0A0A0A]">{killerOffers[0].badge}</span>
+                <span className="group/excl absolute left-[14px] top-[14px] z-[2] inline-flex cursor-help items-center gap-1.5 rounded-full bg-[#0A0A0A] py-[5px] pl-1.5 pr-3 text-[10px] font-bold tracking-[0.12em] text-white">
+                  <img src={`${import.meta.env.BASE_URL}sygnet-negative.svg`} alt="" className="block h-4 w-4 shrink-0 object-contain" />
                   TYLKO W KLUBIE
+                  <span className="pointer-events-none absolute left-0 top-[calc(100%+8px)] z-[3] origin-top-left translate-y-[-4px] scale-[0.96] whitespace-nowrap rounded-lg bg-[#0A0A0A] px-2.5 py-[7px] text-[11px] font-medium normal-case tracking-normal text-white opacity-0 shadow-[0_4px_14px_-4px_rgba(0,0,0,0.4)] transition-[opacity,transform] duration-200 [transition-timing-function:cubic-bezier(0.23,1,0.32,1)] can-hover:group-hover/excl:translate-y-0 can-hover:group-hover/excl:scale-100 can-hover:group-hover/excl:opacity-100">
+                    Oferta dedykowana dla Klubu Medyka
+                  </span>
                 </span>
               </div>
-              <div className="home-killer__hero-body">
-                <div className="home-killer__hero-partner">
-                  <img src={killerOffers[0].logo} alt="" />
+              <div className="flex flex-col gap-2 px-[22px] pb-5 pt-[18px]">
+                <div className="flex items-center gap-2 text-xs font-semibold text-muted">
+                  <img src={killerOffers[0].logo} alt="" className="h-5 w-5 rounded border border-border bg-bg object-contain p-px" />
                   {killerOffers[0].partner}
                 </div>
-                <div className="home-killer__hero-title">{killerOffers[0].title}</div>
-                <div className="home-killer__hero-desc">{killerOffers[0].desc}</div>
-                <button className="home-killer__hero-cta" onClick={(e) => { e.stopPropagation(); setSelectedDiscount(killerOffers[0]); }}>
+                <div className="text-[20px] font-bold leading-[1.2] tracking-[-0.02em] text-fg">{killerOffers[0].title}</div>
+                <div className="line-clamp-2 text-[13px] leading-[1.5] text-muted">{killerOffers[0].desc}</div>
+                <button
+                  type="button"
+                  onClick={(e) => { e.stopPropagation(); setSelectedDiscount(killerOffers[0]); }}
+                  className="group/cta mt-1.5 inline-flex cursor-pointer items-center gap-1.5 self-start rounded-full border-0 bg-fg px-[18px] py-2.5 text-[13px] font-semibold text-bg transition-transform duration-150 [transition-timing-function:cubic-bezier(0.23,1,0.32,1)] can-hover:hover:scale-[1.03] active:scale-[0.97]"
+                >
                   Wykorzystaj
-                  <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M6 3l5 5-5 5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                  <svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden className="transition-transform duration-150 can-hover:group-hover/cta:translate-x-0.5">
+                    <path d="M6 3l5 5-5 5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
                 </button>
               </div>
             </div>
           )}
-          <div className="home-killer__side">
+          <div className="flex flex-col gap-4">
             {killerOffers.slice(1, 3).map(d => (
-              <div key={d.id} className="home-killer__card" onClick={() => setSelectedDiscount(d)} role="button" tabIndex={0}>
-                <div className="home-killer__card-img">
-                  <img src={d.hero} alt={d.partner} />
-                  <span className="home-killer__card-badge">{d.badge}</span>
+              <div
+                key={d.id}
+                role="button"
+                tabIndex={0}
+                onClick={() => setSelectedDiscount(d)}
+                className="flex cursor-pointer flex-col overflow-hidden rounded-2xl border border-border bg-bg transition-[transform,box-shadow] duration-200 [transition-timing-function:cubic-bezier(0.23,1,0.32,1)] can-hover:hover:-translate-y-0.5 can-hover:hover:shadow-[0_6px_20px_-10px_color-mix(in_srgb,var(--color-fg)_20%,transparent)] active:scale-[0.98]"
+              >
+                <div className="relative aspect-[16/9] w-full overflow-hidden bg-[color-mix(in_srgb,var(--color-fg)_4%,transparent)]">
+                  <img src={d.hero} alt={d.partner} className="h-full w-full object-cover" />
+                  <span className="absolute right-2 top-2 rounded-full bg-lime px-2 py-[3px] text-[10px] font-bold text-[#0A0A0A]">{d.badge}</span>
                 </div>
-                <div className="home-killer__card-body">
-                  <div className="home-killer__card-partner">
-                    <img src={d.logo} alt="" />
+                <div className="flex min-w-0 flex-1 flex-col gap-1 px-[14px] py-3">
+                  <div className="flex items-center gap-1.5 text-[11px] font-semibold text-muted">
+                    <img src={d.logo} alt="" className="h-4 w-4 shrink-0 rounded-sm border border-border bg-bg object-contain p-px" />
                     {d.partner}
                   </div>
-                  <div className="home-killer__card-title">{d.title}</div>
+                  <div className="line-clamp-3 text-[13px] font-semibold leading-[1.35] tracking-[-0.01em]">{d.title}</div>
                 </div>
               </div>
             ))}
@@ -5762,11 +5849,70 @@ function PraktykaView({ purchasedServices, openManageService, setActive }) {
   const activeSvcs = catalog.filter(s => purchased[s.id]);
   const offerSvcs  = catalog.filter(s => !purchased[s.id]);
 
+  // Mikro-interakcje: modal "Porównaj formy opodatkowania" dla inFakta (link z active pasa),
+  // modal "Sprawdź CEIDG" dla Wirtualnego Gabinetu (button na kafelku oferty).
+  const [taxOpen,   setTaxOpen]   = useState(false);
+  const [ceidgOpen, setCeidgOpen] = useState(false);
+  const [taxIncome, setTaxIncome] = useState(18000); // dochód/mies. z JDG (5k–40k)
+  const [taxForm,   setTaxForm]   = useState("skala"); // ryczalt | liniowa | skala
+  const [ceidgName,    setCeidgName]    = useState("");
+  const [ceidgScanning, setCeidgScanning] = useState(false);
+  const [ceidgResult,   setCeidgResult]   = useState(null); // null | { address, queries }
+
+  // ESC + scroll lock dla obu modali
+  useEffect(() => {
+    const anyOpen = taxOpen || ceidgOpen;
+    if (!anyOpen) return;
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    const onKey = e => {
+      if (e.key !== "Escape") return;
+      if (taxOpen) setTaxOpen(false);
+      if (ceidgOpen) setCeidgOpen(false);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => {
+      document.body.style.overflow = prevOverflow;
+      window.removeEventListener("keydown", onKey);
+    };
+  }, [taxOpen, ceidgOpen]);
+
+  const runCeidgScan = () => {
+    setCeidgScanning(true);
+    setCeidgResult(null);
+    setTimeout(() => {
+      setCeidgScanning(false);
+      setCeidgResult({
+        address: "ul. Marszałkowska 12a/7, 00-001 Warszawa",
+        queries: 2847,
+      });
+    }, 1600);
+  };
+
   const quickLinks = [
     { key: "invoice", label: "Faktury",    icon: (<><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M9 13h6"/><path d="M9 17h6"/></>) },
     { key: "docs",    label: "Dokumenty",  icon: (<><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10l5 5 5-5"/><path d="M12 15V3"/></>) },
     { key: "info",    label: "Szczegóły",  icon: (<><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></>) },
   ];
+
+  // Formuły podatku rocznego (stub realistyczny, koszty zakładamy 0 dla JDG kontraktowej):
+  // - Ryczałt dla lekarzy: 14% od przychodu
+  // - Podatek liniowy: 19% od dochodu + 4.9% składki zdrowotnej
+  // - Skala: 12% do 120k, 32% powyżej + składka zdrowotna 9%
+  const taxAnnualIncome = taxIncome * 12;
+  const taxRyczalt  = Math.round(taxAnnualIncome * 0.14);
+  const taxLiniowa  = Math.round(taxAnnualIncome * (0.19 + 0.049));
+  const taxSkala    = Math.round(
+    (taxAnnualIncome <= 120000
+      ? taxAnnualIncome * 0.12
+      : 120000 * 0.12 + (taxAnnualIncome - 120000) * 0.32)
+    + taxAnnualIncome * 0.09
+  );
+  const taxCurrent  = taxForm === "ryczalt" ? taxRyczalt : taxForm === "liniowa" ? taxLiniowa : taxSkala;
+  const taxMin      = Math.min(taxRyczalt, taxLiniowa, taxSkala);
+  const taxMaxValue = Math.max(taxRyczalt, taxLiniowa, taxSkala);
+  const taxSavings  = Math.max(0, taxCurrent - taxMin);
+  const taxOptimalForm = taxRyczalt === taxMin ? "Ryczałt 14%" : taxLiniowa === taxMin ? "Podatek liniowy" : "Skala podatkowa";
 
   return (
     <div className="mx-auto flex w-full max-w-[900px] flex-col gap-8">
@@ -5808,6 +5954,17 @@ function PraktykaView({ purchasedServices, openManageService, setActive }) {
                       <span>Kolejne pobranie: <span className="font-medium text-fg">{p.nextRenewal || "—"}</span></span>
                       <span>Składka: <span className="font-medium text-fg">{svc.soloPrice} zł/mies.</span></span>
                     </div>
+
+                    {svc.id === "infakt" && (
+                      <button
+                        onClick={() => setTaxOpen(true)}
+                        className="inline-flex cursor-pointer items-center gap-1.5 self-start border-none bg-transparent px-0 py-1 text-[12px] font-semibold text-accent transition-colors duration-150 can-hover:hover:underline"
+                      >
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden><path d="M12 2v20"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+                        Policz ile zyskujesz na formie opodatkowania
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden><path d="M5 12h14"/><path d="M12 5l7 7-7 7"/></svg>
+                      </button>
+                    )}
 
                     <div className="flex flex-wrap items-center gap-2 pt-1 max-[640px]:flex-col max-[640px]:items-stretch">
                       <div className="flex gap-2 max-[640px]:w-full">
@@ -5884,11 +6041,22 @@ function PraktykaView({ purchasedServices, openManageService, setActive }) {
                     <ul className="flex flex-col gap-2 p-0 m-0 list-none">
                       {svc.landing.valueProps.slice(0, 3).map((v, i) => (
                         <li key={i} className="flex items-start gap-2 text-[13px] text-fg">
-                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#16a34a" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="mt-0.5 shrink-0" aria-hidden><path d="M20 6L9 17l-5-5"/></svg>
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#16a34a" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden><path d="M20 6L9 17l-5-5"/></svg>
                           <span><span className="font-medium">{v.title}</span> <span className="text-muted">— {v.desc}</span></span>
                         </li>
                       ))}
                     </ul>
+                  )}
+
+                  {svc.id === "wg" && (
+                    <button
+                      onClick={() => { setCeidgOpen(true); setCeidgResult(null); setCeidgName(""); }}
+                      className="inline-flex cursor-pointer items-center gap-1.5 self-start border-none bg-transparent px-0 py-1 text-[12px] font-semibold text-accent transition-colors duration-150 can-hover:hover:underline"
+                    >
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+                      Sprawdź czy Twój adres jest publiczny
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden><path d="M5 12h14"/><path d="M12 5l7 7-7 7"/></svg>
+                    </button>
                   )}
 
                   <div className="mt-auto flex items-end justify-between gap-3 max-[520px]:flex-col max-[520px]:items-stretch">
@@ -5921,12 +6089,528 @@ function PraktykaView({ purchasedServices, openManageService, setActive }) {
       {activeSvcs.length === 0 && offerSvcs.length === 0 && (
         <ServiceCategoryPlaceholder category={SERVICES_CATEGORIES.find(c => c.id === "praktyka")} />
       )}
+
+      {/* Modal: Kalkulator optymalizacji podatku (inFakt) */}
+      {createPortal(
+        <AnimatePresence>
+          {taxOpen && (
+            <motion.div
+              key="tax-backdrop"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.18 }}
+              onClick={() => setTaxOpen(false)}
+              className="fixed inset-0 z-[100] flex items-center justify-center bg-black/45 p-4 backdrop-blur-sm"
+            >
+              <motion.div
+                key="tax-dialog"
+                initial={{ opacity: 0, scale: 0.96, y: 12 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.96, y: 8 }}
+                transition={{ duration: 0.22, ease: [0.23, 1, 0.32, 1] }}
+                onClick={e => e.stopPropagation()}
+                className="relative flex max-h-[92vh] w-full max-w-[560px] flex-col overflow-hidden rounded-2xl bg-bg shadow-[0_24px_80px_rgba(0,0,0,0.3)]"
+              >
+                <div className="flex items-start justify-between gap-3 border-b border-border px-6 pt-6 pb-4">
+                  <div>
+                    <h3 className="m-0 text-[18px] font-bold tracking-[-0.01em] text-fg">Ile zostawiasz na podatkach?</h3>
+                    <p className="m-0 mt-1 text-[13px] leading-[1.5] text-muted">Porównaj formy opodatkowania — większość lekarzy na JDG płaci więcej niż musi.</p>
+                  </div>
+                  <button
+                    onClick={() => setTaxOpen(false)}
+                    className="flex h-8 w-8 shrink-0 cursor-pointer items-center justify-center rounded-full border-none bg-transparent text-muted transition-colors duration-150 can-hover:hover:bg-secondary can-hover:hover:text-fg active:scale-[0.9]"
+                    aria-label="Zamknij"
+                  >
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6L6 18"/><path d="M6 6l12 12"/></svg>
+                  </button>
+                </div>
+
+                <div className="flex flex-col gap-5 overflow-y-auto px-6 py-5">
+                  <div className="flex flex-col gap-2">
+                    <div className="flex items-baseline justify-between">
+                      <span className="text-[12px] font-medium text-fg">Miesięczny przychód z JDG</span>
+                      <span className="text-[13px] font-bold text-accent tabular-nums">
+                        <SlidingNumber value={taxIncome} suffix=" zł" decimals={0} />
+                      </span>
+                    </div>
+                    <input
+                      type="range" min="5000" max="40000" step="500"
+                      value={taxIncome} onChange={e => setTaxIncome(Number(e.target.value))}
+                      className="block w-full cursor-pointer accent-[var(--color-accent)]"
+                    />
+                    <div className="flex justify-between text-[10px] text-muted">
+                      <span>5 tys.</span>
+                      <span>40 tys.</span>
+                    </div>
+                  </div>
+
+                  <div className="flex flex-col gap-2">
+                    <span className="text-[12px] font-medium text-fg">Twoja obecna forma</span>
+                    <div className="flex gap-1.5">
+                      {[
+                        { v: "ryczalt", label: "Ryczałt 14%" },
+                        { v: "liniowa", label: "Liniowa 19%" },
+                        { v: "skala",   label: "Skala" },
+                      ].map(f => {
+                        const active = taxForm === f.v;
+                        return (
+                          <button
+                            key={f.v}
+                            onClick={() => setTaxForm(f.v)}
+                            className={`flex-1 cursor-pointer rounded-lg border px-2.5 py-1.5 text-xs font-medium transition-colors duration-150 ${active ? "border-accent bg-accent-bg text-accent" : "border-border bg-bg text-muted can-hover:hover:border-accent can-hover:hover:text-fg"}`}
+                          >
+                            {f.label}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  {/* Bar chart — 3 formy side by side */}
+                  <div className="flex flex-col gap-3 rounded-2xl bg-secondary/60 p-4">
+                    <span className="text-[11px] font-semibold uppercase tracking-[0.04em] text-muted">Roczny podatek</span>
+                    <div className="flex flex-col gap-2.5">
+                      {[
+                        { id: "ryczalt", label: "Ryczałt 14%",     value: taxRyczalt },
+                        { id: "liniowa", label: "Liniowa 19%",     value: taxLiniowa },
+                        { id: "skala",   label: "Skala 12/32%",    value: taxSkala },
+                      ].map(row => {
+                        const isMin = row.value === taxMin;
+                        const pct = Math.max(8, (row.value / taxMaxValue) * 100);
+                        return (
+                          <div key={row.id} className="flex items-center gap-3">
+                            <span className={`w-[96px] shrink-0 text-[12px] ${isMin ? "font-semibold text-[#16a34a]" : "text-muted"}`}>
+                              {row.label}
+                            </span>
+                            <div className="relative flex-1 overflow-hidden rounded-md bg-bg h-8">
+                              <motion.div
+                                initial={false}
+                                animate={{ width: `${pct}%` }}
+                                transition={{ type: "spring", stiffness: 160, damping: 22 }}
+                                className={`h-full rounded-md ${isMin ? "bg-[linear-gradient(90deg,#16a34a_0%,#22c55e_100%)]" : "bg-fg/15"}`}
+                              />
+                              <span className={`absolute top-1/2 right-2.5 -translate-y-1/2 text-[12px] font-semibold tabular-nums ${isMin ? "text-white" : "text-fg"}`}>
+                                <SlidingNumber value={row.value} suffix=" zł" decimals={0} />
+                              </span>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  {taxSavings > 0 ? (
+                    <div className="flex items-start gap-2 rounded-lg bg-[#16a34a14] px-3 py-2.5 text-[12px] leading-[1.4] text-[#16a34a]">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className="mt-px shrink-0" aria-hidden><path d="M12 2v20"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+                      <span>
+                        Na <strong>{taxOptimalForm}</strong> zostawisz w kieszeni <strong className="tabular-nums">+<SlidingNumber value={taxSavings} suffix=" zł/rok" decimals={0} /></strong> — inFakt zmieni formę za Ciebie.
+                      </span>
+                    </div>
+                  ) : (
+                    <div className="flex items-start gap-2 rounded-lg bg-[#16a34a14] px-3 py-2.5 text-[12px] leading-[1.4] text-[#16a34a]">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className="mt-px shrink-0" aria-hidden><path d="M20 6L9 17l-5-5"/></svg>
+                      <span>Jesteś na optymalnej formie — inFakt pilnuje żeby tak zostało.</span>
+                    </div>
+                  )}
+                </div>
+
+                <div className="border-t border-border px-6 py-4">
+                  <button
+                    onClick={() => { setTaxOpen(false); openManageService && openManageService("infakt"); }}
+                    className={`${SERVICE_BTN_PRIMARY} w-full`}
+                  >
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                    Porozmawiaj z księgowym inFakt
+                  </button>
+                </div>
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>,
+        document.body
+      )}
+
+      {/* Modal: Lookup CEIDG (Wirtualny gabinet) */}
+      {createPortal(
+        <AnimatePresence>
+          {ceidgOpen && (
+            <motion.div
+              key="ceidg-backdrop"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.18 }}
+              onClick={() => setCeidgOpen(false)}
+              className="fixed inset-0 z-[100] flex items-center justify-center bg-black/45 p-4 backdrop-blur-sm"
+            >
+              <motion.div
+                key="ceidg-dialog"
+                initial={{ opacity: 0, scale: 0.96, y: 12 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.96, y: 8 }}
+                transition={{ duration: 0.22, ease: [0.23, 1, 0.32, 1] }}
+                onClick={e => e.stopPropagation()}
+                className="relative flex max-h-[92vh] w-full max-w-[520px] flex-col overflow-hidden rounded-2xl bg-bg shadow-[0_24px_80px_rgba(0,0,0,0.3)]"
+              >
+                <div className="flex items-start justify-between gap-3 border-b border-border px-6 pt-6 pb-4">
+                  <div>
+                    <h3 className="m-0 text-[18px] font-bold tracking-[-0.01em] text-fg">Sprawdź swój adres w CEIDG</h3>
+                    <p className="m-0 mt-1 text-[13px] leading-[1.5] text-muted">Rejestr działalności gospodarczej jest publiczny — zobacz co widzi każdy.</p>
+                  </div>
+                  <button
+                    onClick={() => setCeidgOpen(false)}
+                    className="flex h-8 w-8 shrink-0 cursor-pointer items-center justify-center rounded-full border-none bg-transparent text-muted transition-colors duration-150 can-hover:hover:bg-secondary can-hover:hover:text-fg active:scale-[0.9]"
+                    aria-label="Zamknij"
+                  >
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6L6 18"/><path d="M6 6l12 12"/></svg>
+                  </button>
+                </div>
+
+                <div className="flex flex-col gap-4 overflow-y-auto px-6 py-5">
+                  <div className="flex flex-col gap-2">
+                    <label className="text-[12px] font-medium text-fg">Imię i nazwisko lub NIP</label>
+                    <div className="flex gap-2">
+                      <input
+                        type="text"
+                        value={ceidgName}
+                        onChange={e => setCeidgName(e.target.value)}
+                        placeholder="Dr Anna Kowalska"
+                        disabled={ceidgScanning}
+                        className="flex-1 rounded-lg border border-border bg-bg px-3 py-2 text-[13px] text-fg outline-none transition-colors duration-150 focus:border-accent disabled:opacity-50"
+                      />
+                      <button
+                        onClick={runCeidgScan}
+                        disabled={ceidgScanning || ceidgName.trim().length < 3}
+                        className={`${SERVICE_BTN_DARK} shrink-0`}
+                      >
+                        {ceidgScanning ? (
+                          <>
+                            <svg className="animate-spin" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden><path d="M21 12a9 9 0 1 1-6.2-8.55"/></svg>
+                            Skanuję…
+                          </>
+                        ) : (
+                          <>
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+                            Sprawdź
+                          </>
+                        )}
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Scanning animation */}
+                  <AnimatePresence mode="wait">
+                    {ceidgScanning && (
+                      <motion.div
+                        key="scanning"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="flex flex-col gap-2 rounded-xl border border-border bg-secondary/40 p-4"
+                      >
+                        <div className="flex items-center gap-2 text-[12px] text-muted">
+                          <div className="relative h-1 flex-1 overflow-hidden rounded-full bg-border">
+                            <motion.div
+                              initial={{ x: "-100%" }}
+                              animate={{ x: "100%" }}
+                              transition={{ duration: 1.1, repeat: Infinity, ease: "linear" }}
+                              className="absolute inset-y-0 w-1/3 bg-accent"
+                            />
+                          </div>
+                        </div>
+                        <TextLoop interval={0.5} className="text-[12px] font-medium text-fg" transition={{ duration: 0.25 }}>
+                          <span>Łączę z rejestrem CEIDG…</span>
+                          <span>Wyszukuję po nazwisku…</span>
+                          <span>Sprawdzam publiczny adres…</span>
+                        </TextLoop>
+                      </motion.div>
+                    )}
+
+                    {ceidgResult && !ceidgScanning && (
+                      <motion.div
+                        key="result"
+                        initial={{ opacity: 0, y: 8 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.3, ease: [0.23, 1, 0.32, 1] }}
+                        className="flex flex-col gap-3 rounded-2xl border border-[#ef444466] bg-[#ef444408] p-5"
+                      >
+                        <div className="flex items-center gap-2">
+                          <div className="flex h-7 w-7 items-center justify-center rounded-full bg-[#ef4444] text-white">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v4"/><path d="M12 16h.01"/></svg>
+                          </div>
+                          <span className="text-[13px] font-bold text-[#ef4444]">Twój adres jest publiczny</span>
+                        </div>
+                        <div className="flex flex-col gap-1 rounded-lg bg-bg p-3">
+                          <span className="text-[10px] font-semibold uppercase tracking-[0.04em] text-muted">Widoczny adres rejestrowy</span>
+                          <span className="font-mono text-[13px] font-semibold text-fg">{ceidgResult.address}</span>
+                        </div>
+                        <div className="flex items-baseline justify-between text-[12px]">
+                          <span className="text-muted">Zapytań w 2026 r.</span>
+                          <span className="tabular-nums font-bold text-fg">
+                            <SlidingNumber value={ceidgResult.queries} suffix="" decimals={0} />
+                          </span>
+                        </div>
+                        <div className="flex flex-wrap gap-1.5 pt-1">
+                          {["Banki", "Kancelarie", "Komornicy", "Marketerzy", "Pacjenci", "Roszczeniowcy"].map(who => (
+                            <span key={who} className="inline-flex items-center rounded-full bg-bg px-2 py-0.5 text-[10px] font-medium text-muted">
+                              {who}
+                            </span>
+                          ))}
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+
+                  {!ceidgScanning && !ceidgResult && (
+                    <p className="m-0 text-[12px] leading-[1.5] text-muted">
+                      CEIDG to publiczny rejestr — każdy może wyszukać Twój adres domowy jeśli prowadzisz JDG z niego. Wirtualny gabinet podmienia ten adres na prestiżowy warszawski.
+                    </p>
+                  )}
+                </div>
+
+                <div className="border-t border-border px-6 py-4">
+                  <button
+                    onClick={() => { setCeidgOpen(false); openManageService && openManageService("wg"); }}
+                    className={`${SERVICE_BTN_PRIMARY} w-full`}
+                  >
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                    Ukryj adres — od 79 zł/mies.
+                  </button>
+                </div>
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>,
+        document.body
+      )}
+    </div>
+  );
+}
+
+// ─── SERVICES OVERVIEW — landing po kliknięciu w "Usługi" ──────────────────
+// Pokazuje pasy kafelków per kategoria z featured produktami. Klik w kafelek
+// przenosi do dedykowanego widoku kategorii (np. InsuranceDashView, PraktykaView).
+function ServicesOverview({ setServicesCategory }) {
+  const sectionHeading = "mb-4 text-[13px] font-semibold text-fg";
+  const cardBase =
+    "group relative flex cursor-pointer overflow-hidden rounded-2xl border-0 text-left transition-shadow duration-300 [transition-timing-function:cubic-bezier(0.23,1,0.32,1)] active:scale-[0.995] can-hover:hover:shadow-lg";
+  const ctaBase =
+    "mt-4 inline-flex h-10 w-full items-center justify-center gap-2 rounded-lg px-4 text-sm font-semibold transition-[background,transform] duration-200 [transition-timing-function:cubic-bezier(0.23,1,0.32,1)]";
+
+  return (
+    <div className="flex flex-col gap-8">
+      {/* ═══ PRAKTYKA LEKARSKA ═══ */}
+      <section>
+        <div className={sectionHeading}>Praktyka lekarska</div>
+        <div className="flex flex-col gap-4">
+          {/* Row 1: Wirtualny Gabinet (main) + Price card (sidekick) */}
+          <div className="flex flex-col gap-4 lg:h-[240px] lg:flex-row">
+            {/* Main: Wirtualny Gabinet */}
+            <button
+              type="button"
+              onClick={() => setServicesCategory && setServicesCategory("praktyka")}
+              className={`${cardBase} flex-1 justify-between bg-gradient-to-br from-[#f0fdf4]/50 via-[#f0fdf4] to-[#e6f9ee] p-0`}
+            >
+              <div className="pointer-events-none absolute -top-16 -right-16 z-0 h-48 w-48 rounded-full bg-[#95F9CE]/30 blur-3xl" aria-hidden />
+              <div className="pointer-events-none absolute -bottom-12 -left-12 z-0 h-36 w-36 rounded-full bg-[#95F9CE]/15 blur-3xl" aria-hidden />
+              <div className="absolute top-4 right-6 z-[2] opacity-60 transition-opacity can-hover:group-hover:opacity-100" aria-hidden>
+                <svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <rect width="40" height="40" rx="6.66667" fill="#95F9CE" />
+                  <path d="M20.5352 15.6895C21.2487 22.0719 24.0745 30.8334 34.1667 30.8334L34.1667 22.3528C34.1667 22.3528 20.4037 23.1693 20.4037 9.16671L19.6057 9.16671C19.5964 23.1693 5.83337 22.3528 5.83337 22.3528L5.83337 30.8334C15.9256 30.8334 18.742 22.0719 19.4649 15.6895L20.5352 15.6895Z" fill="#101010" />
+                </svg>
+              </div>
+              <div className="relative z-[5] flex w-full flex-col justify-between p-6 md:w-auto">
+                <div>
+                  <div className="mb-1 flex items-center gap-2 text-emerald-700">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4" aria-hidden>
+                      <path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/>
+                      <path d="m9 12 2 2 4-4"/>
+                    </svg>
+                    <span className="text-xs font-semibold uppercase tracking-wider">Wirtualny Gabinet</span>
+                  </div>
+                  <h3 className="mt-2 mb-1 text-xl font-bold leading-tight text-zinc-900 md:text-2xl">Zachowaj pełną prywatność</h3>
+                  <p className="max-w-[360px] text-sm leading-relaxed text-zinc-600">Chroń swoje dane osobowe. Zadbamy o Twój spokój i&nbsp;korespondencję.</p>
+                </div>
+                <span className={`${ctaBase} bg-[#95F9CE] text-black can-hover:group-hover:bg-[#95F9CE]/80`}>
+                  Sprawdź szczegóły
+                </span>
+              </div>
+            </button>
+
+            {/* Sidekick: Price card */}
+            <button
+              type="button"
+              onClick={() => setServicesCategory && setServicesCategory("praktyka")}
+              className={`${cardBase} min-w-[260px] flex-col justify-between bg-gradient-to-b from-[#95F9CE] to-[#6ee6a8] p-6 shadow-md can-hover:hover:shadow-xl lg:h-[240px]`}
+            >
+              <div>
+                <div className="mb-1 text-xs font-semibold uppercase tracking-wider text-zinc-700">Miesięczna subskrypcja</div>
+                <div className="mb-3 text-4xl font-extrabold text-zinc-900">
+                  29<span className="ml-1 text-xl font-semibold text-zinc-700">zł/mies.</span>
+                </div>
+                <p className="text-sm leading-relaxed text-zinc-800">Nasz adres.<br/>Twoja praktyka lekarska.</p>
+              </div>
+              <span className="inline-flex h-10 w-full items-center justify-center rounded-lg bg-zinc-800 px-4 text-sm font-semibold text-[#95F9CE] transition-[background,transform] duration-200 [transition-timing-function:cubic-bezier(0.23,1,0.32,1)] can-hover:group-hover:bg-zinc-900">
+                Subskrybuj
+              </span>
+            </button>
+          </div>
+
+          {/* Row 2: inFakt */}
+          <button
+            type="button"
+            onClick={() => setServicesCategory && setServicesCategory("praktyka")}
+            className={`${cardBase} w-full justify-between border border-[#1f88e4]/30 bg-gradient-to-br from-white via-[#1f88e4]/5 to-[#1f88e4]/15 p-0 lg:h-[240px]`}
+          >
+            <div className="pointer-events-none absolute -top-16 -right-16 z-0 h-48 w-48 rounded-full bg-[#1f88e4]/20 blur-3xl" aria-hidden />
+            <div className="relative z-[5] flex w-full flex-col justify-between p-6 md:w-auto">
+              <div>
+                <div className="mb-1 flex items-center gap-2 text-[#1f88e4]">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4" aria-hidden>
+                    <rect width="16" height="20" x="4" y="2" rx="2"/>
+                    <line x1="8" x2="16" y1="6" y2="6"/>
+                    <line x1="16" x2="16" y1="14" y2="18"/>
+                    <path d="M16 10h.01"/><path d="M12 10h.01"/><path d="M8 10h.01"/>
+                    <path d="M12 14h.01"/><path d="M8 14h.01"/>
+                    <path d="M12 18h.01"/><path d="M8 18h.01"/>
+                  </svg>
+                  <span className="text-xs font-semibold uppercase tracking-wider">inFakt</span>
+                </div>
+                <h3 className="mt-2 mb-1 text-xl font-bold leading-tight text-zinc-900 md:text-2xl">Zleć księgowość</h3>
+                <p className="max-w-[360px] text-sm leading-relaxed text-zinc-600">Księgowość dla IPL z rabatem 100&nbsp;zł dla członków Klubu Medyka.</p>
+              </div>
+              <span className={`${ctaBase} bg-[#1f88e4] text-white can-hover:group-hover:bg-[#1f88e4]/90`}>
+                Sprawdź szczegóły
+              </span>
+            </div>
+            <div className="relative z-[5] hidden flex-col items-end justify-center gap-5 p-6 md:flex">
+              <div className="flex flex-col items-end gap-4 pl-6">
+                <div className="text-right">
+                  <p className="text-3xl font-extrabold leading-none text-[#1f88e4]">179 zł</p>
+                  <p className="mt-0.5 text-sm font-medium text-zinc-500">miesięcznie</p>
+                </div>
+                <div className="flex flex-col items-end gap-2">
+                  <div className="flex items-center gap-1.5 text-zinc-600">
+                    <svg className="h-4 w-4 shrink-0 text-[#1f88e4]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                      <line x1="19" x2="5" y1="5" y2="19"/>
+                      <circle cx="6.5" cy="6.5" r="2.5"/>
+                      <circle cx="17.5" cy="17.5" r="2.5"/>
+                    </svg>
+                    <span className="text-sm font-medium">100 zł zniżki na pierwszą płatność</span>
+                  </div>
+                  <div className="flex items-center gap-1.5 text-zinc-600">
+                    <svg className="h-4 w-4 shrink-0 text-[#1f88e4]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                      <path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/>
+                      <path d="M14 2v4a2 2 0 0 0 2 2h4"/>
+                      <path d="M10 9H8"/><path d="M16 13H8"/><path d="M16 17H8"/>
+                    </svg>
+                    <span className="text-sm font-medium">Integracja z KSeF i aplikacja mobilna</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </button>
+        </div>
+      </section>
+
+      {/* ═══ UBEZPIECZENIA ═══ */}
+      <section>
+        <div className={sectionHeading}>Ubezpieczenia</div>
+        <button
+          type="button"
+          onClick={() => setServicesCategory && setServicesCategory("ubezpieczenia")}
+          className={`${cardBase} w-full justify-between border border-[#2E35FF]/30 bg-gradient-to-br from-white via-[#2E35FF]/5 to-[#2E35FF]/15 p-0 lg:h-[240px]`}
+        >
+          <div className="pointer-events-none absolute -top-16 -right-16 z-0 h-48 w-48 rounded-full bg-[#2E35FF]/20 blur-3xl" aria-hidden />
+          <div className="relative z-[5] flex w-full flex-col justify-between p-6 md:w-auto">
+            <div>
+              <div className="mb-1 flex items-center gap-2 text-[#2E35FF]">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4" aria-hidden>
+                  <path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/>
+                </svg>
+                <span className="text-xs font-semibold uppercase tracking-wider">Ubezpieczenia</span>
+              </div>
+              <h3 className="mt-2 mb-1 text-xl font-bold leading-tight text-zinc-900 md:text-2xl">Zabezpiecz swoją karierę</h3>
+              <p className="max-w-[360px] text-sm leading-relaxed text-zinc-600">OC lekarskie, utrata dochodu, NNW — kalkulator i skan obecnej polisy.</p>
+            </div>
+            <span className={`${ctaBase} bg-[#2E35FF] text-white can-hover:group-hover:bg-[#2E35FF]/90`}>
+              Sprawdź szczegóły
+            </span>
+          </div>
+          <div className="relative z-[5] hidden flex-col items-end justify-center gap-5 p-6 md:flex">
+            <div className="flex flex-col items-end gap-4 pl-6">
+              <div className="flex items-center gap-1.5 text-zinc-600">
+                <svg className="h-4 w-4 shrink-0 text-[#2E35FF]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                  <path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/>
+                  <path d="m9 12 2 2 4-4"/>
+                </svg>
+                <span className="text-sm font-medium">OC obowiązkowe lekarskie od 100 zł/rok</span>
+              </div>
+            </div>
+          </div>
+        </button>
+      </section>
+
+      {/* ═══ SPORT I AKTYWNOŚĆ ═══ */}
+      <section>
+        <div className={sectionHeading}>Sport i aktywność</div>
+        <button
+          type="button"
+          onClick={() => setServicesCategory && setServicesCategory("sport")}
+          className={`${cardBase} w-full justify-between border border-[#264095]/30 bg-gradient-to-br from-white via-[#264095]/5 to-[#264095]/15 p-0 lg:h-[240px]`}
+        >
+          <div className="pointer-events-none absolute -top-16 -right-16 z-0 h-48 w-48 rounded-full bg-[#264095]/20 blur-3xl" aria-hidden />
+          <div className="relative z-[5] flex w-full flex-col justify-between p-6 md:w-auto">
+            <div>
+              <div className="mb-1 flex items-center gap-2 text-[#264095]">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4" aria-hidden>
+                  <path d="M22 12h-2.48a2 2 0 0 0-1.93 1.46l-2.35 8.36a.25.25 0 0 1-.48 0L9.24 2.18a.25.25 0 0 0-.48 0l-2.35 8.36A2 2 0 0 1 4.49 12H2"/>
+                </svg>
+                <span className="text-xs font-semibold uppercase tracking-wider">Medicover Sport</span>
+              </div>
+              <h3 className="mt-2 mb-1 text-xl font-bold leading-tight text-zinc-900 md:text-2xl">Aktywność z Klubem Medyka</h3>
+              <p className="max-w-[360px] text-sm leading-relaxed text-zinc-600">Zyskaj dostęp do obiektów sportowych honorujących kartę Medicover.</p>
+            </div>
+            <span className={`${ctaBase} bg-[#264095] text-white can-hover:group-hover:bg-[#264095]/90`}>
+              Sprawdź szczegóły
+            </span>
+          </div>
+          <div className="relative z-[5] hidden flex-col items-end justify-center gap-5 p-6 md:flex">
+            <div className="flex flex-col items-end gap-4 pl-6">
+              <div className="text-right">
+                <p className="text-3xl font-extrabold leading-none text-[#264095]">od 89 zł</p>
+                <p className="mt-0.5 text-sm font-medium text-zinc-500">miesięcznie</p>
+              </div>
+              <div className="flex flex-col items-end gap-2">
+                <div className="flex items-center gap-1.5 text-zinc-600">
+                  <svg className="h-4 w-4 shrink-0 text-[#264095]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                    <path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0"/>
+                    <circle cx="12" cy="10" r="3"/>
+                  </svg>
+                  <span className="text-sm font-medium">ponad 6&nbsp;000 placówek</span>
+                </div>
+                <div className="flex items-center gap-1.5 text-zinc-600">
+                  <svg className="h-4 w-4 shrink-0 text-[#264095]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                    <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
+                    <path d="M16 3.128a4 4 0 0 1 0 7.744"/>
+                    <path d="M22 21v-2a4 4 0 0 0-3-3.87"/>
+                    <circle cx="9" cy="7" r="4"/>
+                  </svg>
+                  <span className="text-sm font-medium">Możliwość dopisania osoby&nbsp;towarzyszącej i dzieci</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </button>
+      </section>
     </div>
   );
 }
 
 function Services4View({ servicesCategory, setServicesCategory, purchasedServices, openManageService, setActive }) {
   const activeCategory = servicesCategory || DEFAULT_SERVICES_CATEGORY;
+  const isOverview = activeCategory === "overview";
   const activeCat = SERVICES_CATEGORIES.find(c => c.id === activeCategory) || SERVICES_CATEGORIES[0];
 
   const subnavTab = (cat) => {
@@ -5957,15 +6641,17 @@ function Services4View({ servicesCategory, setServicesCategory, purchasedService
       <div className="mb-1 flex flex-col gap-3">
         <div className="flex flex-wrap items-end justify-between gap-5">
           <div className="min-w-[260px] flex-1">
-            <h2 className="text-[20px] font-bold tracking-[-0.02em]">{activeCat.label}</h2>
-            <p className="mt-1 text-sm text-muted">{activeCat.desc}</p>
+            <h2 className="text-[20px] font-bold tracking-[-0.02em]">{isOverview ? "Usługi" : activeCat.label}</h2>
+            <p className="mt-1 text-sm text-muted">
+              {isOverview ? "Wirtualny gabinet, medicover sport a niedługo wiele więcej" : activeCat.desc}
+            </p>
           </div>
         </div>
         <div
           role="tablist"
-          className="inline-flex flex-wrap gap-1 self-center rounded-full bg-[color-mix(in_srgb,var(--color-fg)_5%,transparent)] p-1"
+          className="inline-flex flex-wrap gap-1 self-start rounded-full bg-[color-mix(in_srgb,var(--color-fg)_5%,transparent)] p-1"
         >
-          {SERVICES_CATEGORIES.map(subnavTab)}
+          {VISIBLE_SERVICES_CATEGORIES.map(subnavTab)}
         </div>
       </div>
 
@@ -5978,8 +6664,16 @@ function Services4View({ servicesCategory, setServicesCategory, purchasedService
           exit={{ opacity: 0, y: -8 }}
           transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
         >
-          {activeCategory === "ubezpieczenia" ? (
+          {isOverview ? (
+            <ServicesOverview setServicesCategory={setServicesCategory} />
+          ) : activeCategory === "ubezpieczenia" ? (
             <InsuranceDashView />
+          ) : activeCategory === "praktyka" ? (
+            <PraktykaView
+              purchasedServices={purchasedServices}
+              openManageService={openManageService}
+              setActive={setActive}
+            />
           ) : (
             <ServiceCategoryPlaceholder category={activeCat} />
           )}

@@ -289,6 +289,12 @@
   border-radius: 8px;
   font-size: 16px;
   flex-shrink: 0;
+  overflow: hidden;
+}
+.kreator-card__logo-img {
+  width: 75%;
+  height: 75%;
+  object-fit: contain;
 }
 .kreator-card.is-in-cart .kreator-card__icon {
   background: color-mix(in srgb, var(--color-bg) 15%, transparent);
@@ -480,6 +486,20 @@
   border-radius: 10px;
   font-size: 18px;
   flex-shrink: 0;
+  overflow: hidden;
+}
+.kcfg-row__logo-img {
+  width: 75%;
+  height: 75%;
+  object-fit: contain;
+}
+.kreator-checkout__logo-img {
+  width: 75%;
+  height: 75%;
+  object-fit: contain;
+}
+.kreator-checkout__icon {
+  overflow: hidden;
 }
 .kcfg-row__body { flex: 1; min-width: 0; }
 .kcfg-row__name {
