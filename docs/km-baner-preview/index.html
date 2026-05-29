@@ -70,15 +70,6 @@
       animation: bg-drift 24s ease-in-out infinite;
     }
 
-    .km-banner--v2 .km-banner__bg {
-      object-position: center 50%;
-    }
-    .km-banner--v2 .km-banner__overlay {
-      background:
-        linear-gradient(90deg, rgba(0, 0, 0, 0.5) 0%, rgba(0, 0, 0, 0.1) 30%, rgba(0, 0, 0, 0.1) 70%, rgba(0, 0, 0, 0.35) 100%),
-        linear-gradient(180deg, rgba(0, 0, 0, 0.05) 60%, rgba(0, 0, 0, 0.45) 100%);
-    }
-
     .km-banner--v3 .km-banner__bg {
       object-position: center 66%;
     }
@@ -104,6 +95,15 @@
       background:
         linear-gradient(90deg, rgba(0, 0, 0, 0.5) 0%, rgba(0, 0, 0, 0.12) 28%, rgba(0, 0, 0, 0.12) 72%, rgba(0, 0, 0, 0.35) 100%),
         linear-gradient(180deg, rgba(0, 0, 0, 0.05) 60%, rgba(0, 0, 0, 0.45) 100%);
+    }
+
+    .km-banner--v6 .km-banner__bg {
+      object-position: center 44%;
+    }
+    .km-banner--v6 .km-banner__overlay {
+      background:
+        linear-gradient(90deg, rgba(0, 0, 0, 0.55) 0%, rgba(0, 0, 0, 0.12) 28%, rgba(0, 0, 0, 0.12) 72%, rgba(0, 0, 0, 0.4) 100%),
+        linear-gradient(180deg, rgba(0, 0, 0, 0.05) 60%, rgba(0, 0, 0, 0.5) 100%);
     }
 
     /* Vignette + side darkening so white text stays legible */
@@ -459,14 +459,14 @@
     </button>
   </div>
 
-  <div class="km-variant-label">Wariant C · ręce (fioletowe tło)</div>
-  <div id="banner-b-mount"></div>
-
-  <div class="km-variant-label">Wariant D · lekarze w fartuchach (fioletowe tło)</div>
+  <div class="km-variant-label">Wariant C · lekarze w fartuchach (fioletowe tło)</div>
   <div id="banner-c-mount"></div>
 
-  <div class="km-variant-label">Wariant E · lekarze w windzie</div>
+  <div class="km-variant-label">Wariant D · lekarze w windzie</div>
   <div id="banner-d-mount"></div>
+
+  <div class="km-variant-label">Wariant E · kawa (fioletowe tło)</div>
+  <div id="banner-e-mount"></div>
 
   <div class="km-variant-label">Hover widget · pill z rotującymi ofertami</div>
   <div class="km-widget-stage">
@@ -486,9 +486,9 @@
 
       const variants = [
         { mountId: 'banner-zero-mount', cloneId: 'banner-zero', cls: 'km-banner--v5', nodeId: '20047:13368', bg: './assets/bg-photo-v5.jpg' },
-        { mountId: 'banner-b-mount',    cloneId: 'banner-b',    cls: 'km-banner--v2', nodeId: '20018:13562', bg: './assets/bg-photo-v2.jpg' },
         { mountId: 'banner-c-mount',    cloneId: 'banner-c',    cls: 'km-banner--v3', nodeId: '20018:13584', bg: './assets/bg-photo-v3.jpg' },
         { mountId: 'banner-d-mount',    cloneId: 'banner-d',    cls: 'km-banner--v4', nodeId: '20018:13573', bg: './assets/bg-photo-v4.jpg' },
+        { mountId: 'banner-e-mount',    cloneId: 'banner-e',    cls: 'km-banner--v6', nodeId: '20052:13359', bg: './assets/bg-photo-v6.jpg' },
       ];
 
       variants.forEach(v => {
