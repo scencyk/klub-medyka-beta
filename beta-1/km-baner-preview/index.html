@@ -1,0 +1,697 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>KM Baner — animacja preview</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <script src="https://unpkg.com/@tailwindcss/browser@4"></script>
+  <script crossorigin src="https://unpkg.com/react@18.3.1/umd/react.production.min.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.production.min.js"></script>
+  <script src="https://unpkg.com/@babel/standalone@7.24.7/babel.min.js"></script>
+  <style>
+    :root {
+      --km-lime: #ceff3e;
+      --km-cream: #f5f4ef;
+    }
+
+    html, body {
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      -webkit-font-smoothing: antialiased;
+      text-rendering: optimizeLegibility;
+    }
+
+    body {
+      background: #0e0e10;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 1.25rem;
+      padding: 3rem 2rem;
+      color: #ddd;
+    }
+
+    .km-variant-label {
+      width: 100%;
+      max-width: 1400px;
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: #888;
+      margin-top: 1.25rem;
+    }
+    .km-variant-label:first-child { margin-top: 0; }
+
+    /* ─── banner shell ───────────────────────────────────────────────────── */
+    .km-banner {
+      width: 100%;
+      max-width: 1400px;
+      aspect-ratio: 2424 / 400;
+      position: relative;
+      border-radius: clamp(20px, 2.5vw, 48px);
+      overflow: hidden;
+      isolation: isolate;
+      background: var(--km-cream);
+      box-shadow: 0 30px 80px -20px rgba(0, 0, 0, 0.6);
+    }
+
+    .km-banner__bg {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: center 28%;
+      pointer-events: none;
+      transform: scale(1.02);
+      animation: bg-drift 24s ease-in-out infinite;
+    }
+
+    .km-banner--v2 .km-banner__bg {
+      object-position: center 50%;
+    }
+    .km-banner--v2 .km-banner__overlay {
+      background:
+        linear-gradient(90deg, rgba(0, 0, 0, 0.5) 0%, rgba(0, 0, 0, 0.1) 30%, rgba(0, 0, 0, 0.1) 70%, rgba(0, 0, 0, 0.35) 100%),
+        linear-gradient(180deg, rgba(0, 0, 0, 0.05) 60%, rgba(0, 0, 0, 0.45) 100%);
+    }
+
+    .km-banner--v3 .km-banner__bg {
+      object-position: center 66%;
+    }
+    .km-banner--v3 .km-banner__overlay {
+      background:
+        linear-gradient(90deg, rgba(0, 0, 0, 0.55) 0%, rgba(0, 0, 0, 0.18) 28%, rgba(0, 0, 0, 0.18) 72%, rgba(0, 0, 0, 0.4) 100%),
+        linear-gradient(180deg, rgba(0, 0, 0, 0.08) 55%, rgba(0, 0, 0, 0.5) 100%);
+    }
+
+    .km-banner--v4 .km-banner__bg {
+      object-position: center 27%;
+    }
+    .km-banner--v4 .km-banner__overlay {
+      background:
+        linear-gradient(90deg, rgba(0, 0, 0, 0.55) 0%, rgba(0, 0, 0, 0.18) 28%, rgba(0, 0, 0, 0.18) 72%, rgba(0, 0, 0, 0.4) 100%),
+        linear-gradient(180deg, rgba(0, 0, 0, 0.1) 55%, rgba(0, 0, 0, 0.5) 100%);
+    }
+
+    .km-banner--v5 .km-banner__bg {
+      object-position: center 59%;
+    }
+    .km-banner--v5 .km-banner__overlay {
+      background:
+        linear-gradient(90deg, rgba(0, 0, 0, 0.5) 0%, rgba(0, 0, 0, 0.12) 28%, rgba(0, 0, 0, 0.12) 72%, rgba(0, 0, 0, 0.35) 100%),
+        linear-gradient(180deg, rgba(0, 0, 0, 0.05) 60%, rgba(0, 0, 0, 0.45) 100%);
+    }
+
+    /* Vignette + side darkening so white text stays legible */
+    .km-banner__overlay {
+      position: absolute;
+      inset: 0;
+      background:
+        linear-gradient(90deg, rgba(0, 0, 0, 0.55) 0%, rgba(0, 0, 0, 0.15) 30%, rgba(0, 0, 0, 0.15) 70%, rgba(0, 0, 0, 0.55) 100%),
+        linear-gradient(180deg, rgba(0, 0, 0, 0.05) 60%, rgba(0, 0, 0, 0.45) 100%);
+      pointer-events: none;
+    }
+
+    /* ─── close button ───────────────────────────────────────────────────── */
+    .km-close {
+      position: absolute;
+      top: 9.5%;
+      right: 2.06%;
+      width: clamp(24px, 2vw, 32px);
+      height: clamp(24px, 2vw, 32px);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0.7;
+      transition: opacity 0.18s ease, transform 0.18s ease;
+      background: none;
+      border: 0;
+      padding: 0;
+      cursor: pointer;
+      z-index: 5;
+    }
+    .km-close:hover { opacity: 1; transform: scale(1.08); }
+    .km-close img { width: 50%; height: 50%; display: block; }
+
+    /* ─── side groups ────────────────────────────────────────────────────── */
+    .km-side {
+      position: absolute;
+      display: flex;
+      align-items: center;
+      gap: clamp(8px, 0.86vw, 21px);
+      color: #fff;
+      white-space: nowrap;
+      z-index: 3;
+    }
+
+    .km-side__icon {
+      flex: 0 0 auto;
+      aspect-ratio: 1;
+    }
+
+    .km-side__title {
+      font-size: clamp(14px, 2.15vw, 31px);
+      line-height: 1.11;
+      letter-spacing: -0.01em;
+      margin: 0;
+    }
+    .km-side__title b { font-weight: 700; }
+
+    /* Both groups occupy the same slot — crossfade between them */
+    .km-side {
+      left: 6%;
+      top: 48%;
+      transform: translateY(-50%);
+      transform-origin: 0% 50%;
+    }
+
+    /* Each child animates separately so icon + title swap with a small offset */
+    .km-side__icon,
+    .km-side__title {
+      animation-duration: 7s;
+      animation-timing-function: cubic-bezier(0.65, 0.05, 0.36, 1);
+      animation-iteration-count: infinite;
+      will-change: transform, opacity;
+    }
+
+    /* Remedium */
+    .km-side--remedium .km-side__icon  {
+      width: clamp(20px, 2.51vw, 35px);
+      animation-name: side-out;
+      animation-delay: 0ms;
+    }
+    .km-side--remedium .km-side__title {
+      animation-name: side-out;
+      animation-delay: 150ms;
+    }
+
+    /* Klub */
+    .km-side--klub .km-side__icon {
+      width: clamp(19px, 2.38vw, 33px);
+      animation-name: side-in;
+      animation-delay: 0ms;
+    }
+    .km-side--klub .km-side__title {
+      animation-name: side-in;
+      animation-delay: 150ms;
+    }
+
+    /* ─── CTA pill ──────────────────────────────────────────────────────── */
+    .km-cta {
+      position: absolute;
+      right: 6%;
+      top: 48%;
+      transform: translateY(-50%);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: clamp(6px, 0.6vw, 9px);
+      padding: clamp(6px, 0.95vw, 13px) clamp(11px, 1.95vw, 27px);
+      border-radius: 999px;
+      background: var(--km-lime);
+      color: #000;
+      font-family: 'Inter', system-ui, sans-serif;
+      font-weight: 500;
+      font-size: clamp(9px, 1.25vw, 17px);
+      line-height: 1.4;
+      letter-spacing: -0.005em;
+      text-decoration: none;
+      white-space: nowrap;
+      box-shadow: 0 4px 14px -4px rgba(206, 255, 62, 0.45);
+      transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.2s ease, background 0.2s ease;
+      z-index: 5;
+    }
+    .km-cta__icon {
+      width: clamp(12px, 1.18vw, 17px);
+      height: clamp(12px, 1.18vw, 17px);
+      flex-shrink: 0;
+      transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    .km-cta:hover {
+      transform: translateY(-50%) scale(1.04);
+      box-shadow: 0 10px 28px -6px rgba(206, 255, 62, 0.65);
+      background: #d8ff5a;
+    }
+    .km-cta:hover .km-cta__icon {
+      transform: translate(2px, -2px);
+    }
+    .km-cta:active {
+      transform: translateY(-50%) scale(0.98);
+    }
+    .km-cta:focus-visible {
+      outline: 2px solid #fff;
+      outline-offset: 3px;
+    }
+
+    /* ─── bottom marquee ────────────────────────────────────────────────── */
+    .km-marquee {
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 7.5%;
+      overflow: hidden;
+      mask-image: linear-gradient(90deg, transparent 0, #000 4%, #000 96%, transparent 100%);
+      -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 4%, #000 96%, transparent 100%);
+      z-index: 4;
+    }
+
+    .km-marquee__track {
+      display: flex;
+      width: max-content;
+      gap: 0;
+      animation: marquee 55s linear infinite;
+      will-change: transform;
+    }
+
+    .km-marquee:hover .km-marquee__track { animation-play-state: paused; }
+
+    .km-marquee__group {
+      display: flex;
+      align-items: center;
+      flex-shrink: 0;
+      padding-right: 2.4em;
+      color: #fff;
+      font-size: clamp(12px, 0.98vw, 23.92px);
+      line-height: 1.11;
+    }
+
+    .km-marquee__group a {
+      color: inherit;
+      text-decoration: underline;
+      text-underline-offset: 2px;
+      text-decoration-thickness: 1px;
+      transition: color 0.18s ease;
+    }
+    .km-marquee__group a:hover { color: var(--km-lime); }
+
+    .km-marquee__sep {
+      display: inline-block;
+      width: 4px;
+      height: 4px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.55);
+      margin: 0 1em;
+      flex-shrink: 0;
+    }
+
+    /* ─── keyframes ──────────────────────────────────────────────────────── */
+    /* "up and disappear" — Remedium leaves upward, then Klub rises from below */
+    @keyframes side-out {
+      0%, 30%   { opacity: 1; transform: translateY(0); }
+      38%       { opacity: 0; transform: translateY(-16px); }
+      94%       { opacity: 0; transform: translateY(12px); }
+      100%      { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes side-in {
+      0%, 30%   { opacity: 0; transform: translateY(12px); }
+      38%       { opacity: 1; transform: translateY(0); }
+      94%       { opacity: 1; transform: translateY(0); }
+      100%      { opacity: 0; transform: translateY(-16px); }
+    }
+
+    @keyframes marquee {
+      from { transform: translateX(0); }
+      to   { transform: translateX(-50%); }
+    }
+
+    @keyframes bg-drift {
+      0%, 100% { transform: scale(1.02) translateX(0); }
+      50%      { transform: scale(1.05) translateX(-1.5%); }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .km-side__icon,
+      .km-side__title,
+      .km-banner__bg,
+      .km-marquee__track {
+        animation: none !important;
+      }
+      .km-side--remedium { opacity: 1; }
+      .km-side--klub { opacity: 0; }
+    }
+
+    /* ─── controls / inspector strip below banner ───────────────────────── */
+    .km-meta {
+      max-width: 1400px;
+      width: 100%;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1.25rem;
+      align-items: baseline;
+      justify-content: space-between;
+      font-size: 13px;
+      color: #888;
+    }
+    .km-meta strong { color: #eee; font-weight: 600; }
+    .km-meta code { background: #1c1c20; padding: 2px 6px; border-radius: 4px; font-size: 12px; }
+
+    /* ─── widget stage ─────────────────────────────────────────────────── */
+    .km-widget-stage {
+      width: 100%;
+      max-width: 1400px;
+      background: #fafafa;
+      border: 1px solid #e4e4e7;
+      border-radius: 18px;
+      padding: 56px 32px 88px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 32px;
+      position: relative;
+      overflow: visible;
+    }
+    .km-widget-stage__hint {
+      font-size: 12px;
+      color: #71717a;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+  <div class="km-variant-label">Wariant A · siedzący lekarz (samochód)</div>
+  <div id="banner-zero-mount"></div>
+
+  <div class="km-variant-label">Wariant B · pokój</div>
+  <div class="km-banner" id="banner-a" data-node-id="20013:13368" aria-label="Klub Medyka — promo banner">
+    <img class="km-banner__bg" src="./assets/bg-photo.jpg" alt="" />
+    <div class="km-banner__overlay"></div>
+
+    <!-- Remedium -->
+    <div class="km-side km-side--remedium">
+      <img class="km-side__icon" src="./assets/icon-remedium.svg" alt="" />
+      <p class="km-side__title">Jesteś na <b>Remedium</b>?</p>
+    </div>
+
+    <!-- Klub -->
+    <div class="km-side km-side--klub">
+      <img class="km-side__icon" src="./assets/icon-km.svg" alt="" />
+      <p class="km-side__title">Witaj w <b>Klubie.</b></p>
+    </div>
+
+    <!-- CTA -->
+    <a class="km-cta" href="https://remedium.md/klubmedyka" target="_blank" rel="noopener">
+      <span>Przejdź do Klubu Medyka</span>
+      <svg class="km-cta__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M7 7h10v10" />
+        <path d="M7 17 17 7" />
+      </svg>
+    </a>
+
+    <!-- Bottom marquee with offer links -->
+    <div class="km-marquee" aria-hidden="false">
+      <div class="km-marquee__track">
+        <!-- group 1 -->
+        <div class="km-marquee__group">
+          <span>Zleć księgowość&nbsp;</span>
+          <a href="https://remedium.md/klubmedyka/uslugi/praktyka-lekarska/infakt" target="_blank" rel="noopener">inFakt</a>
+          <span class="km-marquee__sep"></span>
+          <span>Zabezpiecz swoją karierę&nbsp;</span>
+          <a href="https://remedium.md/klubmedyka/uslugi/ubezpieczenie" target="_blank" rel="noopener">ubezpieczając się</a>
+          <span class="km-marquee__sep"></span>
+          <span>Bądź aktywny z pakietem&nbsp;</span>
+          <a href="https://remedium.md/klubmedyka/uslugi/sport-i-aktywnosc/medicover-sport" target="_blank" rel="noopener">Medicover Sport</a>
+          <span class="km-marquee__sep"></span>
+          <span>Zachowaj pełną prywatność z&nbsp;</span>
+          <a href="https://remedium.md/klubmedyka/subskrypcja/wirtualne-biuro" target="_blank" rel="noopener">Wirtualnym Gabinetem</a>
+          <span class="km-marquee__sep"></span>
+          <span>Kupuj&nbsp;</span>
+          <a href="https://remedium.md/klubmedyka/samochody" target="_blank" rel="noopener">samochody</a>
+          <span>&nbsp;w każdym budżecie</span>
+          <span class="km-marquee__sep"></span>
+          <span>Kup catering dietetyczny taniej z&nbsp;</span>
+          <a href="https://remedium.md/klubmedyka/znizka/catering-dietetyczny-maczfit" target="_blank" rel="noopener">Maczfit</a>
+          <span class="km-marquee__sep"></span>
+        </div>
+        <!-- group 2 (duplicate for seamless loop, aria-hidden) -->
+        <div class="km-marquee__group" aria-hidden="true">
+          <span>Zleć księgowość&nbsp;</span>
+          <a href="https://remedium.md/klubmedyka/uslugi/praktyka-lekarska/infakt" target="_blank" rel="noopener" tabindex="-1">inFakt</a>
+          <span class="km-marquee__sep"></span>
+          <span>Zabezpiecz swoją karierę&nbsp;</span>
+          <a href="https://remedium.md/klubmedyka/uslugi/ubezpieczenie" target="_blank" rel="noopener" tabindex="-1">ubezpieczając się</a>
+          <span class="km-marquee__sep"></span>
+          <span>Bądź aktywny z pakietem&nbsp;</span>
+          <a href="https://remedium.md/klubmedyka/uslugi/sport-i-aktywnosc/medicover-sport" target="_blank" rel="noopener" tabindex="-1">Medicover Sport</a>
+          <span class="km-marquee__sep"></span>
+          <span>Zachowaj pełną prywatność z&nbsp;</span>
+          <a href="https://remedium.md/klubmedyka/subskrypcja/wirtualne-biuro" target="_blank" rel="noopener" tabindex="-1">Wirtualnym Gabinetem</a>
+          <span class="km-marquee__sep"></span>
+          <span>Kupuj&nbsp;</span>
+          <a href="https://remedium.md/klubmedyka/samochody" target="_blank" rel="noopener" tabindex="-1">samochody</a>
+          <span>&nbsp;w każdym budżecie</span>
+          <span class="km-marquee__sep"></span>
+          <span>Kup catering dietetyczny taniej z&nbsp;</span>
+          <a href="https://remedium.md/klubmedyka/znizka/catering-dietetyczny-maczfit" target="_blank" rel="noopener" tabindex="-1">Maczfit</a>
+          <span class="km-marquee__sep"></span>
+        </div>
+      </div>
+    </div>
+
+    <button class="km-close" aria-label="Zamknij banner" type="button">
+      <img src="./assets/icon-x.svg" alt="" />
+    </button>
+  </div>
+
+  <div class="km-variant-label">Wariant C · ręce (fioletowe tło)</div>
+  <div id="banner-b-mount"></div>
+
+  <div class="km-variant-label">Wariant D · lekarze w fartuchach (fioletowe tło)</div>
+  <div id="banner-c-mount"></div>
+
+  <div class="km-variant-label">Wariant E · lekarze w windzie</div>
+  <div id="banner-d-mount"></div>
+
+  <div class="km-variant-label">Hover widget · pill z rotującymi ofertami</div>
+  <div class="km-widget-stage">
+    <div class="km-widget-stage__hint">Najedź na pill (albo poczekaj — sam rotuje teasery co ~1,6 s i pełne oferty co ~3,8 s).</div>
+    <div id="widget-mount"></div>
+  </div>
+
+  <div class="km-meta">
+    <span><strong>KM Baner</strong> — animacja preview · <code>node 20013:13368 / 20018:13562</code></span>
+    <span>Crossfade Remedium ↔ Klub · cykl 7 s · marquee 55 s · respektuje <code>prefers-reduced-motion</code></span>
+  </div>
+
+  <script>
+    (function () {
+      const source = document.getElementById('banner-a');
+      if (!source) return;
+
+      const variants = [
+        { mountId: 'banner-zero-mount', cloneId: 'banner-zero', cls: 'km-banner--v5', nodeId: '20047:13368', bg: './assets/bg-photo-v5.jpg' },
+        { mountId: 'banner-b-mount',    cloneId: 'banner-b',    cls: 'km-banner--v2', nodeId: '20018:13562', bg: './assets/bg-photo-v2.jpg' },
+        { mountId: 'banner-c-mount',    cloneId: 'banner-c',    cls: 'km-banner--v3', nodeId: '20018:13584', bg: './assets/bg-photo-v3.jpg' },
+        { mountId: 'banner-d-mount',    cloneId: 'banner-d',    cls: 'km-banner--v4', nodeId: '20018:13573', bg: './assets/bg-photo-v4.jpg' },
+      ];
+
+      variants.forEach(v => {
+        const mount = document.getElementById(v.mountId);
+        if (!mount) return;
+        const clone = source.cloneNode(true);
+        clone.id = v.cloneId;
+        clone.classList.add(v.cls);
+        clone.setAttribute('data-node-id', v.nodeId);
+        const bg = clone.querySelector('.km-banner__bg');
+        if (bg) bg.src = v.bg;
+        mount.replaceWith(clone);
+      });
+    })();
+  </script>
+
+  <!--
+    KlubMedykaHoverWidget — inline JSX dla file:// (Chrome blokuje external src dla file://).
+    Źródło prawdy: ../components/KlubMedykaHoverWidget.jsx (lokalna kopia: ./widget.jsx).
+    Przy zmianach edytuj plik źródłowy i zsyncuj do tego bloku.
+  -->
+  <script type="text/babel" data-presets="react">
+    const { useEffect, useLayoutEffect, useRef, useState } = React;
+
+    const OFFERS = [
+      { kind: 'oc',         brand: { label: 'ERGO\nHESTIA',         bg: '#FFFFFF', fg: '#DC2626', border: '#E4E4E7' }, title: 'OC zawodowe od 89 zł/mies.',         sub: 'Obowiązkowe — klasa ryzyka automatycznie z NIL.' },
+      { kind: 'event',      brand: { label: 'POZ\n26',              bg: '#CEFF3E', fg: '#0A0A0A', border: 'transparent' }, title: 'POZ Wiosna 26 — start za 2 dni',     sub: 'Bezpłatny dostęp do live & nagrań w pakiecie.' },
+      { kind: 'gabinet',    brand: { label: 'Wirtualny\ngabinet',   bg: '#2E35FF', fg: '#FFFFFF', border: 'transparent' }, title: 'Wirtualny gabinet — 29 zł/mies.',    sub: 'Recepty, konsultacje, druki — w jednym miejscu.' },
+      { kind: 'sport',      brand: { label: 'Medicover\nSport',     bg: '#0E7490', fg: '#FFFFFF', border: 'transparent' }, title: 'MedicoverSport w cenie pakietu',     sub: 'Dostęp do 4 500+ obiektów sportowych w Polsce.' },
+      { kind: 'ksiegowosc', brand: { label: 'inFakt',               bg: '#FB923C', fg: '#FFFFFF', border: 'transparent' }, title: 'inFakt — księgowość online dla lekarzy', sub: 'Faktury, rozliczenia, podatki — bez papierologii.' },
+      { kind: 'uod',        brand: { label: "Lloyd's\nLeadenhall",  bg: '#1E3A8A', fg: '#FBBF24', border: 'transparent' }, title: "UD Lloyd's/Leadenhall — OC premium", sub: 'Najwyższy poziom ochrony dla specjalistów.' },
+      { kind: 'tech',       brand: { label: 'iPhone\n17 Pro',       bg: '#0A0A0A', fg: '#FFFFFF', border: 'transparent' }, title: 'iPhone 17 Pro w racie 89 zł/mies.',  sub: 'Finansowanie LP × Klub Medyka — bez prowizji.' },
+      { kind: 'shop',       brand: { label: 'KM\nShop',             bg: '#10B981', fg: '#FFFFFF', border: 'transparent' }, title: 'Rabaty do −30% w klubmedyka.store',  sub: 'Sprzęt, gadżety, akcesoria — tylko dla członków.' },
+      { kind: 'finance',    brand: { label: 'Kredyt\nLP',           bg: '#E879F9', fg: '#FFFFFF', border: 'transparent' }, title: 'Kredyt LP — 8,9% RRSO',              sub: 'Ekskluzywna stawka dla lekarzy przez Klub Medyka.' },
+      { kind: 'offer',      brand: { label: 'Nowe\noferty',         bg: '#5B63FF', fg: '#FFFFFF', border: 'transparent' }, title: '3 nowe oferty w tym tygodniu',       sub: 'Sprawdź co dodali nasi partnerzy.' },
+    ];
+
+    const ROTATION_MS = 3800;
+    const HREF = 'https://klubmedyka.pl';
+    const TEASERS = ['2 nowe oferty','Już za 2 dni','OC od 89 zł','Gabinet 29 zł','MedicoverSport','Księgowość inFakt',"Lloyd's premium",'−30% rabaty','iPhone od 89 zł'];
+    const DEFAULT_LABEL = 'Klub Medyka';
+    const DEFAULT_DURATION_MS = 1600;
+    const TEASER_DURATION_MS = 2000;
+
+    const sygnetPath = "M11.5447 11.0658L16.8498 7.54338L14.6465 3.75L5.96875 9.24042L5.99014 9.27607C5.99014 9.27607 5.97588 9.27607 5.96875 9.27607V13.6613C8.89222 13.6613 11.2667 16.0928 11.2667 19.0733H15.6519C15.6519 15.7719 14.0261 12.8484 11.5447 11.0729V11.0658Z";
+
+    function Sygnet({ size = 16, color = '#0A0A0A' }) {
+      return (
+        <svg viewBox="0 0 23 23" width={size} height={size} aria-hidden="true">
+          <path d={sygnetPath} fill={color} />
+        </svg>
+      );
+    }
+
+    function KlubMedykaHoverWidget({ href = HREF, items = OFFERS, intervalMs = ROTATION_MS, teasers = TEASERS }) {
+      const [open, setOpen] = useState(false);
+      const [index, setIndex] = useState(0);
+      const [labelStep, setLabelStep] = useState(0);
+      const closeTimer = useRef(null);
+
+      useEffect(() => {
+        const t = window.setInterval(() => { setIndex(i => (i + 1) % items.length); }, intervalMs);
+        return () => window.clearInterval(t);
+      }, [items.length, intervalMs]);
+
+      useEffect(() => {
+        if (open) return undefined;
+        const showingDefault = labelStep % 2 === 0;
+        const duration = showingDefault ? DEFAULT_DURATION_MS : TEASER_DURATION_MS;
+        const t = window.setTimeout(() => setLabelStep(s => s + 1), duration);
+        return () => window.clearTimeout(t);
+      }, [labelStep, open]);
+
+      const showingDefault = open || labelStep % 2 === 0;
+      const teaserIdx = Math.floor(labelStep / 2) % teasers.length;
+      const pulseKey = `pulse-${labelStep}`;
+
+      const allLabels = [DEFAULT_LABEL, ...teasers];
+      const currentLabelIdx = showingDefault ? 0 : teaserIdx + 1;
+      const measureRefs = useRef([]);
+      const [widths, setWidths] = useState([]);
+
+      useLayoutEffect(() => {
+        const next = measureRefs.current.map(el => (el ? Math.ceil(el.getBoundingClientRect().width) : 0));
+        setWidths(next);
+      }, []);
+
+      const currentWidth = widths[currentLabelIdx];
+
+      const cancelClose = () => { if (closeTimer.current) { window.clearTimeout(closeTimer.current); closeTimer.current = null; } };
+      const scheduleClose = () => { cancelClose(); closeTimer.current = window.setTimeout(() => setOpen(false), 120); };
+
+      return (
+        <span
+          style={{ position: 'relative', display: 'inline-block', fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}
+          onMouseEnter={() => { cancelClose(); setOpen(true); }}
+          onMouseLeave={scheduleClose}
+          onFocus={() => { cancelClose(); setOpen(true); }}
+          onBlur={scheduleClose}
+        >
+          <a href={href} target="_blank" rel="noopener noreferrer"
+            style={{ position: 'relative', display: 'inline-flex', alignItems: 'center', gap: 8, height: 32, paddingLeft: 4, paddingRight: 12, borderRadius: 999, background: '#0A0A0A', color: '#FFFFFF', textDecoration: 'none', boxShadow: '0 1px 2px rgba(0,0,0,0.08), inset 0 0 0 1px rgba(255,255,255,0.04)', transition: 'transform 200ms ease, box-shadow 200ms ease', cursor: 'pointer', transform: open ? 'scale(1.02)' : 'scale(1)' }}>
+            <span style={{ position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center', width: 24, height: 24, flexShrink: 0, borderRadius: '50%', background: '#CEFF3E' }}>
+              <Sygnet size={16} color="#0A0A0A" />
+              {!showingDefault && (
+                <span key={pulseKey} aria-hidden="true" style={{ position: 'absolute', inset: 0, borderRadius: '50%', animation: 'km-pulse 900ms ease-out 1', pointerEvents: 'none' }} />
+              )}
+            </span>
+            <span style={{ position: 'relative', display: 'inline-block', height: 14, overflow: 'hidden', width: currentWidth ? `${currentWidth}px` : 'auto', transition: 'width 320ms cubic-bezier(0.22, 1, 0.36, 1)' }}>
+              {allLabels.map((label, i) => {
+                const isActive = i === currentLabelIdx;
+                return (
+                  <span key={`lbl-${i}`} ref={el => { measureRefs.current[i] = el; }} aria-hidden={isActive ? 'false' : 'true'}
+                    style={{ position: 'absolute', left: 0, top: 0, whiteSpace: 'nowrap', fontSize: 13, fontWeight: 500, lineHeight: 1, color: i === 0 ? '#FFFFFF' : '#CEFF3E', opacity: isActive ? 1 : 0, transform: `translateY(${isActive ? 0 : 8}px)`, transition: 'opacity 280ms cubic-bezier(0.22, 1, 0.36, 1), transform 280ms cubic-bezier(0.22, 1, 0.36, 1)', pointerEvents: isActive ? 'auto' : 'none' }}>
+                    {label}
+                  </span>
+                );
+              })}
+            </span>
+            <span style={{ display: 'flex', alignItems: 'center', color: 'rgba(255,255,255,0.7)', marginLeft: 2 }}>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <line x1="7" y1="17" x2="17" y2="7" />
+                <polyline points="7 7 17 7 17 17" />
+              </svg>
+            </span>
+          </a>
+
+          <div aria-hidden={open ? 'false' : 'true'}
+            style={{ position: 'absolute', top: 'calc(100% + 10px)', right: 0, width: 360, opacity: open ? 1 : 0, transform: open ? 'translateY(0)' : 'translateY(-6px)', pointerEvents: open ? 'auto' : 'none', transition: 'opacity 200ms cubic-bezier(0.22, 1, 0.36, 1), transform 200ms cubic-bezier(0.22, 1, 0.36, 1)', zIndex: 50 }}>
+            <span aria-hidden="true" style={{ position: 'absolute', top: -6, right: 16, width: 12, height: 12, background: '#FFFFFF', transform: 'rotate(45deg)', border: '1px solid #E4E4E7', borderRight: 'none', borderBottom: 'none', borderTopLeftRadius: 2 }} />
+
+            <div style={{ position: 'relative', background: '#FFFFFF', borderRadius: 18, border: '1px solid #E4E4E7', boxShadow: '0 20px 40px -10px rgba(0,0,0,0.12), 0 8px 16px -6px rgba(0,0,0,0.06)', padding: '14px 14px 10px', overflow: 'hidden' }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 22, height: 22, borderRadius: '50%', background: '#0A0A0A' }}>
+                    <Sygnet size={14} color="#CEFF3E" />
+                  </span>
+                  <span style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', color: '#52525B' }}>
+                    W klubie możesz mieć
+                  </span>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <span style={{ width: 28, height: 4, borderRadius: 999, background: '#0A0A0A', display: 'inline-block' }} />
+                  <span style={{ width: 4, height: 4, borderRadius: '50%', background: '#D4D4D8', display: 'inline-block' }} />
+                  <span style={{ display: 'inline-flex', width: 14, height: 14, alignItems: 'center', justifyContent: 'center', color: '#71717A' }}>
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                      <line x1="5" y1="12" x2="19" y2="12"/>
+                    </svg>
+                  </span>
+                </div>
+              </div>
+
+              <div style={{ position: 'relative', minHeight: 64 }}>
+                {items.map((item, i) => {
+                  const isActive = i === index;
+                  return (
+                    <div key={item.kind} aria-hidden={isActive ? 'false' : 'true'}
+                      style={{ position: isActive ? 'relative' : 'absolute', inset: isActive ? 'auto' : 0, display: 'flex', gap: 12, alignItems: 'flex-start', opacity: isActive ? 1 : 0, transform: `translateY(${isActive ? 0 : 6}px)`, transition: 'opacity 280ms cubic-bezier(0.22, 1, 0.36, 1), transform 280ms cubic-bezier(0.22, 1, 0.36, 1)', pointerEvents: isActive ? 'auto' : 'none' }}>
+                      <div style={{ flexShrink: 0, width: 56, height: 56, borderRadius: 12, background: item.brand.bg, color: item.brand.fg, border: `1px solid ${item.brand.border}`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, fontWeight: 700, lineHeight: 1.15, textAlign: 'center', whiteSpace: 'pre-line', letterSpacing: '0.02em' }}>
+                        {item.brand.label}
+                      </div>
+                      <div style={{ minWidth: 0, flex: 1, paddingTop: 2 }}>
+                        <div style={{ fontSize: 15, fontWeight: 700, lineHeight: 1.25, color: '#0A0A0A' }}>{item.title}</div>
+                        <div style={{ fontSize: 13, fontWeight: 400, lineHeight: 1.4, color: '#52525B', marginTop: 4 }}>{item.sub}</div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 10, paddingTop: 10, borderTop: '1px solid #F4F4F5' }}>
+                <div style={{ display: 'flex', gap: 4 }}>
+                  {items.map((_, i) => (
+                    <span key={i} style={{ width: i === index ? 14 : 4, height: 4, borderRadius: 999, background: i === index ? '#0A0A0A' : '#E4E4E7', transition: 'width 240ms ease, background 240ms ease' }} />
+                  ))}
+                </div>
+                <a href={href} target="_blank" rel="noopener noreferrer"
+                  style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 12, fontWeight: 600, color: '#0A0A0A', textDecoration: 'none' }}>
+                  Zobacz ofertę
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+                    <line x1="5" y1="12" x2="19" y2="12"/>
+                    <polyline points="12 5 19 12 12 19"/>
+                  </svg>
+                </a>
+              </div>
+            </div>
+          </div>
+        </span>
+      );
+    }
+
+    const widgetMount = document.getElementById('widget-mount');
+    if (widgetMount) {
+      ReactDOM.createRoot(widgetMount).render(<KlubMedykaHoverWidget />);
+    }
+  </script>
+
+  <style>
+    @keyframes km-pulse {
+      0%   { box-shadow: 0 0 0 0 rgba(206,255,62,0.55); }
+      70%  { box-shadow: 0 0 0 10px rgba(206,255,62,0); }
+      100% { box-shadow: 0 0 0 0 rgba(206,255,62,0); }
+    }
+  </style>
+</body>
+</html>
