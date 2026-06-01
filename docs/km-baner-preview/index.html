@@ -106,6 +106,15 @@
         linear-gradient(180deg, rgba(0, 0, 0, 0.05) 60%, rgba(0, 0, 0, 0.5) 100%);
     }
 
+    .km-banner--v7 .km-banner__bg {
+      object-position: left 47%;
+    }
+    .km-banner--v7 .km-banner__overlay {
+      background:
+        linear-gradient(90deg, rgba(0, 0, 0, 0.45) 0%, rgba(0, 0, 0, 0.1) 28%, rgba(0, 0, 0, 0.1) 72%, rgba(0, 0, 0, 0.4) 100%),
+        linear-gradient(180deg, rgba(0, 0, 0, 0.05) 60%, rgba(0, 0, 0, 0.5) 100%);
+    }
+
     /* Vignette + side darkening so white text stays legible */
     .km-banner__overlay {
       position: absolute;
@@ -273,7 +282,6 @@
       display: flex;
       align-items: center;
       flex-shrink: 0;
-      padding-right: 2.4em;
       color: #fff;
       font-size: clamp(12px, 0.98vw, 23.92px);
       line-height: 1.11;
@@ -375,10 +383,13 @@
   </style>
 </head>
 <body>
-  <div class="km-variant-label">Wariant A · siedzący lekarz (samochód)</div>
+  <div class="km-variant-label">Wariant A · kawa (fioletowe tło)</div>
+  <div id="banner-top-mount"></div>
+
+  <div class="km-variant-label">Wariant B · siedzący lekarz (samochód)</div>
   <div id="banner-zero-mount"></div>
 
-  <div class="km-variant-label">Wariant B · pokój</div>
+  <div class="km-variant-label">Wariant C · pokój</div>
   <div class="km-banner" id="banner-a" data-node-id="20013:13368" aria-label="Klub Medyka — promo banner">
     <img class="km-banner__bg" src="./assets/bg-photo.jpg" alt="" />
     <div class="km-banner__overlay"></div>
@@ -459,14 +470,8 @@
     </button>
   </div>
 
-  <div class="km-variant-label">Wariant C · lekarze w fartuchach (fioletowe tło)</div>
+  <div class="km-variant-label">Wariant D · lekarze w fartuchach (fioletowe tło)</div>
   <div id="banner-c-mount"></div>
-
-  <div class="km-variant-label">Wariant D · lekarze w windzie</div>
-  <div id="banner-d-mount"></div>
-
-  <div class="km-variant-label">Wariant E · kawa (fioletowe tło)</div>
-  <div id="banner-e-mount"></div>
 
   <div class="km-variant-label">Hover widget · pill z rotującymi ofertami</div>
   <div class="km-widget-stage">
@@ -485,10 +490,9 @@
       if (!source) return;
 
       const variants = [
+        { mountId: 'banner-top-mount',  cloneId: 'banner-top',  cls: 'km-banner--v7', nodeId: '20056:13379', bg: './assets/bg-photo-v7.jpg' },
         { mountId: 'banner-zero-mount', cloneId: 'banner-zero', cls: 'km-banner--v5', nodeId: '20047:13368', bg: './assets/bg-photo-v5.jpg' },
         { mountId: 'banner-c-mount',    cloneId: 'banner-c',    cls: 'km-banner--v3', nodeId: '20018:13584', bg: './assets/bg-photo-v3.jpg' },
-        { mountId: 'banner-d-mount',    cloneId: 'banner-d',    cls: 'km-banner--v4', nodeId: '20018:13573', bg: './assets/bg-photo-v4.jpg' },
-        { mountId: 'banner-e-mount',    cloneId: 'banner-e',    cls: 'km-banner--v6', nodeId: '20052:13359', bg: './assets/bg-photo-v6.jpg' },
       ];
 
       variants.forEach(v => {
